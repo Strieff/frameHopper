@@ -1,0 +1,88 @@
+package com.example.engineer.Service;
+
+import com.example.engineer.Model.Frame;
+import com.example.engineer.Model.Tag;
+import com.example.engineer.Model.Video;
+import com.example.engineer.Repository.FrameRepository;
+import com.example.engineer.Repository.TagRepository;
+import com.example.engineer.Repository.VideoRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.IntStream;
+
+@Service
+@RequiredArgsConstructor
+public class TagService {
+    private final TagRepository tagRepository;
+    private final VideoRepository videoRepository;
+    private final FrameRepository frameRepository;
+
+    public List<Tag> getTagsOnFrame(Integer frame, String videoName) {
+        Video video = videoRepository.findByName(videoName).stream().findFirst().orElse(null);
+
+        return tagRepository.findAllByFrameNumberAndVideo(frame,video);
+    }
+
+    public List<Tag> getAllTags(){
+        return tagRepository.findAll();
+    }
+
+    public Tag getByName(String name){
+        return tagRepository.findByName(name).stream().findFirst().orElse(null);
+    }
+
+    public Tag createTag(String name,Double value,String description){
+        return tagRepository.save(Tag.builder()
+                        .name(name)
+                        .value(value)
+                        .description(description)
+                        .build());
+    }
+
+    public Tag editTag(Integer id,String name,Double value,String description){
+        return tagRepository.save(Tag.builder()
+                        .id(id)
+                        .name(name)
+                        .value(value)
+                        .description(description)
+                        .build());
+    }
+
+    public void saveTestTags(){
+        for (int i = 0; i < 5; i++) {
+            tagRepository.save(Tag.builder()
+                            .name("test "+i)
+                            .deleted(false)
+                            .description("LOREM IPSUM")
+                            .value(0.5+i)
+                            .build());
+        }
+    }
+
+    @Transactional
+    public void hideTag(Integer id) {
+        tagRepository.hideTag(id);
+    }
+
+    @Transactional
+    public void deleteTag(Tag tag) {
+        //remove tag from all the associated frames
+        for(Frame f : frameRepository.getAllFramesWithTag(tag)){
+            f.getTags().remove(IntStream.range(0,f.getTags().size())
+                    .filter(i -> f.getTags().get(i).getId().equals(tag.getId()))
+                    .findFirst()
+                    .orElse(-1));
+
+            frameRepository.save(f);
+        }
+
+        //clear the list of
+        tag.setFrames(null);
+
+        //delete tag
+        tagRepository.delete(tag);
+    }
+}
