@@ -1,5 +1,7 @@
 package com.example.engineer.View;
 
+import com.example.engineer.FrameProcessor.FrameCache;
+import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.UserSettings;
@@ -61,6 +63,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private File videoFile;
     private int currentFrameIndex;
     private int maxFrameIndex;
+    private int videoHeight;
+    private int videoWidth;
+    private double videoFramerate;
+
     private Map<Integer,List<Tag>> tagsOnFramesOnVideo;
 
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
@@ -137,19 +143,18 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                         java.util.List<File> files = (java.util.List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
                         if (!files.isEmpty()) {
                             videoFile = files.get(0);
-                            currentFrameIndex = 0;
+
+                            setUpVideoData(videoFile);
+
+                            infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
+                            imageLabel.requestFocusInWindow();
+                            videoService.createVideoIfNotExists(videoFile.getName());
+
+                            ctx.getBean(FrameCache.class).setFileName(videoFile);
+                            ctx.getBean(FrameCache.class).firstLoad(videoFile);
                             displayCurrentFrame();
-                            try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile)) {
-                                grabber.start();
-                                maxFrameIndex = grabber.getLengthInFrames();
-                                grabber.stop();
-                                infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + (maxFrameIndex+1) + " | Frame Rate: " + getFrameRate() + " fps");
-                                imageLabel.requestFocusInWindow();
-                                videoService.createVideoIfNotExists(videoFile.getName());
-                                createTagMapForFile();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+
+                            createTagMapForFile();
                         }
                     }
                 } catch (Exception ex) {
@@ -161,6 +166,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         setVisible(true);
     }
 
+    //initialize buttons
     public void setUpButtonViews(){
         //initialize tagManagerView
         SwingUtilities.invokeLater(() -> {
@@ -179,6 +185,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
     }
 
+    //jump to given frame
     private void jumpToSpecifiedFrame() {
         try {
             int frameToJump = Integer.parseInt(jumpTextField.getText());
@@ -190,20 +197,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
-    public void moveRight() {
-        if (currentFrameIndex != maxFrameIndex - 1) {
-            currentFrameIndex++;
-            displayCurrentFrame();
-        }
-    }
-
-    public void moveLeft() {
-        if (currentFrameIndex >= 1) {
-            currentFrameIndex--;
-            displayCurrentFrame();
-        }
-    }
-
+    //jump to given frame
     public void jumpFrame(int frame) throws Exception {
         if (frame < 0 || frame > maxFrameIndex) {
             throw new Exception("Cannot display frame: " + frame + ". Frame number does not exist.");
@@ -213,44 +207,52 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
-    private void displayCurrentFrame() {
-        try (
-                FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile);
-                Java2DFrameConverter converter = new Java2DFrameConverter()
-        ) {
-            // Decode the current frame of the video
-            grabber.start();
-            grabber.setFrameNumber(currentFrameIndex);
-            BufferedImage bufferedImage = converter.convert(grabber.grabImage());
-
-            int originalWidth = grabber.getImageWidth();
-            int originalHeight = grabber.getImageHeight();
-
-            // Get the dimensions of the JFrame
-            int frameWidth = imageLabel.getWidth() - 10;
-            int frameHeight = imageLabel.getHeight() - 10;
-
-            // Calculate scaling factors to maintain proportionality
-            double scaleWidth = (double) frameWidth / originalWidth;
-            double scaleHeight = (double) frameHeight / originalHeight;
-            double scaleFactor = Math.min(scaleWidth, scaleHeight);
-
-            // Calculate the target dimensions
-            int targetWidth = (int) (scaleFactor * originalWidth);
-            int targetHeight = (int) (scaleFactor * originalHeight);
-
-            // Scale the image to fit inside the JLabel
-            BufferedImage scaledImage = scaleImage(bufferedImage, targetWidth, targetHeight);
-
-            // Display the scaled image in the JLabel
-            imageLabel.setIcon(new ImageIcon(scaledImage));
-
-            infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + (maxFrameIndex+1) + " | Frame Rate: " + getFrameRate() + " fps");
-        } catch (Exception ex) {
-            ex.printStackTrace();
+    //move to the frame on the right
+    public void moveRight() {
+        if (currentFrameIndex != maxFrameIndex - 1) {
+            ctx.getBean(FrameCache.class).move(currentFrameIndex,currentFrameIndex+1);
+            currentFrameIndex++;
+            displayCurrentFrame();
         }
     }
 
+    //move to the frame on the left
+    public void moveLeft() {
+        if (currentFrameIndex >= 1) {
+            ctx.getBean(FrameCache.class).move(currentFrameIndex,currentFrameIndex-1);
+            currentFrameIndex--;
+            displayCurrentFrame();
+        }
+    }
+
+    //display frame
+    private void displayCurrentFrame() {
+        // Decode the current frame of the video from cache
+        BufferedImage bufferedImage = ctx.getBean(FrameCache.class).getCurrentFrame(currentFrameIndex);
+
+        // Get the dimensions of the JFrame
+        int frameWidth = imageLabel.getWidth() - 10;
+        int frameHeight = imageLabel.getHeight() - 10;
+
+        // Calculate scaling factors to maintain proportionality
+        double scaleWidth = (double) frameWidth / videoWidth;
+        double scaleHeight = (double) frameHeight / videoHeight;
+        double scaleFactor = Math.min(scaleWidth, scaleHeight);
+
+        // Calculate the target dimensions
+        int targetWidth = (int) (scaleFactor * videoWidth);
+        int targetHeight = (int) (scaleFactor * videoHeight);
+
+        // Scale the image to fit inside the JLabel
+        BufferedImage scaledImage = scaleImage(bufferedImage, targetWidth, targetHeight);
+
+        // Display the scaled image in the JLabel
+        imageLabel.setIcon(new ImageIcon(scaledImage));
+
+        infoLabel.setText("Current Frame: " + (currentFrameIndex + 1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
+    }
+
+    //scale image to window size
     private BufferedImage scaleImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
         BufferedImage scaledImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = scaledImage.createGraphics();
@@ -259,16 +261,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         return scaledImage;
     }
 
-    private double getFrameRate() {
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile)) {
-            grabber.start();
-            return grabber.getFrameRate();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0.0;
-        }
-    }
-
+    //create buttons
     private JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout());
 
@@ -298,6 +291,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         return buttonPanel;
     }
 
+    //add icons to button
     private void setButtonIcon(JButton button,String icon){
         URL iconURL = getClass().getResource("/icons/"+icon);
         if(iconURL != null) {
@@ -307,6 +301,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
+    //create local representation of data in the database
     private void createTagMapForFile(){
         tagsOnFramesOnVideo = new HashMap<>();
 
@@ -316,6 +311,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             tagsOnFramesOnVideo.put(f.getFrameNumber(),f.getTags());
     }
 
+    //get all tags of given frame
     public List<Tag> getTagsOfFrame(int frameNo){
         return tagsOnFramesOnVideo.get(frameNo) != null ?
                 tagsOnFramesOnVideo.get(frameNo) :
@@ -333,6 +329,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         return null;
     }
 
+    //remove tag from frame
     public void removeTagFromFrame(Tag tag,int frameNo){
         if(tagsOnFramesOnVideo.get(frameNo)==null)
             return;
@@ -349,16 +346,38 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         tagsOnFramesOnVideo.get(frameNo).remove(forRemoval);
     }
 
+    //remove tag from all frames
     public void removeTagFromAllFrames(Tag tag){
         if(!tagsOnFramesOnVideo.isEmpty())
             for(Integer frameNo : tagsOnFramesOnVideo.keySet())
                 removeTagFromFrame(tag,frameNo);
     }
 
+    //set tags on given frame in local data representation
     public void setCurrentTags(List<Tag> tags,int frameNo){
         tagsOnFramesOnVideo.put(frameNo,tags);
     }
 
+    //loads all necessary information about the video
+    private void setUpVideoData(File videoFile){
+        try(FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile)){
+            currentFrameIndex = 0;
+
+            grabber.start();
+
+            maxFrameIndex = grabber.getLengthInFrames();
+            videoHeight = grabber.getImageHeight();
+            videoWidth = grabber.getImageWidth();
+            videoFramerate = grabber.getFrameRate();
+
+            grabber.stop();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    //move left class
     private static class MoveLeftAction extends AbstractAction {
         FrameHopperView app;
 
@@ -372,6 +391,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
+    //move right class
     private static class MoveRightAction extends AbstractAction {
         FrameHopperView app;
 
@@ -385,6 +405,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
+    //get index of tag in global list
     public synchronized static int findTagIndexById(Integer id){
         for (int i = 0; i < TAG_LIST.size(); i++)
             if(TAG_LIST.get(i).getId().intValue()==id.intValue())
@@ -392,6 +413,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         return -1;
     }
+
+    //get amount of not hidden tags
     public synchronized static int getNumberOfVisibleTags(){
         int i = 0;
 
@@ -400,5 +423,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 i++;
 
         return i;
+    }
+
+    @Override
+    public void dispose(){
+        ctx.getBean(FrameProcessorClient.class).send("-1;KEEP",false);
+        super.dispose();
     }
 }

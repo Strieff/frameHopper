@@ -1,5 +1,8 @@
 package com.example.engineer;
 
+import com.example.engineer.FrameProcessor.FrameCache;
+import com.example.engineer.FrameProcessor.FrameProcessorClient;
+import com.example.engineer.FrameProcessor.FrameProcessorHandler;
 import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.View.FrameHopperView;
@@ -16,6 +19,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = {"com.example.engineer.Model"})
 public class EngineerApplication {
     public static void main(String[] args) {
+        //FrameProcessorHandler.runServer();
 
         new Thread(() -> {
             LoadingView loadingView = new LoadingView("LOADING...");
@@ -29,8 +33,14 @@ public class EngineerApplication {
             loadingView.dispose();
         }).start();
 
+
+
         SpringApplicationBuilder builder = new SpringApplicationBuilder(EngineerApplication.class).headless(false);
         ConfigurableApplicationContext context = builder.run(args);
+
+        context.getBean(FrameProcessorClient.class).connect();
+        //context.getBean(FrameProcessorClient.class).send("0;xd");
+        //context.getBean(FrameProcessorClient.class).send("-1;xd");
 
         {
             UserSettings us = context.getBean(SettingsService.class).getUserSettings();
