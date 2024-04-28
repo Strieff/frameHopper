@@ -84,11 +84,8 @@ def save_first_hundred_frames():
     cap.release()    
 
     # Create a directory to save frames
-    file_path = os.path.abspath(os.path.dirname(__file__))
     file_name = Path(video_path).name[:-2]
-
-    file_path = os.path.abspath(os.path.join(file_path, os.pardir))
-    file_path = os.path.join(file_path, "cache",file_name)
+    file_path = os.path.join(cache_path,file_name)
     os.makedirs(file_path, exist_ok=True)
 
     # Save the first hundred frames as JPEG images
@@ -117,11 +114,8 @@ def load_batch(hundred):
         return
 
     # Create a directory to save frames
-    file_path = os.path.abspath(os.path.dirname(__file__))
     file_name = Path(video_path).name[:-2]
-
-    file_path = os.path.abspath(os.path.join(file_path, os.pardir))
-    file_path = os.path.join(file_path, "cache",file_name)
+    file_path = os.path.join(cache_path,file_name)
     os.makedirs(file_path, exist_ok=True)
 
     # Calculate the end index for the batch
