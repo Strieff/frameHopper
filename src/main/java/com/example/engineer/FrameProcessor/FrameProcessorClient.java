@@ -35,8 +35,6 @@ public class FrameProcessorClient extends Thread{
     }
 
     public String send(String request,boolean wait){
-        commandQueue.offer(request);
-
         if(wait)
             return sendAndWait(request);
         else
@@ -88,8 +86,6 @@ public class FrameProcessorClient extends Thread{
 
                         responseQueue.offer(in.readLine());
                     }
-
-                    //Thread.sleep(commandQueue.size()>2?0:50);
                 }
             }catch (InterruptedException e){
                 Thread.currentThread().interrupt();

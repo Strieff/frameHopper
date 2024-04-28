@@ -28,6 +28,8 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
@@ -164,6 +166,13 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
 
         setVisible(true);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                ctx.getBean(FrameProcessorClient.class).send("-1;0;0",false);
+            }
+        });
     }
 
     //initialize buttons
@@ -193,7 +202,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid frame number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            //JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
@@ -202,6 +212,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         if (frame < 0 || frame > maxFrameIndex) {
             throw new Exception("Cannot display frame: " + frame + ". Frame number does not exist.");
         } else {
+            ctx.getBean(FrameCache.class).jump(frame-1);
             currentFrameIndex = (frame-1);
             displayCurrentFrame();
         }

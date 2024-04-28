@@ -10,15 +10,13 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.IntStream;
+import java.util.concurrent.LinkedBlockingDeque;
 
-
-//TODO send and wait instead of sleeping
 //TODO send path where to cache - currently when in exe images are cached in User
 @Component
 public class FrameCache implements ApplicationContextAware {
-    private Deque<BufferedImage> cache = new ArrayDeque<>();
-    private Deque<Integer> indexCache = new ArrayDeque<>();
+    private LinkedBlockingDeque<BufferedImage> cache = new LinkedBlockingDeque<>();
+    private LinkedBlockingDeque<Integer> indexCache = new LinkedBlockingDeque<>();
 
     private Map<Integer,Boolean> loadMap = new HashMap<>();
 
@@ -57,7 +55,39 @@ public class FrameCache implements ApplicationContextAware {
     }
 
     public void jump(int newIndex){
+        String path = DIR +
+                File.separator +
+                fileName +
+                File.separator +
+                newIndex +
+                ".jpg";
 
+        //load if not loaded
+        if(!loadMap.containsKey(newIndex/100)){
+            ctx.getBean(FrameProcessorClient.class).send("1;"+(newIndex/100)+";0",true);
+            loadMap.put(newIndex/100,true);
+        }
+
+        //load new cache
+        String framePath = DIR + File.separator + fileName;
+
+        cache.clear();
+        indexCache.clear();
+
+        for (int i = 0; i <= 7; i++) {
+            int index = newIndex - 3 + i;
+
+            File img = new File(framePath+File.separator+index+".jpg");
+            if(img.exists()){
+                try {
+                    BufferedImage bImg = ImageIO.read(img);
+                    cache.addFirst(bImg);
+                    indexCache.addFirst(index);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public BufferedImage loadImage(int index){
@@ -94,12 +124,6 @@ public class FrameCache implements ApplicationContextAware {
         }
 
         ctx.getBean(FrameProcessorClient.class).send("0;0;"+file.getAbsolutePath(),true);
-
-        /*try {
-            Thread.sleep(10000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
 
         loadMap.put(0, true);
 
