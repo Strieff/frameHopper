@@ -3,9 +3,11 @@ import socket
 import cv2
 import os
 from pathlib import Path
+import shutil
 
 video_path = ""
 all_frames = []
+cache_path = ""
 
 #TODO set path to cache
 #TODO return and send response other than OK
@@ -23,13 +25,19 @@ def handle_request(request):
     elif command == '1':
         load_batch(argument)
         return "OK\n"
-    elif command == '-1':
-        print('Shutting down...')
-        exit()
-    #elif command == '200':
+    elif command == '200':
+        global cache_path
+        cache_path = path[:-2]
+
+        return "OK\n"
         #set path to cache
         #return OK, signal that everything is ready
         #check if logging is enabled
+    elif command == '-1':
+        print('Shutting down...')
+        shutil.rmtree(cache_path)
+        os.makedirs(cache_path)
+        exit()
 
 
 def start_server():

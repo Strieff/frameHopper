@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,6 +30,8 @@ public class FrameProcessorClient extends Thread{
 
             Thread clientThread = new Thread(new ClientRunnable());
             clientThread.start();
+
+            send("200;0;"+ Paths.get("cache").toAbsolutePath(),true);
         }catch (Exception e){
             e.printStackTrace();
         }
