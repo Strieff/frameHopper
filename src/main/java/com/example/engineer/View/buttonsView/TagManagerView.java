@@ -2,7 +2,6 @@ package com.example.engineer.View.buttonsView;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
-import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.TagManagerThread;
 import com.example.engineer.View.FrameHopperView;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+//TODO buttons what to do on close
 @Component
 @RequiredArgsConstructor
 public class TagManagerView extends JFrame implements ApplicationContextAware {
@@ -71,14 +71,37 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         add(scrollPane);
 
+
+        //save buttons
+        JButton saveButton = new JButton("Save");
+        saveButton.addActionListener(e ->{
+            save();
+            close();
+        });
+
+        //cancel button
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(e -> {
+            close();
+        });
+
+        //button Panel
+        JPanel buttonPanel = new JPanel(new GridLayout(1,2));
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+
+        add(buttonPanel,BorderLayout.SOUTH);
+
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                onClose();
+                close();
             }
         });
     }
 
+    //set up the table
     public void setUpData(String videoName, int frameNo){
         this.videoName = videoName;
         this.frameNo = frameNo;
@@ -167,17 +190,19 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
                 .orElse(null);
     }
 
-    private void onClose() {
+    private void close() {
         setVisible(false);
-
-        frameHopperView.setCurrentTags(currentTags,frameNo);
-
-        //save data async
-        new TagManagerThread().setUp(currentTags,originalTags,frameNo,videoName,frameService).start();
 
         //clear data
         frameNo = null;
         videoName = null;
+    }
+
+    private void save(){
+        frameHopperView.setCurrentTags(currentTags,frameNo);
+
+        //save data async
+        new TagManagerThread().setUp(currentTags,originalTags,frameNo,videoName,frameService).start();
     }
 
 

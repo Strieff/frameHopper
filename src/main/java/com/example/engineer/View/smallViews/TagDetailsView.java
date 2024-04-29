@@ -133,7 +133,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     public void onClose(){
         setVisible(false);
 
-        //if empty name or cancel
+        //if empty name/value or cancel
         if(nameTextField.getText().isEmpty() || valueTextField.getText().isEmpty() || !saveData) {
             clearData();
             return;

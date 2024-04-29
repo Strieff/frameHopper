@@ -19,6 +19,9 @@ def handle_request(request):
         global video_path
         video_path = path
 
+        global all_frames
+        all_frames = []
+
         print(video_path)
         save_first_hundred_frames()
         return "OK\n"
@@ -30,13 +33,9 @@ def handle_request(request):
         cache_path = path[:-2]
 
         return "OK\n"
-        #set path to cache
-        #return OK, signal that everything is ready
         #check if logging is enabled
     elif command == '-1':
         print('Shutting down...')
-        shutil.rmtree(cache_path)
-        os.makedirs(cache_path)
         exit()
 
 

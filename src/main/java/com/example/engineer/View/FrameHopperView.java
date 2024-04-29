@@ -12,7 +12,6 @@ import com.example.engineer.View.buttonsView.SettingsView;
 import com.example.engineer.View.buttonsView.TagManagerView;
 import com.example.engineer.View.smallViews.TagDetailsView;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -32,7 +31,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 
@@ -41,6 +43,7 @@ import java.util.List;
 //TODO display tags on the right in a list - name value
 //TODO make a small window for comments under tag list, move left right to find comments
 //TODO create DB threads
+//TODO cache at the beginning and end (probably) don't work properly
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
     public static List<Tag> TAG_LIST;
@@ -171,6 +174,21 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             @Override
             public void windowClosing(WindowEvent e) {
                 ctx.getBean(FrameProcessorClient.class).send("-1;0;0",false);
+
+                try{
+                    Files.walk(Paths.get("cache"))
+                            .filter(p -> !p.equals(Paths.get("cache")))
+                            .sorted((p1,p2) -> -p1.compareTo(p2))
+                            .forEach(p -> {
+                                try {
+                                    Files.delete(p);
+                                } catch (IOException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            });
+                }catch (Exception ex){
+                    ex.printStackTrace();
+                }
             }
         });
     }
@@ -194,7 +212,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
     }
 
-    //jump to given frame
+    //jump to given frame p1
     private void jumpToSpecifiedFrame() {
         try {
             int frameToJump = Integer.parseInt(jumpTextField.getText());
@@ -207,7 +225,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
-    //jump to given frame
+    //jump to given frame p2
     public void jumpFrame(int frame) throws Exception {
         if (frame < 0 || frame > maxFrameIndex) {
             throw new Exception("Cannot display frame: " + frame + ". Frame number does not exist.");
@@ -382,7 +400,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             videoFramerate = grabber.getFrameRate();
 
             grabber.stop();
-
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -434,11 +451,5 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 i++;
 
         return i;
-    }
-
-    @Override
-    public void dispose(){
-        ctx.getBean(FrameProcessorClient.class).send("-1;KEEP",false);
-        super.dispose();
     }
 }

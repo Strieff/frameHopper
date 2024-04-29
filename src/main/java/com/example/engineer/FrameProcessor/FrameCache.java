@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
-//TODO send path where to cache - currently when in exe images are cached in User
 @Component
 public class FrameCache implements ApplicationContextAware {
     private LinkedBlockingDeque<BufferedImage> cache = new LinkedBlockingDeque<>();
