@@ -15,16 +15,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.atomic.AtomicReference;
 
 //TODO checkbox to unhide if hidden
 @Component
 @RequiredArgsConstructor
 public class TagDetailsView extends JFrame implements ApplicationContextAware {
     private static ApplicationContext ctx;
-    public static ApplicationContext getApplicationContext() {
-        return ctx;
-    }
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;

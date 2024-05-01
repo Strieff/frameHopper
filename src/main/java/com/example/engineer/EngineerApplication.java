@@ -4,7 +4,8 @@ import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.View.FrameHopperView;
-import com.example.engineer.View.smallViews.LoadingView;
+import com.example.engineer.View.smallViews.ApplicationLoadingView;
+import com.example.engineer.View.smallViews.StatusView;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
@@ -18,7 +19,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class EngineerApplication {
     public static void main(String[] args) {
         new Thread(() -> {
-            LoadingView loadingView = new LoadingView("LOADING...");
+            ApplicationLoadingView applicationLoadingView = new ApplicationLoadingView("LOADING...");
 
             try {
                 Thread.sleep(14000);
@@ -26,7 +27,7 @@ public class EngineerApplication {
                 throw new RuntimeException(e);
             }
 
-            loadingView.dispose();
+            applicationLoadingView.dispose();
         }).start();
 
 
@@ -53,5 +54,7 @@ public class EngineerApplication {
         context.getBean(FrameHopperView.class).setUpButtonViews();
 
         context.getBean(FrameProcessorClient.class).connect();
+
+        context.getBean(StatusView.class).setUpView();
     }
 }

@@ -31,4 +31,8 @@ public class Tag {
     public Tag() {
 
     }
+
+    public String[] getNameAndValue(){
+        return new String[]{name,value.toString()};
+    }
 }

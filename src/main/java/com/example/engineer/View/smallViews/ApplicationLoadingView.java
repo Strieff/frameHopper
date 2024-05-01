@@ -3,8 +3,8 @@ package com.example.engineer.View.smallViews;
 import javax.swing.*;
 import java.awt.*;
 
-public class LoadingView extends JFrame{
-    public LoadingView(String message) {
+public class ApplicationLoadingView extends JFrame{
+    public ApplicationLoadingView(String message) {
         setSize(300, 100);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
