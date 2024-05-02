@@ -9,7 +9,6 @@ video_path = ""
 all_frames = []
 cache_path = ""
 
-#TODO set path to cache
 #TODO return and send response other than OK
 
 def handle_request(request):

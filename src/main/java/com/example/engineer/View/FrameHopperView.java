@@ -8,6 +8,7 @@ import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.buttonsView.SettingsView;
 import com.example.engineer.View.buttonsView.TagManagerView;
 import com.example.engineer.View.smallViews.TagDetailsView;
@@ -18,6 +19,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -31,6 +35,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -39,11 +44,9 @@ import java.util.List;
 
 //TODO delete hidden tags that are not assigned to any frame
 //TODO fetch all needed data from DB after getting video - remove unnecessary database calls
-//TODO display tags on the right in a list - name value
 //TODO make a small window for comments under tag list, move left right to find comments
 //TODO create DB threads
 //TODO cache at the beginning doesn't work properly
-//TODO update tag table after update in tag manager
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
     public static List<Tag> TAG_LIST;
@@ -62,8 +65,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private JLabel imageLabel;
     private JLabel infoLabel;
     private JTextField jumpTextField;
-    private JList<String[]> tagsTableList;
-    //private DefaultListModel<String> tagsListModel;
+    //private JList<String[]> tagsTableList;
+    private JTable tagsTableList;
 
     private File videoFile;
     private int currentFrameIndex;
@@ -116,11 +119,45 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         add(jumpPanel, BorderLayout.NORTH);
 
-        // New JList for displaying tags
-        //tagsListModel = new DefaultListModel<>();
-        tagsTableList = new JList<>(/*tagsListModel*/new DefaultListModel<>());
-        tagsTableList.setCellRenderer(new TwoCellsRenderer());
+        //create tag list for frame
+        tagsTableList = new JTable(){
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Class getColumnClass(int column) {
+                return switch (column) {
+                    case 0 -> String.class;
+                    default -> Double.class;
+                };
+            }
+
+            @Override
+            public boolean isCellEditable(int row,int column){
+                return false;
+            }
+        };
+        Object[] columnNames = {"NAME","VALUE"};
+        Object[][] data = new Object[0][];
+
+        DefaultTableModel model = new DefaultTableModel(data,columnNames);
+        tagsTableList.setModel(model);
+        tagsTableList.getTableHeader().setReorderingAllowed(false);
+
+        // Center align the cells under the "VALUE" column
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        tagsTableList.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+
+        // Wrap text in the "NAME" column
+        TableColumn nameColumn = tagsTableList.getColumnModel().getColumn(0);
+        nameColumn.setCellRenderer(new MultilineTableCellRenderer());
+
+        tagsTableList.setFocusable(false);
+        tagsTableList.setRowSelectionAllowed(false);
+
         JScrollPane tagsScrollPane = new JScrollPane(tagsTableList);
+
         tagsScrollPane.setPreferredSize(new Dimension(200, getHeight())); // Set preferred size
 
         // New JPanel for the right section
@@ -222,8 +259,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid frame number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            //JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+
         }
     }
 
@@ -387,19 +424,16 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 removeTagFromFrame(tag,frameNo);
     }
 
-    private void displayTagList(){
-        //tagsListModel.clear();
-        DefaultListModel<String[]> model = (DefaultListModel<String[]>) tagsTableList.getModel();
-        model.clear();
+    public void displayTagList(){
+        DefaultTableModel model = (DefaultTableModel) tagsTableList.getModel();
+        model.setRowCount(0);
 
-        if(tagsOnFramesOnVideo.containsKey(currentFrameIndex)){
-            String[][] data = new String[tagsOnFramesOnVideo.get(currentFrameIndex).size()][2];
-
-            for (int i = 0; i < tagsOnFramesOnVideo.get(currentFrameIndex).size(); i++)
-                data[i] = tagsOnFramesOnVideo.get(currentFrameIndex).get(i).getNameAndValue();
-
-            model.addAll(Arrays.asList(data));
-        }
+        if(tagsOnFramesOnVideo.containsKey(currentFrameIndex))
+            for(Tag tag : tagsOnFramesOnVideo.get(currentFrameIndex))
+                model.addRow(new Object[]{
+                        tag.getName(),
+                        tag.getValue(),
+                });
 
         tagsTableList.setModel(model);
         tagsTableList.revalidate();
@@ -453,35 +487,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         @Override
         public void actionPerformed(ActionEvent e) {
             app.moveRight();
-        }
-    }
-
-    //custom table cell renderer
-    private static class TwoCellsRenderer extends DefaultListCellRenderer{
-        @Override
-        public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus){
-            String[] data = (String[]) value;
-            JPanel panel = new JPanel(new BorderLayout());
-
-            JLabel leftLabel = new JLabel("<html><body style='width: 100px'>" + data[0] + "</body></html>");
-            leftLabel.setPreferredSize(new Dimension(100, leftLabel.getPreferredSize().height)); // Set preferred width for wrapping
-
-            JLabel rightLabel = new JLabel(data[1]);
-
-            panel.add(leftLabel, BorderLayout.WEST);
-            panel.add(rightLabel, BorderLayout.EAST);
-
-            if (isSelected) {
-                panel.setBackground(list.getSelectionBackground());
-                leftLabel.setForeground(list.getSelectionForeground());
-                rightLabel.setForeground(list.getSelectionForeground());
-            } else {
-                panel.setBackground(list.getBackground());
-                leftLabel.setForeground(list.getForeground());
-                rightLabel.setForeground(list.getForeground());
-            }
-
-            return panel;
         }
     }
 

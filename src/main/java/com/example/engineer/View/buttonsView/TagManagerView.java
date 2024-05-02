@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-//TODO buttons what to do on close
 @Component
 @RequiredArgsConstructor
 public class TagManagerView extends JFrame implements ApplicationContextAware {
@@ -200,6 +199,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
     private void save(){
         frameHopperView.setCurrentTags(currentTags,frameNo);
+
+        ctx.getBean(FrameHopperView.class).displayTagList();
 
         //save data async
         new TagManagerThread().setUp(currentTags,originalTags,frameNo,videoName,frameService).start();

@@ -16,7 +16,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-//TODO checkbox to unhide if hidden
+//TODO unhide button if hidden
 @Component
 @RequiredArgsConstructor
 public class TagDetailsView extends JFrame implements ApplicationContextAware {

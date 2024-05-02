@@ -5,6 +5,7 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.DeleteTagThread;
+import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
 import com.example.engineer.View.smallViews.TagDetailsView;
 import lombok.RequiredArgsConstructor;
@@ -312,20 +313,5 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         return settingsPanel;
     }
 
-    private static class MultilineTableCellRenderer extends JTextArea implements TableCellRenderer{
-        public MultilineTableCellRenderer() {
-            setLineWrap(true);
-            setWrapStyleWord(true);
-        }
 
-        @Override
-        public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            setSize(table.getColumnModel().getColumn(column).getWidth(), getPreferredSize().height);
-            if (table.getRowHeight(row) != getPreferredSize().height) {
-                table.setRowHeight(row, getPreferredSize().height);
-            }
-            return this;
-        }
-    }
 }
