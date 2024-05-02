@@ -29,8 +29,6 @@ public class FrameCache implements ApplicationContextAware {
     }
 
     public void move(int currentIndex, int newIndex){
-
-
         if (currentIndex > newIndex) { //move left
             cache.addFirst(loadImage(newIndex));
             cache.removeLast();
@@ -74,7 +72,7 @@ public class FrameCache implements ApplicationContextAware {
         indexCache.clear();
 
         for (int i = 0; i <= 7; i++) {
-            int index = newIndex - 3 + i;
+            int index = newIndex<4 ? newIndex + i :  newIndex - 3 + i;
 
             File img = new File(framePath+File.separator+index+".jpg");
             if(img.exists()){
@@ -114,6 +112,8 @@ public class FrameCache implements ApplicationContextAware {
     public void firstLoad(File file){
         this.loadMap = new HashMap<>();
         this.videoFile = file;
+        cache.clear();
+        indexCache.clear();
 
         String path = DIR + File.separator + fileName;
         try{

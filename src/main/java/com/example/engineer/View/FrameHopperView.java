@@ -11,6 +11,7 @@ import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.buttonsView.SettingsView;
 import com.example.engineer.View.buttonsView.TagManagerView;
+import com.example.engineer.View.smallViews.StatusView;
 import com.example.engineer.View.smallViews.TagDetailsView;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,6 @@ import java.util.List;
 //TODO fetch all needed data from DB after getting video - remove unnecessary database calls
 //TODO make a small window for comments under tag list, move left right to find comments
 //TODO create DB threads
-//TODO cache at the beginning doesn't work properly
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
     public static List<Tag> TAG_LIST;
@@ -65,7 +65,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private JLabel imageLabel;
     private JLabel infoLabel;
     private JTextField jumpTextField;
-    //private JList<String[]> tagsTableList;
     private JTable tagsTableList;
 
     private File videoFile;
@@ -228,6 +227,12 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 }catch (Exception ex){
                     ex.printStackTrace();
                 }
+
+                //dispose of views
+                ctx.getBean(SettingsView.class).dispose();
+                ctx.getBean(TagManagerView.class).dispose();
+                ctx.getBean(TagDetailsView.class).dispose();
+                ctx.getBean(StatusView.class).dispose();
             }
         });
     }

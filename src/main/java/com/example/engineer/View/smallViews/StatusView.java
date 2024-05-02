@@ -1,7 +1,6 @@
 package com.example.engineer.View.smallViews;
 
 import com.example.engineer.View.FrameHopperView;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
