@@ -89,7 +89,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         ctx = applicationContext;
 
         //get global list of tags
-        TAG_LIST = tagService.getAllTags();
+        TAG_LIST = Collections.synchronizedList(tagService.getAllTags());
     }
 
     public FrameHopperView(){

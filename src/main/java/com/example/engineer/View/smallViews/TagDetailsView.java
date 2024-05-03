@@ -3,6 +3,7 @@ package com.example.engineer.View.smallViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
+import com.example.engineer.Threads.TagSettingsThread;
 import com.example.engineer.View.FrameHopperView;
 import com.example.engineer.View.buttonsView.SettingsView;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,6 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     private JTextField valueTextField;
     private JTextArea descriptionTextArea;
     private Integer ID = -1;
-    private Boolean saveData = false;
 
     public void setUpView(){
         setSize(300, 300);
@@ -86,14 +86,11 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
 
         //save button
         JButton addButton = new JButton("Save");
-        addButton.addActionListener(e -> {
-            saveData = true;
-            onClose();
-        });
+        addButton.addActionListener(e -> close(true));
 
         //cancel button
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(e -> onClose());
+        cancelButton.addActionListener(e -> close(false));
 
         // Panel for buttons
         JPanel buttonPanel = new JPanel(new GridLayout(1,2));
@@ -108,7 +105,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                onClose();
+                close(false);
             }
         });
     }
@@ -126,42 +123,27 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         setVisible(true);
     }
 
-    public void onClose(){
+    public void close(boolean save){
+        //hide
         setVisible(false);
 
-        //if empty name/value or cancel
-        if(nameTextField.getText().isEmpty() || valueTextField.getText().isEmpty() || !saveData) {
-            clearData();
-            return;
-        }
+        if(save){
+            //if empty name/value
+            if (nameTextField.getText().isEmpty() || valueTextField.getText().isEmpty()) {
+                clearData();
+                return;
+            }
 
-        //if ID == -1 => new tag
-        if(ID ==-1){
-            //add tag to database and the list
-             FrameHopperView.TAG_LIST.add(tagService.createTag(
-                     nameTextField.getText(),
-                     Double.parseDouble(valueTextField.getText()),
-                     descriptionTextArea.getText()
-
-             ));
-        }else {
-            //save changes to the database
-            Tag t = tagService.editTag(
-                    ID,
+            //if ID == -1 => new tag
+            new TagSettingsThread(tagService,
+                    ID != -1 ? ID : null,
                     nameTextField.getText(),
                     Double.parseDouble(valueTextField.getText()),
-                    descriptionTextArea.getText()
-            );
+                    descriptionTextArea.getText()).start();
 
-            //edit tag in the list
-            int index = FrameHopperView.findTagIndexById(ID);
-            FrameHopperView.TAG_LIST.get(index).setName(nameTextField.getText());
-            FrameHopperView.TAG_LIST.get(index).setValue(Double.parseDouble(valueTextField.getText()));
-            FrameHopperView.TAG_LIST.get(index).setDescription(descriptionTextArea.getText());
+            //update table models
+            notifyTagsChanged();
         }
-
-        //update table models
-        notifyTagsChanged();
 
         //clear tag data from window
         clearData();
@@ -177,6 +159,5 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         valueTextField.setText("");
         descriptionTextArea.setText("");
         ID = -1;
-        saveData = false;
     }
 }

@@ -207,7 +207,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         setVisible(false);
     }
 
-    public void notifyTableChange(){
+    public synchronized void notifyTableChange(){
         DefaultTableModel model = (DefaultTableModel) tagTable.getModel();
         model.setRowCount(0); // Clear the existing rows
 
@@ -275,7 +275,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         //tagService.deleteTag(FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id)));
         Tag tag = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id));
 
-        new DeleteTagThread().setUp(tagService,tag).start();
+        new DeleteTagThread(tagService,tag).start();
 
         //remove tag from list
         FrameHopperView.TAG_LIST.remove(FrameHopperView.findTagIndexById(id));
