@@ -1,8 +1,8 @@
 package com.example.engineer.View.smallViews;
 
-import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
+import com.example.engineer.Threads.SetHiddenStatusThread;
 import com.example.engineer.Threads.TagSettingsThread;
 import com.example.engineer.View.FrameHopperView;
 import com.example.engineer.View.buttonsView.SettingsView;
@@ -17,7 +17,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-//TODO unhide button if hidden
+//TODO unhide button if hidden - not working properly
 @Component
 @RequiredArgsConstructor
 public class TagDetailsView extends JFrame implements ApplicationContextAware {
@@ -34,6 +34,11 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     private JTextField nameTextField;
     private JTextField valueTextField;
     private JTextArea descriptionTextArea;
+    private JButton unhideButton;
+    private JButton addButton;
+    private JButton cancelButton;
+    private JPanel buttonPanel;
+
     private Integer ID = -1;
 
     public void setUpView(){
@@ -85,17 +90,19 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         add(lowerPanel,BorderLayout.CENTER);
 
         //save button
-        JButton addButton = new JButton("Save");
+        addButton = new JButton("Save");
         addButton.addActionListener(e -> close(true));
 
         //cancel button
-        JButton cancelButton = new JButton("Cancel");
+        cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e -> close(false));
 
+        unhideButton = new JButton("Unhide");
+        unhideButton.addActionListener(e -> unHide());
+
+
         // Panel for buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(1,2));
-        buttonPanel.add(cancelButton);
-        buttonPanel.add(addButton);
+        buttonPanel = new JPanel();
 
         // Add button panel to the frame
         add(buttonPanel,BorderLayout.SOUTH);
@@ -110,22 +117,46 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         });
     }
 
-    public void getDetailsData(String name, Double value, String description, Integer id){
+    public void getDetailsData(String name, Double value, String description, Integer id,boolean hidden){
         nameTextField.setText(name);
         valueTextField.setText(value.toString());
         descriptionTextArea.setText(description);
         ID = id;
 
-        openWindow();
+        openWindow(hidden);
     }
 
-    public void openWindow(){
+    public void openWindow(boolean hidden){
+        if(hidden){
+            buttonPanel.setLayout(new GridLayout(1,3));
+            buttonPanel.add(cancelButton);
+            buttonPanel.add(unhideButton);
+            buttonPanel.add(addButton);
+        }else{
+            buttonPanel.setLayout(new GridLayout(1,2));
+            buttonPanel.add(cancelButton);
+            buttonPanel.add(addButton);
+        }
+
+        buttonPanel.revalidate();
         setVisible(true);
+    }
+
+    public void unHide(){
+        FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID)).setDeleted(false);
+
+        //tagService.unHideTag(ID);
+        new SetHiddenStatusThread(tagService,ID,false).start();
+
+        notifyTagsChanged();
+
+        close(false);
     }
 
     public void close(boolean save){
         //hide
         setVisible(false);
+
 
         if(save){
             //if empty name/value
@@ -159,5 +190,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         valueTextField.setText("");
         descriptionTextArea.setText("");
         ID = -1;
+
+        buttonPanel.removeAll();
     }
 }

@@ -5,6 +5,7 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.DeleteTagThread;
+import com.example.engineer.Threads.SetHiddenStatusThread;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
 import com.example.engineer.View.smallViews.TagDetailsView;
@@ -53,7 +54,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         //new tag button
         JButton createNewTagButton = new JButton("Add tag");
         createNewTagButton.addActionListener(e -> {
-            getApplicationContext().getBean(TagDetailsView.class).openWindow();
+            getApplicationContext().getBean(TagDetailsView.class).openWindow(false);
         });
 
         //toolbar
@@ -164,7 +165,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                     Double tagValue = (Double) tagTable.getValueAt(row, 1);
                     String tagDescription = (String) tagTable.getValueAt(row, 2);
                     Integer tagID = (Integer) tagTable.getValueAt(row,5);
-                    getApplicationContext().getBean(TagDetailsView.class).getDetailsData(tagName, tagValue, tagDescription,tagID);
+                    boolean hidden = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(tagID)).isDeleted();
+                    getApplicationContext().getBean(TagDetailsView.class).getDetailsData(tagName, tagValue, tagDescription,tagID,hidden);
                 }
 
                 if(row>0 && column == 4){ //check if the click is on the 5th column
@@ -264,7 +266,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id)).setDeleted(true);
 
         //set deleted to true in database
-        tagService.hideTag(id);
+        //tagService.hideTag(id);
+        new SetHiddenStatusThread(tagService,id,true).start();
 
         //notify table changed
         notifyTableChange();

@@ -68,6 +68,19 @@ public class TagService {
     }
 
     @Transactional
+    public void unHideTag(Integer id) {
+        tagRepository.unHideTag(id);
+    }
+
+    /*@Transactional
+    public void setHiddenStatus(Integer id,boolean hide){
+        if(hide)
+            tagRepository.hideTag(id);
+        else
+            tagRepository.unHideTag(id);
+    }*/
+
+    @Transactional
     public void deleteTag(Tag tag) {
         //remove tag from all the associated frames
         for(Frame f : frameRepository.getAllFramesWithTag(tag)){

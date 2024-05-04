@@ -6,6 +6,7 @@ import com.example.engineer.View.FrameHopperView;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TagSettingsThread {
     TagService tagService;
@@ -36,10 +37,14 @@ public class TagSettingsThread {
             }
 
             executorService.shutdown();
+
+            try {
+                if(!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)){
+                    executorService.shutdownNow();
+                }
+            }catch (Exception e){
+                executorService.shutdownNow();
+            }
         });
-
-        while(!executorService.isTerminated()){}
-
-        executorService.close();
     }
 }

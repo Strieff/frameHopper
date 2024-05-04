@@ -2,25 +2,31 @@ package com.example.engineer.Threads;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.TagService;
+import jakarta.transaction.Transactional;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class DeleteTagThread {
+public class SetHiddenStatusThread {
     TagService tagService;
-    Tag tag;
+    int id;
+    boolean hide;
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    public DeleteTagThread(TagService tagService, Tag tag) {
+    public SetHiddenStatusThread(TagService tagService, int id, boolean hide) {
         this.tagService = tagService;
-        this.tag = tag;
+        this.id = id;
+        this.hide = hide;
     }
 
     public void start(){
         executorService.execute(() -> {
-            tagService.deleteTag(tag);
+            if(hide)
+                tagService.hideTag(id);
+            else
+                tagService.unHideTag(id);
 
             executorService.shutdown();
 
