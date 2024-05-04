@@ -1,5 +1,6 @@
 package com.example.engineer.View.smallViews;
 
+import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.SetHiddenStatusThread;
@@ -16,8 +17,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 
-//TODO unhide button if hidden - not working properly
+//TODO change color text/background depending on being hidden
 @Component
 @RequiredArgsConstructor
 public class TagDetailsView extends JFrame implements ApplicationContextAware {
@@ -31,13 +34,19 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     @Autowired
     FrameService frameService;
 
+    List<JLabel> labels = new ArrayList<>();
+
     private JTextField nameTextField;
     private JTextField valueTextField;
     private JTextArea descriptionTextArea;
-    private JButton unhideButton;
+    private JButton hiddenStatusButton;
     private JButton addButton;
     private JButton cancelButton;
+
     private JPanel buttonPanel;
+    private JPanel namePanel;
+    private JPanel valuePanel;
+    private JPanel lowerPanel;
 
     private Integer ID = -1;
 
@@ -48,21 +57,24 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         setLayout(new BorderLayout());
 
         // set up name section
-        JPanel namePanel = new JPanel();
+        namePanel = new JPanel();
         namePanel.setLayout(new BorderLayout());
 
         JLabel nameLabel = new JLabel("Name:");
         nameTextField = new JTextField();
+        labels.add(nameLabel);
 
         namePanel.add(nameLabel,BorderLayout.NORTH);
         namePanel.add(nameTextField, BorderLayout.CENTER);
 
+
         //set up value section
-        JPanel valuePanel = new JPanel();
+        valuePanel = new JPanel();
         valuePanel.setLayout(new BorderLayout());
 
         JLabel valueLabel = new JLabel("Value:");
         valueTextField = new JTextField();
+        labels.add(valueLabel);
 
         valuePanel.add(valueLabel,BorderLayout.NORTH);
         valuePanel.add(valueTextField, BorderLayout.CENTER);
@@ -77,12 +89,13 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         add(upperPanel,BorderLayout.NORTH);
 
         //set up lower part
-        JPanel lowerPanel = new JPanel();
+        lowerPanel = new JPanel();
         lowerPanel.setLayout(new BorderLayout());
 
         JLabel descriptionLabel = new JLabel("Description:");
         descriptionTextArea = new JTextArea();
         descriptionTextArea.setLineWrap(true); // Enable word wrap for the description text area
+        labels.add(descriptionLabel);
 
         lowerPanel.add(descriptionLabel,BorderLayout.NORTH);
         lowerPanel.add(descriptionTextArea,BorderLayout.CENTER);
@@ -97,12 +110,14 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e -> close(false));
 
-        unhideButton = new JButton("Unhide");
-        unhideButton.addActionListener(e -> unHide());
-
+        hiddenStatusButton = new JButton();
+        hiddenStatusButton.addActionListener(e -> changeHiddenStatus());
 
         // Panel for buttons
-        buttonPanel = new JPanel();
+        buttonPanel = new JPanel(new GridLayout(1,3));
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(hiddenStatusButton);
+        buttonPanel.add(addButton);
 
         // Add button panel to the frame
         add(buttonPanel,BorderLayout.SOUTH);
@@ -127,30 +142,28 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     }
 
     public void openWindow(boolean hidden){
-        if(hidden){
-            buttonPanel.setLayout(new GridLayout(1,3));
-            buttonPanel.add(cancelButton);
-            buttonPanel.add(unhideButton);
-            buttonPanel.add(addButton);
-        }else{
-            buttonPanel.setLayout(new GridLayout(1,2));
-            buttonPanel.add(cancelButton);
-            buttonPanel.add(addButton);
-        }
+        hiddenStatusButton.setText(hidden ? "Unhide" : "Hide");
+        hiddenStatusButton.revalidate();
 
-        buttonPanel.revalidate();
+        setComponentColor(hidden ? Color.DARK_GRAY : null);
+
         setVisible(true);
     }
 
-    public void unHide(){
-        FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID)).setDeleted(false);
+    public void changeHiddenStatus(){
+        Tag t = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID));
 
-        //tagService.unHideTag(ID);
-        new SetHiddenStatusThread(tagService,ID,false).start();
+        t.setDeleted(!t.isDeleted());
+
+        new SetHiddenStatusThread(tagService,ID,t.isDeleted()).start();
 
         notifyTagsChanged();
 
-        close(false);
+        hiddenStatusButton.setText(t.isDeleted() ? "Unhide" : "Hide");
+
+        setComponentColor(t.isDeleted() ? Color.DARK_GRAY : null);
+
+        hiddenStatusButton.revalidate();
     }
 
     public void close(boolean save){
@@ -165,22 +178,34 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
                 return;
             }
 
-            //if ID == -1 => new tag
-            new TagSettingsThread(tagService,
-                    ID != -1 ? ID : null,
-                    nameTextField.getText(),
-                    Double.parseDouble(valueTextField.getText()),
-                    descriptionTextArea.getText()).start();
+            //if ID == -1 => new tag - program waits
+            if(ID == -1)
+                FrameHopperView.TAG_LIST.add(tagService.createTag(nameTextField.getText(),
+                        Double.parseDouble(valueTextField.getText()),
+                        descriptionTextArea.getText()));
+            else {
+                new TagSettingsThread(tagService,
+                        ID,
+                        nameTextField.getText(),
+                        Double.parseDouble(valueTextField.getText()),
+                        descriptionTextArea.getText()).start();
+
+                Tag t = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID));
+                t.setName(nameTextField.getText());
+                t.setValue(Double.parseDouble(valueTextField.getText()));
+                t.setDescription(descriptionTextArea.getText());
+            }
 
             //update table models
             notifyTagsChanged();
         }
 
+
         //clear tag data from window
         clearData();
     }
 
-    private void notifyTagsChanged(){
+    public void notifyTagsChanged(){
         //notify settings
         ctx.getBean(SettingsView.class).notifyTableChange();
     }
@@ -191,6 +216,38 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         descriptionTextArea.setText("");
         ID = -1;
 
-        buttonPanel.removeAll();
+        setComponentColor(null);
+    }
+
+    private void setComponentColor(Color color){
+        //set background color
+        buttonPanel.setBackground(color);
+        namePanel.setBackground(color);
+        valuePanel.setBackground(color);
+        lowerPanel.setBackground(color);
+
+        //labels
+        for(JLabel l : labels)
+            l.setForeground(color == null ? Color.BLACK : Color.WHITE);
+
+        //text fields
+        nameTextField.setBackground(color == null ? Color.WHITE : Color.GRAY);
+        nameTextField.setForeground(color == null ? Color.BLACK : Color.WHITE);
+
+        valueTextField.setBackground(color == null ? Color.WHITE : Color.GRAY);
+        valueTextField.setForeground(color == null ? Color.BLACK : Color.WHITE);
+
+        descriptionTextArea.setBackground(color == null ? Color.WHITE : Color.GRAY);
+        descriptionTextArea.setForeground(color == null ? Color.BLACK : Color.WHITE);
+
+        //buttons
+        cancelButton.setBackground(color);
+        cancelButton.setForeground(color == null ? Color.BLACK : Color.WHITE);
+
+        hiddenStatusButton.setBackground(color);
+        hiddenStatusButton.setForeground(color == null ? Color.BLACK : Color.WHITE);
+
+        addButton.setBackground(color);
+        addButton.setForeground(color == null ? Color.BLACK : Color.WHITE);
     }
 }

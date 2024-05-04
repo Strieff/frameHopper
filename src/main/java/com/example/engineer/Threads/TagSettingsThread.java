@@ -25,16 +25,8 @@ public class TagSettingsThread {
 
     public void start() {
         executorService.execute(() -> {
-            if (id == null) {
-                //add tag to database and the list
-                FrameHopperView.TAG_LIST.add(tagService.createTag(name, value, description));
-            } else {
-                //save changes to the database
-                Tag t = tagService.editTag(id, name, value, description);
-
-                int index = FrameHopperView.findTagIndexById(id);
-                FrameHopperView.TAG_LIST.set(index, t);
-            }
+            //save changes to the database
+            tagService.editTag(id, name, value, description);
 
             executorService.shutdown();
 
