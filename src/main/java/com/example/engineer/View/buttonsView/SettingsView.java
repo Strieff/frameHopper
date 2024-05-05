@@ -5,6 +5,7 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.DeleteTagThread;
+import com.example.engineer.Threads.SaveSettingsThread;
 import com.example.engineer.Threads.SetHiddenStatusThread;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Serial;
@@ -143,7 +143,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         tagTable.getColumnModel().getColumn(1).setMaxWidth(100);
         tagTable.getColumnModel().getColumn(1).setCellRenderer(centerRender);
 
-        //set multi row to description
+        //set multi row to description and name
         tagTable.getColumnModel().getColumn(2).setCellRenderer(new MultilineTableCellRenderer());
 
         //set size of ID to 0 - 6th row
@@ -153,6 +153,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         //disable row select
         tagTable.setRowSelectionAllowed(false);
+
+        //set resizable to false
+        tagTable.getTableHeader().setResizingAllowed(false);
 
         //listeners for edit/delete icons
         tagTable.addMouseListener(new MouseAdapter() {
@@ -213,11 +216,12 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         DefaultTableModel model = (DefaultTableModel) tagTable.getModel();
         model.setRowCount(0); // Clear the existing rows
 
+
         for (Tag tag : FrameHopperView.TAG_LIST) {
             // Assuming tag has properties: id, name, value, description
             if(!tag.isDeleted() || FrameHopperView.USER_SETTINGS.getShowDeleted()){
                 model.addRow(new Object[]{
-                        tag.getName(),
+                        tag.getName() + (tag.isDeleted() ? " (hidden)" : ""),
                         tag.getValue(),
                         tag.getDescription(),
                         new ImageIcon(getIconFromPath("/icons/edit.png")),
@@ -292,19 +296,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         JCheckBox hiddenTags = new JCheckBox("Show hidden tags");
         hiddenTags.addItemListener(e -> {
-            if(e.getStateChange() == ItemEvent.SELECTED) {
+            if(e.getStateChange() == ItemEvent.SELECTED)
                 FrameHopperView.USER_SETTINGS.setShowDeleted(true);
-                settingsService.changeSettings();
-                notifyTableChange();
-            }
-            else if(e.getStateChange() == ItemEvent.DESELECTED) {
+            else if(e.getStateChange() == ItemEvent.DESELECTED)
                 FrameHopperView.USER_SETTINGS.setShowDeleted(false);
-                settingsService.changeSettings();
-                notifyTableChange();
-            }
 
+            new SaveSettingsThread(settingsService).start();
             notifyTableChange();
         });
+
         if(FrameHopperView.USER_SETTINGS.getShowDeleted())
             hiddenTags.doClick();
 

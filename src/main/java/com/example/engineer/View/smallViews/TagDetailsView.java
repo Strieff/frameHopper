@@ -133,7 +133,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     }
 
     public void getDetailsData(String name, Double value, String description, Integer id,boolean hidden){
-        nameTextField.setText(name);
+        nameTextField.setText(name.contains(" (hidden)") ? name.substring(0,name.length()-9) : name);
         valueTextField.setText(value.toString());
         descriptionTextArea.setText(description);
         ID = id;
