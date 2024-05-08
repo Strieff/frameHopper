@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
+
 @Component
 public class FrameCache implements ApplicationContextAware {
     private LinkedBlockingDeque<BufferedImage> cache = new LinkedBlockingDeque<>();
@@ -63,6 +64,12 @@ public class FrameCache implements ApplicationContextAware {
         if(!loadMap.containsKey(newIndex/100)){
             ctx.getBean(FrameProcessorClient.class).send("1;"+(newIndex/100)+";0",true);
             loadMap.put(newIndex/100,true);
+        }
+
+        //load if previous 100 is not loaded
+        if(newIndex/100 != 0 && !loadMap.containsKey(newIndex/100 - 1)){
+            ctx.getBean(FrameProcessorClient.class).send("1;"+(newIndex/100 - 1)+";0",true);
+            loadMap.put(newIndex/100 - 1,true);
         }
 
         //load new cache

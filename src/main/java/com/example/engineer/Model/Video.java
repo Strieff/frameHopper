@@ -23,9 +23,13 @@ public class Video {
     private String name;
     @OneToMany(mappedBy = "video")
     private List<Frame> frames;
-
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL)
     private List<Comment> comments;
+    private Integer totalFrames;
+    private Double frameRate;
+    private Double duration;
+    private Integer videoHeight;
+    private Integer videoWidth;
 
     public Video() {
 

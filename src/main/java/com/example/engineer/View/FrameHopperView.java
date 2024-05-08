@@ -5,10 +5,12 @@ import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.UserSettings;
+import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.View.buttonsView.ExportView;
 import com.example.engineer.View.buttonsView.SettingsView;
 import com.example.engineer.View.buttonsView.TagManagerView;
 import com.example.engineer.View.smallViews.StatusView;
@@ -46,7 +48,7 @@ import java.util.List;
 //TODO delete hidden tags that are not assigned to any frame
 //TODO fetch all needed data from DB after getting video - remove unnecessary database calls
 //TODO make a small window for comments under tag list, move left right to find comments
-//TODO create DB threads
+//TODO take focus away from jump if clicked
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
     public static List<Tag> TAG_LIST;
@@ -61,6 +63,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     private TagManagerView tagManagerView;
     private SettingsView settingsView;
+    private ExportView exportView;
 
     private JLabel imageLabel;
     private JLabel infoLabel;
@@ -73,12 +76,15 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private int videoHeight;
     private int videoWidth;
     private double videoFramerate;
+    private double videoDuration;
 
     private Map<Integer,List<Tag>> tagsOnFramesOnVideo;
 
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
     private static final String MOVE_RIGHT = "move right";
     private static final String MOVE_LEFT = "move left";
+
+    Video video;
 
     private static ApplicationContext ctx;
     public static ApplicationContext getApplicationContext() {
@@ -186,11 +192,14 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                         if (!files.isEmpty()) {
                             videoFile = files.get(0);
 
-                            setUpVideoData(videoFile);
+                            video = videoService.createVideoIfNotExists(videoFile.getName());
+                            if(video.getTotalFrames() == null)
+                                setUpVideoData(videoFile);
+                            else
+                                setUpVideoData(video);
 
                             infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
                             imageLabel.requestFocusInWindow();
-                            videoService.createVideoIfNotExists(videoFile.getName());
 
                             ctx.getBean(FrameCache.class).setFileName(videoFile);
                             ctx.getBean(FrameCache.class).firstLoad(videoFile);
@@ -252,7 +261,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             //set up tag details
             getApplicationContext().getBean(TagDetailsView.class).setUpView();
 
-            //TODO set up export
+            exportView = ctx.getBean(ExportView.class);
+            exportView.setUpView();
+
         });
     }
 
@@ -358,7 +369,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         JButton exportButton = new JButton();
         setButtonIcon(exportButton,"export.png");
-        //TODO exportButton.addActionListener(e -> SwingUtilities.invokeLater(() -> new ExportView()));
+        exportButton.addActionListener(e -> SwingUtilities.invokeLater(() -> exportView.open()));
 
         buttonPanel.add(tagManagerButton);
         buttonPanel.add(settingsButton);
@@ -460,11 +471,23 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             videoHeight = grabber.getImageHeight();
             videoWidth = grabber.getImageWidth();
             videoFramerate = grabber.getFrameRate();
+            videoDuration = grabber.getLengthInTime() / 1000000d;
 
             grabber.stop();
+
+            videoService.addVideoData(video,maxFrameIndex,videoFramerate,videoDuration,videoHeight,videoWidth);
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private void setUpVideoData(Video video){
+        currentFrameIndex = 0;
+        maxFrameIndex = video.getTotalFrames();
+        videoHeight = video.getVideoHeight();
+        videoWidth = video.getVideoWidth();
+        videoFramerate = video.getFrameRate();
+        videoDuration = video.getDuration();
     }
 
     //move left class

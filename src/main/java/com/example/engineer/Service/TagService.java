@@ -20,9 +20,13 @@ public class TagService {
     private final VideoRepository videoRepository;
     private final FrameRepository frameRepository;
 
-    public List<Tag> getTagsOnFrame(Integer frame, String videoName) {
+    /*public List<Tag> getTagsOnFrame(Integer frame, String videoName) {
         Video video = videoRepository.findByName(videoName).stream().findFirst().orElse(null);
 
+        return tagRepository.findAllByFrameNumberAndVideo(frame,video);
+    }
+*/
+    public List<Tag> getTagsOnFrame(Integer frame, Video video) {
         return tagRepository.findAllByFrameNumberAndVideo(frame,video);
     }
 

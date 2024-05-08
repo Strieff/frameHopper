@@ -20,7 +20,6 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO change color text/background depending on being hidden
 @Component
 @RequiredArgsConstructor
 public class TagDetailsView extends JFrame implements ApplicationContextAware {
