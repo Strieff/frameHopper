@@ -27,7 +27,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO instead of fetching everything create a query that will return list of Tag/integers that will tell how many are in each video
+//TODO create excel files
 @Component
 public class ExportView extends JFrame {
     @Autowired
@@ -172,35 +172,20 @@ public class ExportView extends JFrame {
 
     private void exportData(int index, String path){
         Video video = videoService.getExportData(index);
-        setTagsOnFrames(video);
-        try {
-            exportToExcel(video,path);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        exportToExcel(video,path);
+
     }
 
     private void exportData(List<Integer> indexList, String path){
         List<Video> videos = videoService.getExportData(indexList);
         for (Video video : videos)
-            setTagsOnFrames(video);
-
+            exportToExcel(video,path);
     }
 
-    private void setTagsOnFrames(Video video){
-        if(video.getFrames().isEmpty())
-            return;
+    private void exportToExcel(Video video,String path){
+        long amount = tagService.getAmountOfUniqueTagsOnVideo(video);
+        List<Object[]> tagCount = tagService.countTagsOnFramesOfVideo(video);
 
-        for (int i = 0; i < video.getFrames().size(); i++) {
-            List<Tag> tags = tagService.getTagsOnFrame(video.getFrames().get(i).getFrameNumber(),video);
-            if (tags.isEmpty())
-                continue;
-
-            video.getFrames().get(i).setTags(tags);
-        }
-    }
-
-    private void exportToExcel(Video video,String path) throws IOException {
 
         try(
                 Workbook workbook = WorkbookFactory.create(true);
@@ -210,9 +195,9 @@ public class ExportView extends JFrame {
 
             // Create header row
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("Name");
-            headerRow.createCell(1).setCellValue("Total Points");
-            headerRow.createCell(2).setCellValue("Amount");
+            headerRow.createCell(0).setCellValue((String)tagCount.get(0)[0]);
+            headerRow.createCell(1).setCellValue((Long)tagCount.get(0)[1]);
+            headerRow.createCell(2).setCellValue(amount);
 
             // Write the workbook to a file
             workbook.write(outputStream);

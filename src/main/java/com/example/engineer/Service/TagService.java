@@ -102,4 +102,12 @@ public class TagService {
         //delete tag
         tagRepository.delete(tag);
     }
+
+    public long getAmountOfUniqueTagsOnVideo(Video video){
+        return tagRepository.countUniqueTagsByVideo(video);
+    }
+
+    public List<Object[]> countTagsOnFramesOfVideo(Video video){
+        return tagRepository.countTagOccurrencesInVideoFrames(video);
+    }
 }

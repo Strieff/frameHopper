@@ -26,4 +26,10 @@ public interface TagRepository extends JpaRepository<Tag,Double> {
     @Modifying(clearAutomatically = true)
     @Query("update Tag t set t.deleted = false where t.id=:id")
     void unHideTag(@Param("id") Integer id);
+
+    @Query("select count(distinct t) from Tag t join t.frames f where f.video = :video")
+    long countUniqueTagsByVideo(@Param("video") Video video);
+
+    @Query("select t.name, count(t) from Tag t join t.frames f where f.video = :video group by t.name")
+    List<Object[]> countTagOccurrencesInVideoFrames(@Param("video") Video video);
 }

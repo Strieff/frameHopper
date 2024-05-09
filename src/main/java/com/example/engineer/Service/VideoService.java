@@ -42,7 +42,7 @@ public class VideoService {
     }
 
     public Video getExportData(int index){
-        return videoRepository.findFirstById(index).get();
+        return videoRepository.findFirstById(index).orElse(null);
     }
 
     public List<Video> getExportData(List<Integer> indexList){
