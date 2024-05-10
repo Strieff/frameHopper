@@ -149,6 +149,12 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         setVisible(true);
     }
 
+    public void openWindow(){
+
+
+        setVisible(true);
+    }
+
     public void changeHiddenStatus(){
         Tag t = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID));
 
@@ -168,7 +174,6 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     public void close(boolean save){
         //hide
         setVisible(false);
-
 
         if(save){
             //if empty name/value

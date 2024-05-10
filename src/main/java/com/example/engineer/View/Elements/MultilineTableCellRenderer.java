@@ -15,15 +15,6 @@ public class MultilineTableCellRenderer extends JTextArea implements TableCellRe
         setText((value == null) ? "" : value.toString());
         setSize(table.getColumnModel().getColumn(column).getWidth(), getPreferredSize().height);
 
-        /*int fontHeight = this.getFontMetrics(this.getFont()).getHeight();
-        int textLength = this.getText().length();
-        int lines = textLength / this.getColumnWidth();
-        if (lines == 0) {
-            lines = 1;
-        }
-        int height = fontHeight * lines;
-        table.setRowHeight(row, height);*/
-
         if (table.getRowHeight(row) != getPreferredSize().height) {
             table.setRowHeight(row, getPreferredSize().height);
 

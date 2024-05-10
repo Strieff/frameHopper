@@ -54,7 +54,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         //new tag button
         JButton createNewTagButton = new JButton("Add tag");
         createNewTagButton.addActionListener(e -> {
-            getApplicationContext().getBean(TagDetailsView.class).openWindow(false);
+            getApplicationContext().getBean(TagDetailsView.class).openWindow();
         });
 
         //toolbar
@@ -174,8 +174,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
                 if(row>0 && column == 4){ //check if the click is on the 5th column
                     Integer tagID = (Integer) tagTable.getValueAt(row,5);
-                    String tagName = (String) tagTable.getValueAt(row, 0);
-                    showOptionsDialog(tagID,tagName);
+                    showOptionsDialog(tagID);
                 }
             }
         });
@@ -246,7 +245,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         return scaledIcon;
     }
 
-    private void showOptionsDialog(Integer tagId,String name){
+    private void showOptionsDialog(Integer tagId){
         String[] options = {"Cancel","Hide","Delete"};
 
         int actionChoice = JOptionPane.showOptionDialog(this, "Message", "Title",
@@ -256,25 +255,10 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         switch(actionChoice){
             case 0: //cancel
                 break;
-            case 1: //hide
-                hideTag(tagId);
-                break;
             case 2: //delete
                 deleteTag(tagId);
                 break;
         }
-    }
-
-    private void hideTag(Integer id){
-        //set deleted - hidden to true
-        FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id)).setDeleted(true);
-
-        //set deleted to true in database
-        //tagService.hideTag(id);
-        new SetHiddenStatusThread(tagService,id,true).start();
-
-        //notify table changed
-        notifyTableChange();
     }
 
     private void deleteTag(Integer id){

@@ -13,9 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag,Double> {
-    @Query("select t from Tag t join t.frames f where f.frameNumber=:frameNumber and f.video=:video")
-    List<Tag> findAllByFrameNumberAndVideo(@Param("frameNumber") Integer frameNumber, @Param("video") Video video);
-
     @Query("select t from Tag t where t.name=:name")
     Optional<Tag> findByName(@Param("name") String name);
 

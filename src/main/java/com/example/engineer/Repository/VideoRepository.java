@@ -18,6 +18,6 @@ public interface VideoRepository extends JpaRepository<Video,Long> {
     @EntityGraph(attributePaths = "frames") // Eagerly load frames
     List<Video> findAllByIdIn(List<Integer> videoIds);
 
-    //@EntityGraph(attributePaths = "frames") // Eagerly load frames
+
     Optional<Video> findFirstById(Integer id);
 }

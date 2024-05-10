@@ -1,10 +1,7 @@
 package com.example.engineer.Model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "Comment")
@@ -12,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,8 +22,4 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "video_id")
     private Video video;
-
-    public Comment() {
-
-    }
 }

@@ -23,10 +23,7 @@ public class SetHiddenStatusThread {
 
     public void start(){
         executorService.execute(() -> {
-            if(hide)
-                tagService.hideTag(id);
-            else
-                tagService.unHideTag(id);
+            tagService.setHiddenStatus(id,hide);
 
             executorService.shutdown();
 

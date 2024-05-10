@@ -17,18 +17,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class TagService {
     private final TagRepository tagRepository;
-    private final VideoRepository videoRepository;
     private final FrameRepository frameRepository;
-
-    /*public List<Tag> getTagsOnFrame(Integer frame, String videoName) {
-        Video video = videoRepository.findByName(videoName).stream().findFirst().orElse(null);
-
-        return tagRepository.findAllByFrameNumberAndVideo(frame,video);
-    }
-*/
-    public List<Tag> getTagsOnFrame(Integer frame, Video video) {
-        return tagRepository.findAllByFrameNumberAndVideo(frame,video);
-    }
 
     public List<Tag> getAllTags(){
         return tagRepository.findAll();
@@ -55,34 +44,13 @@ public class TagService {
                         .build());
     }
 
-    public void saveTestTags(){
-        for (int i = 0; i < 5; i++) {
-            tagRepository.save(Tag.builder()
-                            .name("test "+i)
-                            .deleted(false)
-                            .description("LOREM IPSUM")
-                            .value(0.5+i)
-                            .build());
-        }
-    }
-
     @Transactional
-    public void hideTag(Integer id) {
-        tagRepository.hideTag(id);
-    }
-
-    @Transactional
-    public void unHideTag(Integer id) {
-        tagRepository.unHideTag(id);
-    }
-
-    /*@Transactional
     public void setHiddenStatus(Integer id,boolean hide){
         if(hide)
             tagRepository.hideTag(id);
         else
             tagRepository.unHideTag(id);
-    }*/
+    }
 
     @Transactional
     public void deleteTag(Tag tag) {

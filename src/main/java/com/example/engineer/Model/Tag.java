@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Tag {
     @Id
     @GeneratedValue(generator = "sequence_id")
@@ -27,8 +28,4 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags")
     private List<Frame> frames;
-
-    public Tag() {
-
-    }
 }

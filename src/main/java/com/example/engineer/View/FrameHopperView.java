@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import java.util.stream.IntStream;
 
 //TODO delete hidden tags that are not assigned to any frame
 //TODO fetch all needed data from DB after getting video - remove unnecessary database calls
@@ -421,16 +422,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         if(tagsOnFramesOnVideo.get(frameNo)==null)
             return;
 
-        int forRemoval=-1;
-
-        for (int i = 0; i < tagsOnFramesOnVideo.get(frameNo).size(); i++)
-            if(Objects.equals(tagsOnFramesOnVideo.get(frameNo).get(i).getId(), tag.getId()))
-                forRemoval = i;
-
-        if(forRemoval==-1)
-            return;
-
-        tagsOnFramesOnVideo.get(frameNo).remove(forRemoval);
+        tagsOnFramesOnVideo.get(frameNo).removeIf(t -> Objects.equals(t.getId(),tag.getId()));
     }
 
     //remove tag from all frames
@@ -460,7 +452,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         tagsOnFramesOnVideo.put(frameNo,tags);
     }
 
-    //loads all necessary information about the video
+    //loads all necessary information about the video from file
     private void setUpVideoData(File videoFile){
         try(FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile)){
             currentFrameIndex = 0;
@@ -481,6 +473,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         }
     }
 
+    //sets up data if video in database
     private void setUpVideoData(Video video){
         currentFrameIndex = 0;
         maxFrameIndex = video.getTotalFrames();
@@ -520,30 +513,37 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //get index of tag in global list
     public synchronized static int findTagIndexById(Integer id){
-        for (int i = 0; i < TAG_LIST.size(); i++)
+        /*for (int i = 0; i < TAG_LIST.size(); i++)
             if(TAG_LIST.get(i).getId().intValue()==id.intValue())
-                return i;
+                return i;*/
 
-        return -1;
+        return IntStream.range(0, TAG_LIST.size())
+                .filter(i -> TAG_LIST.get(i).getId().equals(id))
+                .findFirst()
+                .orElse(-1);
     }
 
     //get tag by name
     public static Tag findTagByName(String name){
-        for(Tag t : TAG_LIST)
+        /*for(Tag t : TAG_LIST)
             if(t.getName().equals(name))
                 return t;
-
-        return null;
+*/
+        return TAG_LIST.stream()
+                .filter(t -> t.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     //get amount of not hidden tags
     public synchronized static int getNumberOfVisibleTags(){
-        int i = 0;
+        /*int i = 0;
 
         for (Tag t : TAG_LIST)
             if(!t.isDeleted())
-                i++;
-
-        return i;
+                i++;*/
+        return (int) TAG_LIST.stream()
+                .filter(t -> !t.isDeleted())
+                .count();
     }
 }

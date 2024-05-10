@@ -13,6 +13,4 @@ import java.util.Optional;
 
 @Repository
 public interface SettingsRepository extends JpaRepository<UserSettings,Long> {
-    @Query("select us from UserSettings us")
-    List<UserSettings> getUserSettings();
 }
