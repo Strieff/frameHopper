@@ -527,6 +527,15 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         return -1;
     }
 
+    //get tag by name
+    public static Tag findTagByName(String name){
+        for(Tag t : TAG_LIST)
+            if(t.getName().equals(name))
+                return t;
+
+        return null;
+    }
+
     //get amount of not hidden tags
     public synchronized static int getNumberOfVisibleTags(){
         int i = 0;

@@ -7,6 +7,7 @@ import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.View.FrameHopperView;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -24,16 +25,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serial;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-//TODO create excel files
 @Component
 public class ExportView extends JFrame {
     @Autowired
     private VideoService videoService;
-    @Autowired
-    private FrameService frameService;
     @Autowired
     private TagService tagService;
 
@@ -172,32 +173,94 @@ public class ExportView extends JFrame {
 
     private void exportData(int index, String path){
         Video video = videoService.getExportData(index);
-        exportToExcel(video,path);
+        List<Object[]> data = tagService.countTagsOnFramesOfVideo(video);
 
+        Map<String,Long> tagAmount = new HashMap<>();
+        for(Object[] o : data)
+            tagAmount.put((String)o[0],(Long)o[1]);
+
+        exportToExcel(video,path,tagAmount);
     }
 
     private void exportData(List<Integer> indexList, String path){
-        List<Video> videos = videoService.getExportData(indexList);
-        for (Video video : videos)
-            exportToExcel(video,path);
+        List<Object[]> data = tagService.countTagsOnFramesOfVideo(indexList);
+
+        Map<Video,Map<String,Long>> tagAmountOnVideos = new HashMap<>();
+        for(Object[] o : data){
+            if(!tagAmountOnVideos.containsKey((Video)o[0]))
+                tagAmountOnVideos.put((Video)o[0],new HashMap<>());
+
+            tagAmountOnVideos.get((Video)o[0]).put((String)o[1],(Long)o[2]);
+        }
+
+        for(Video video : tagAmountOnVideos.keySet())
+            exportToExcel(video,path,tagAmountOnVideos.get(video));
     }
 
-    private void exportToExcel(Video video,String path){
+    private void exportToExcel(Video video, String path, Map<String,Long> tagData){
         long amount = tagService.getAmountOfUniqueTagsOnVideo(video);
-        List<Object[]> tagCount = tagService.countTagsOnFramesOfVideo(video);
 
+        String fileName = video.getName().substring(0,video.getName().lastIndexOf('.'))+"_data.xlsx";
 
         try(
                 Workbook workbook = WorkbookFactory.create(true);
-                FileOutputStream outputStream = new FileOutputStream(path+ File.separator+"test.xlsx")
+                FileOutputStream outputStream = new FileOutputStream(path + File.separator + fileName)
         ){
-            Sheet sheet = workbook.createSheet("TEST");
+            //create general data
+            Sheet sheet = workbook.createSheet("Overview");
 
             // Create header row
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue((String)tagCount.get(0)[0]);
-            headerRow.createCell(1).setCellValue((Long)tagCount.get(0)[1]);
-            headerRow.createCell(2).setCellValue(amount);
+            headerRow.createCell(0).setCellValue("FRAME COUNT");
+            headerRow.createCell(1).setCellValue("TAGS");
+            headerRow.createCell(2).setCellValue("RUNTIME (SECONDS)");
+            headerRow.createCell(3).setCellValue("FRAMERATE");
+            headerRow.createCell(4).setCellValue("TOTAL POINTS");
+            headerRow.createCell(5).setCellValue("COMPLEXITY");
+
+            //create data row
+            Row dataRow = sheet.createRow(1);
+            dataRow.createCell(0).setCellValue(video.getTotalFrames());
+            dataRow.createCell(1).setCellValue(amount);
+            dataRow.createCell(2).setCellValue(video.getDuration());
+            dataRow.createCell(3).setCellValue(video.getFrameRate());
+
+            //get total points
+            int totalPoints = 0;
+            for (String s : tagData.keySet())
+                totalPoints += FrameHopperView.findTagByName(s).getValue()*tagData.get(s);
+
+            dataRow.createCell(4 ).setCellValue(totalPoints);
+
+            DecimalFormat df = new DecimalFormat("#.###");
+            String complexity = df.format((double)totalPoints/video.getDuration()).replace(',','.');
+            dataRow.createCell(5 ).setCellValue(Double.parseDouble(complexity));
+
+            //resize columns
+            for (int j = 0; j < 6; j++)
+                sheet.autoSizeColumn(j);
+
+            //create tag data info
+            Sheet tagSheet = workbook.createSheet("Tag data");
+
+            Row tagHeaderRow = tagSheet.createRow(0);
+            tagHeaderRow.createCell(0).setCellValue("TAG");
+            tagHeaderRow.createCell(1).setCellValue("VALUE");
+            tagHeaderRow.createCell(2).setCellValue("AMOUNT");
+            tagHeaderRow.createCell(3).setCellValue("TOTAL POINTS");
+
+            int i = 1;
+            for(String s : tagData.keySet()){
+                Row infoRow = tagSheet.createRow(i++);
+                infoRow.createCell(0).setCellValue(s);
+                infoRow.createCell(1).setCellValue(FrameHopperView.findTagByName(s).getValue());
+                infoRow.createCell(2).setCellValue(tagData.get(s));
+                infoRow.createCell(3).setCellValue(FrameHopperView.findTagByName(s).getValue()*tagData.get(s));
+            }
+
+            //resize columns
+            for (int j = 0; j < 4; j++)
+                tagSheet.autoSizeColumn(j);
 
             // Write the workbook to a file
             workbook.write(outputStream);

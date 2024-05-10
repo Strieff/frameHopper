@@ -110,4 +110,8 @@ public class TagService {
     public List<Object[]> countTagsOnFramesOfVideo(Video video){
         return tagRepository.countTagOccurrencesInVideoFrames(video);
     }
+
+    public List<Object[]> countTagsOnFramesOfVideo(List<Integer> videoIds){
+        return tagRepository.countTagOccurrencesInVideoFrames(videoIds);
+    }
 }

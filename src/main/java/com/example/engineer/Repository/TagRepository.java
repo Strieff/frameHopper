@@ -32,4 +32,7 @@ public interface TagRepository extends JpaRepository<Tag,Double> {
 
     @Query("select t.name, count(t) from Tag t join t.frames f where f.video = :video group by t.name")
     List<Object[]> countTagOccurrencesInVideoFrames(@Param("video") Video video);
+
+    @Query("select v, t.name, count(t) from Tag t join t.frames f join f.video v where v.id in :videoIds group by t.name,v.name")
+    List<Object[]> countTagOccurrencesInVideoFrames(@Param("videoIds") List<Integer> videoIds);
 }
