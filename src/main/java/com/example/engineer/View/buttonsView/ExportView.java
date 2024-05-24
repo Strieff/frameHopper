@@ -5,9 +5,6 @@ import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.QuoteMode;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -18,8 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -34,11 +30,18 @@ public class ExportView extends JFrame {
     @Autowired
     private TagService tagService;
 
+    boolean isShiftPressed = false;
+    int firstCLickedRow = -1;
+
     private JTable videoNameTable;
 
     public void setUpView(){
+        setUpKeyBinds();
+
         setSize(300, 400);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+        //set up key bind
 
         DefaultTableModel model = new DefaultTableModel(null, new String[]{"","",""});
         videoNameTable = new JTable(model){
@@ -46,7 +49,7 @@ public class ExportView extends JFrame {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Class getColumnClass(int column) {
+            public Class<?> getColumnClass(int column) {
                 return switch (column) {
                     case 0 -> Boolean.class;
                     case 1 -> String.class;
@@ -54,6 +57,27 @@ public class ExportView extends JFrame {
                 };
             }
         };
+
+        videoNameTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = videoNameTable.rowAtPoint(e.getPoint());
+                int col = videoNameTable.columnAtPoint(e.getPoint());
+
+                if(col == 0){
+                    if(firstCLickedRow == -1 || !isShiftPressed){
+                        firstCLickedRow = row;
+                    } else {
+                        int start = Math.min(firstCLickedRow, row);
+                        int end = Math.max(firstCLickedRow, row);
+                        for(int i = start; i <= end; i++){
+                            videoNameTable.setValueAt(true,i,0);
+                        }
+                        firstCLickedRow = -1;
+                    }
+                }
+            }
+        });
 
         //set size of ID to 0 - 3rd row
         videoNameTable.getColumnModel().getColumn(2).setMinWidth(0);
@@ -88,10 +112,6 @@ public class ExportView extends JFrame {
                 return;
 
             exportData(selected, path);
-
-
-
-
         });
 
         //cancel button
@@ -102,7 +122,17 @@ public class ExportView extends JFrame {
         buttonPanel.add(cancelButton);
         buttonPanel.add(exportButton);
 
-        add(buttonPanel,BorderLayout.SOUTH);
+        JButton clearButton = new JButton("CLEAR");
+        clearButton.addActionListener(e -> clearCheckboxes());
+
+        JPanel clearButtonPanel = new JPanel();
+        clearButtonPanel.add(clearButton);
+
+        JPanel lowerPanel = new JPanel(new GridLayout(2,1));
+        lowerPanel.add(clearButtonPanel);
+        lowerPanel.add(buttonPanel);
+
+        add(lowerPanel,BorderLayout.SOUTH);
 
         setResizable(false);
 
@@ -310,14 +340,14 @@ public class ExportView extends JFrame {
 
     private void writeToCSV(List<String[]> data,String path){
         try(FileWriter writer = new FileWriter(path)){
-            String csvText="";
+            StringBuilder csvText= new StringBuilder();
             for(String[] record : data) {
                 for (String s : record)
-                    csvText += s + ";";
-                csvText = csvText.replaceFirst(".$","");
-                csvText += "\n";
+                    csvText.append(s).append(";");
+                csvText = new StringBuilder(csvText.toString().replaceFirst(".$", ""));
+                csvText.append("\n");
             }
-            writer.write(csvText);
+            writer.write(csvText.toString());
             writer.flush();
         }catch (Exception e){
             e.printStackTrace();
@@ -335,5 +365,34 @@ public class ExportView extends JFrame {
         DecimalFormat df = new DecimalFormat("#.###");
         String complexity = df.format((double)getTotalPoints(tagData)/video.getDuration()).replace(',','.');
         return Double.parseDouble(complexity);
+    }
+
+    private void clearCheckboxes(){
+        DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
+        for (int i = 0; i < model.getRowCount(); i++)
+            model.setValueAt(false,i,0);
+    }
+
+    private void setUpKeyBinds(){
+        int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK,false),"shiftPressed");
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,0,true),"shiftReleased");
+
+        getRootPane().getActionMap().put("shiftPressed", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isShiftPressed = true;
+                System.out.println(isShiftPressed);
+            }
+        });
+
+        getRootPane().getActionMap().put("shiftReleased", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isShiftPressed = false;
+                firstCLickedRow = -1;
+                //System.out.println(isShiftPressed);
+            }
+        });
     }
 }
