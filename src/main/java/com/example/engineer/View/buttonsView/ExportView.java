@@ -114,11 +114,6 @@ public class ExportView extends JFrame {
         });
     }
 
-    private void close() {
-        setVisible(false);
-        ((DefaultTableModel) videoNameTable.getModel()).setRowCount(0);
-    }
-
     public void open() {
         DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
         List<Video> videos = videoService.getAll();
@@ -135,6 +130,11 @@ public class ExportView extends JFrame {
         videoNameTable.revalidate();
 
         setVisible(true);
+    }
+
+    private void close() {
+        setVisible(false);
+        ((DefaultTableModel) videoNameTable.getModel()).setRowCount(0);
     }
 
     private String getSaveLocation(){
@@ -179,17 +179,6 @@ public class ExportView extends JFrame {
 
         return selected;
     }
-
-    /*private void exportData(int index, String path){
-        Video video = videoService.getExportData(index);
-        List<Object[]> data = tagService.countTagsOnFramesOfVideo(video);
-
-        Map<String,Long> tagAmount = new HashMap<>();
-        for(Object[] o : data)
-            tagAmount.put((String)o[0],(Long)o[1]);
-
-        exportToExcel(video,path,tagAmount);
-    }*/
 
     private void exportData(List<Integer> indexList, String path){
         List<Object[]> data = tagService.countTagsOnFramesOfVideo(indexList);
@@ -320,11 +309,16 @@ public class ExportView extends JFrame {
     }
 
     private void writeToCSV(List<String[]> data,String path){
-        try(CSVPrinter printer = new CSVPrinter(new FileWriter(path), CSVFormat.DEFAULT.builder().setDelimiter(';').build())){
-            for(String[] record : data)
-                printer.printRecord((Object[]) record);
-
-            printer.flush();
+        try(FileWriter writer = new FileWriter(path)){
+            String csvText="";
+            for(String[] record : data) {
+                for (String s : record)
+                    csvText += s + ";";
+                csvText = csvText.replaceFirst(".$","");
+                csvText += "\n";
+            }
+            writer.write(csvText);
+            writer.flush();
         }catch (Exception e){
             e.printStackTrace();
         }
