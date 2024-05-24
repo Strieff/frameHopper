@@ -5,6 +5,9 @@ import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -17,10 +20,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.Serial;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,11 +87,11 @@ public class ExportView extends JFrame {
             if(path == null)
                 return;
 
-            if (selected.size() == 1) {
-                exportData(selected.get(0), path);
-            } else {
-                exportData(selected, path);
-            }
+            exportData(selected, path);
+
+
+
+
         });
 
         //cancel button
@@ -148,6 +148,19 @@ public class ExportView extends JFrame {
             return null;
     }
 
+    private boolean getFormatChoice(){
+        return JOptionPane.showOptionDialog(
+                this,
+                "File format:",
+                "",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new String[]{"Excel", "CSV"},
+                "Excel"
+        ) == 0;
+    }
+
     private List<Integer> getExportList(){
         List<Integer> selected = new ArrayList<>();
         DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
@@ -167,7 +180,7 @@ public class ExportView extends JFrame {
         return selected;
     }
 
-    private void exportData(int index, String path){
+    /*private void exportData(int index, String path){
         Video video = videoService.getExportData(index);
         List<Object[]> data = tagService.countTagsOnFramesOfVideo(video);
 
@@ -176,7 +189,7 @@ public class ExportView extends JFrame {
             tagAmount.put((String)o[0],(Long)o[1]);
 
         exportToExcel(video,path,tagAmount);
-    }
+    }*/
 
     private void exportData(List<Integer> indexList, String path){
         List<Object[]> data = tagService.countTagsOnFramesOfVideo(indexList);
@@ -189,8 +202,13 @@ public class ExportView extends JFrame {
             tagAmountOnVideos.get((Video)o[0]).put((String)o[1],(Long)o[2]);
         }
 
-        for(Video video : tagAmountOnVideos.keySet())
-            exportToExcel(video,path,tagAmountOnVideos.get(video));
+        if(getFormatChoice())
+            for(Video video : tagAmountOnVideos.keySet())
+                exportToExcel(video,path,tagAmountOnVideos.get(video));
+        else
+            for(Video video : tagAmountOnVideos.keySet())
+                exportToCsv(video,path,tagAmountOnVideos.get(video));
+
     }
 
     private void exportToExcel(Video video, String path, Map<String,Long> tagData){
@@ -265,5 +283,63 @@ public class ExportView extends JFrame {
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void exportToCsv(Video video, String path, Map<String,Long> tagData){
+        long amount = tagService.getAmountOfUniqueTagsOnVideo(video);
+        String exportDirectory = path + File.separator + video.getName().substring(0,video.getName().lastIndexOf('.'))+"_csv";
+        new File(exportDirectory).mkdirs();
+
+        String overviewFileName = File.separator + "Overview.csv";
+        List<String[]> overviewData = new ArrayList<>();
+        overviewData.add(new String[]{"FRAME COUNT","TAGS","RUNTIME (SECONDS)","FRAMERATE","TOTAL POINTS","COMPLEXITY"});
+        overviewData.add(new String[]{
+                String.valueOf(video.getTotalFrames()),
+                String.valueOf(amount),
+                String.valueOf(video.getDuration()),
+                String.valueOf(video.getFrameRate()),
+                String.valueOf(getTotalPoints(tagData)),
+                String.valueOf(getComplexity(tagData,video))
+        });
+
+        writeToCSV(overviewData,exportDirectory+overviewFileName);
+
+        String detailsFileName = File.separator + "Tag Details.csv";
+        List<String[]> tagDetailsData = new ArrayList<>();
+        tagDetailsData.add(new String[]{"TAG","VALUE","AMOUNT","TOTAL POINTS"});
+        for(String s : tagData.keySet())
+            tagDetailsData.add(new String[]{
+                    s,
+                    String.valueOf(FrameHopperView.findTagByName(s).getValue()),
+                    String.valueOf(tagData.get(s)),
+                    String.valueOf(FrameHopperView.findTagByName(s).getValue()*tagData.get(s))
+            });
+
+        writeToCSV(tagDetailsData,exportDirectory+detailsFileName);
+
+    }
+
+    private void writeToCSV(List<String[]> data,String path){
+        try(CSVPrinter printer = new CSVPrinter(new FileWriter(path), CSVFormat.DEFAULT.builder().setDelimiter(';').build())){
+            for(String[] record : data)
+                printer.printRecord((Object[]) record);
+
+            printer.flush();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private int getTotalPoints(Map<String,Long> tagData){
+        int totalPoints = 0;
+        for (String s : tagData.keySet())
+            totalPoints += FrameHopperView.findTagByName(s).getValue()*tagData.get(s);
+        return totalPoints;
+    }
+
+    private double getComplexity(Map<String,Long> tagData,Video video){
+        DecimalFormat df = new DecimalFormat("#.###");
+        String complexity = df.format((double)getTotalPoints(tagData)/video.getDuration()).replace(',','.');
+        return Double.parseDouble(complexity);
     }
 }

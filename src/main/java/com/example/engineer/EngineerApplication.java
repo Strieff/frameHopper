@@ -13,7 +13,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication(exclude = {HibernateJpaAutoConfiguration.class})
+@SpringBootApplication(/*exclude = {HibernateJpaAutoConfiguration.class}*/)
 @EnableJpaRepositories(basePackages = "com.example.engineer.Repository")
 @EntityScan(basePackages = {"com.example.engineer.Model"})
 public class EngineerApplication {
