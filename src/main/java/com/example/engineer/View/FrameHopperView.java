@@ -33,6 +33,7 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -66,10 +67,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private SettingsView settingsView;
     private ExportView exportView;
 
-    private JLabel imageLabel;
-    private JLabel infoLabel;
-    private JTextField jumpTextField;
-    private JTable tagsTableList;
+    private final JLabel imageLabel;
+    private final JLabel infoLabel;
+    private final JTextField jumpTextField;
+    private final JTable tagsTableList;
 
     private File videoFile;
     private int currentFrameIndex;
@@ -131,7 +132,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Class getColumnClass(int column) {
+            public Class<?> getColumnClass(int column) {
                 return switch (column) {
                     case 0 -> String.class;
                     default -> Double.class;
@@ -176,11 +177,41 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         splitPane.setResizeWeight(1.0);
         add(splitPane, BorderLayout.EAST);
 
+        //movement key binds
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke('.'), MOVE_RIGHT);
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(','), MOVE_LEFT);
 
         getRootPane().getActionMap().put(MOVE_RIGHT, new MoveRightAction(this));
         getRootPane().getActionMap().put(MOVE_LEFT, new MoveLeftAction(this));
+
+        //shortcut key binds
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK,false),"OpenSettings");
+        getRootPane().getActionMap().put("OpenSettings", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                settingsView.open();
+            }
+        });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E,KeyEvent.SHIFT_DOWN_MASK,false),"OpenExport");
+        getRootPane().getActionMap().put("OpenExport", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exportView.open();
+            }
+        });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,KeyEvent.SHIFT_DOWN_MASK,false),"OpenManager");
+        getRootPane().getActionMap().put("OpenManager", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(video != null)
+                    tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
+                else
+                    JOptionPane.showMessageDialog(getRootPane(), "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
 
         // Add drag and drop support
         new DropTarget(this, new DropTargetAdapter() {
@@ -357,16 +388,16 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         setButtonIcon(tagManagerButton,"plus.png");
         tagManagerButton.addActionListener(e -> {
             if(videoFile != null)
-                SwingUtilities.invokeLater(() -> {
+                //SwingUtilities.invokeLater(() -> {
                     tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
-                });
+                //});
             else
                 JOptionPane.showMessageDialog(this, "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
         });
 
         JButton settingsButton = new JButton();
         setButtonIcon(settingsButton,"settings.png");
-        settingsButton.addActionListener(e -> SwingUtilities.invokeLater(() -> settingsView.setUpData()));
+        settingsButton.addActionListener(e -> SwingUtilities.invokeLater(() -> settingsView.open()));
 
         JButton exportButton = new JButton();
         setButtonIcon(exportButton,"export.png");
@@ -513,10 +544,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //get index of tag in global list
     public synchronized static int findTagIndexById(Integer id){
-        /*for (int i = 0; i < TAG_LIST.size(); i++)
-            if(TAG_LIST.get(i).getId().intValue()==id.intValue())
-                return i;*/
-
         return IntStream.range(0, TAG_LIST.size())
                 .filter(i -> TAG_LIST.get(i).getId().equals(id))
                 .findFirst()
@@ -525,10 +552,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //get tag by name
     public static Tag findTagByName(String name){
-        /*for(Tag t : TAG_LIST)
-            if(t.getName().equals(name))
-                return t;
-*/
         return TAG_LIST.stream()
                 .filter(t -> t.getName().equals(name))
                 .findFirst()
@@ -537,11 +560,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //get amount of not hidden tags
     public synchronized static int getNumberOfVisibleTags(){
-        /*int i = 0;
-
-        for (Tag t : TAG_LIST)
-            if(!t.isDeleted())
-                i++;*/
         return (int) TAG_LIST.stream()
                 .filter(t -> !t.isDeleted())
                 .count();

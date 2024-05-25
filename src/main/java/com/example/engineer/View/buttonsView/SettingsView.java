@@ -6,7 +6,6 @@ import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.DeleteTagThread;
 import com.example.engineer.Threads.SaveSettingsThread;
-import com.example.engineer.Threads.SetHiddenStatusThread;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
 import com.example.engineer.View.smallViews.TagDetailsView;
@@ -198,16 +197,25 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                onClose();
+                close();
+            }
+        });
+
+        //shortcut key binds
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK,false),"OpenSettings");
+        getRootPane().getActionMap().put("OpenSettings", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                close();
             }
         });
     }
 
-    public void setUpData(){
+    public void open(){
         setVisible(true);
     }
 
-    private void onClose(){
+    public void close(){
         setVisible(false);
     }
 
@@ -246,9 +254,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     }
 
     private void showOptionsDialog(Integer tagId){
-        String[] options = {"Cancel","Hide","Delete"};
+        String[] options = {"Cancel","Delete"};
 
-        int actionChoice = JOptionPane.showOptionDialog(this, "Message", "Title",
+        int actionChoice = JOptionPane.showOptionDialog(this, "Delete tag?", "",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[0]);
 

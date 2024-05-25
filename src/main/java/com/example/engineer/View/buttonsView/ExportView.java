@@ -112,6 +112,8 @@ public class ExportView extends JFrame {
                 return;
 
             exportData(selected, path);
+
+            JOptionPane.showMessageDialog(this,"Export complete!","Export Status",JOptionPane.INFORMATION_MESSAGE);
         });
 
         //cancel button
@@ -392,6 +394,14 @@ public class ExportView extends JFrame {
                 isShiftPressed = false;
                 firstCLickedRow = -1;
                 //System.out.println(isShiftPressed);
+            }
+        });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E,KeyEvent.SHIFT_DOWN_MASK,false),"OpenExport");
+        getRootPane().getActionMap().put("OpenExport", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                close();
             }
         });
     }
