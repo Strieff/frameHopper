@@ -25,10 +25,6 @@ public class TagService {
         return tagRepository.findAll();
     }
 
-    public Tag getByName(String name){
-        return tagRepository.findByName(name).stream().findFirst().orElse(null);
-    }
-
     public Tag createTag(String name,Double value,String description){
         return tagRepository.save(Tag.builder()
                         .name(name)
@@ -81,10 +77,6 @@ public class TagService {
             map.put((Video)o[0], (Long)o[1]);
 
         return map;
-    }
-
-    public List<Object[]> countTagsOnFramesOfVideo(Video video){
-        return tagRepository.countTagOccurrencesInVideoFrames(video);
     }
 
     public List<Object[]> countTagsOnFramesOfVideo(List<Integer> videoIds){

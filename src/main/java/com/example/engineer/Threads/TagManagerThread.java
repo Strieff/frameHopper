@@ -31,12 +31,12 @@ public class TagManagerThread{
 
     public void start(){
         executorService.execute(() -> {
-            if(currentTags.size() == 0 && originalTags.size() != 0)
+            if(currentTags.isEmpty() && !originalTags.isEmpty())
                 frameService.modifyTagsOfFrame(new ArrayList<>(),frameNo,videoName);
 
             if(
-                    (currentTags.size() != 0 && originalTags.size() == 0) ||
-                    (currentTags.size() != 0 && currentTags.size() != originalTags.size())
+                    (!currentTags.isEmpty() && originalTags.isEmpty()) ||
+                    (!currentTags.isEmpty() && currentTags.size() != originalTags.size())
             ){
                 frameService.modifyTagsOfFrame(currentTags,frameNo,videoName);
             }

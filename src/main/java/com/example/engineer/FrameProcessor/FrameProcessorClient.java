@@ -12,12 +12,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 public class FrameProcessorClient extends Thread{
-    private static String HOST = "localhost";
-    private static int PORT = 65432;
+    private static final String HOST = "localhost";
+    private static final int PORT = 65432;
 
-    private BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 
-    private BlockingQueue<String> responseQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> responseQueue = new LinkedBlockingQueue<>();
     private PrintWriter out;
     private BufferedReader in;
     Socket socket;

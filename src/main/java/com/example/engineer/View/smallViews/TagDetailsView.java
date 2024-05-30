@@ -150,8 +150,6 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     }
 
     public void openWindow(){
-
-
         setVisible(true);
     }
 

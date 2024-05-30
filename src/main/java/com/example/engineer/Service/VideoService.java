@@ -37,11 +37,8 @@ public class VideoService {
     public Video getByName(String name){
         return videoRepository.findByName(name).orElse(null);
     }
+
     public List<Video> getAll(){
         return videoRepository.findAll();
-    }
-
-    public Video getExportData(int index){
-        return videoRepository.findFirstById(index).orElse(null);
     }
 }

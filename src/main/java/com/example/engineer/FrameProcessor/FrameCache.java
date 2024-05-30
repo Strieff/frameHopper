@@ -15,12 +15,13 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 @Component
 public class FrameCache implements ApplicationContextAware {
-    private LinkedBlockingDeque<BufferedImage> cache = new LinkedBlockingDeque<>();
-    private LinkedBlockingDeque<Integer> indexCache = new LinkedBlockingDeque<>();
+    private final LinkedBlockingDeque<BufferedImage> cache = new LinkedBlockingDeque<>();
+    private final LinkedBlockingDeque<Integer> indexCache = new LinkedBlockingDeque<>();
 
     private Map<Integer,Boolean> loadMap = new HashMap<>();
 
-    private String DIR = "cache";
+    private final String DIR = "cache";
+
     File videoFile;
     private String fileName;
     private static ApplicationContext ctx;
@@ -45,6 +46,7 @@ public class FrameCache implements ApplicationContextAware {
                 indexCache.removeFirst();
             }
 
+            //get next 100 after crossing 50th frame
             if(currentIndex % 100 > 50 & !loadMap.containsKey((currentIndex+100)/100)) {
                 ctx.getBean(FrameProcessorClient.class).send("1;"+(currentIndex+100)/100+";0",false);
                 loadMap.put((100+currentIndex)/100,true);

@@ -18,7 +18,9 @@ public class StatusView extends JFrame implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;
     }
+
     JLabel label;
+
     public void setUpView(){
         setSize(150,75);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -48,7 +50,6 @@ public class StatusView extends JFrame implements ApplicationContextAware {
 
     public void open(String text){
         label.setText(text);
-        //label.revalidate();
         setVisible(true);
     }
 

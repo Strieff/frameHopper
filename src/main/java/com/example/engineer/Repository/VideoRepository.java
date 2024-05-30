@@ -15,9 +15,5 @@ public interface VideoRepository extends JpaRepository<Video,Long> {
     @Query("select v from Video v where v.name=:name")
     Optional<Video> findByName(@Param("name") String name);
 
-    @EntityGraph(attributePaths = "frames") // Eagerly load frames
-    List<Video> findAllByIdIn(List<Integer> videoIds);
-
-
     Optional<Video> findFirstById(Integer id);
 }

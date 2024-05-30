@@ -152,6 +152,7 @@ public class ExportView extends JFrame {
         });
     }
 
+    //opens window
     public void open() {
         DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
         List<Video> videos = videoService.getAll();
@@ -170,11 +171,13 @@ public class ExportView extends JFrame {
         setVisible(true);
     }
 
+    //closes window
     public void close() {
         setVisible(false);
         ((DefaultTableModel) videoNameTable.getModel()).setRowCount(0);
     }
 
+    //gets path for saving file
     private String getSaveLocation(){
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -186,6 +189,7 @@ public class ExportView extends JFrame {
             return null;
     }
 
+    //get format - either excel or CSV
     private boolean getFormatChoice(){
         return JOptionPane.showOptionDialog(
                 this,
@@ -199,6 +203,7 @@ public class ExportView extends JFrame {
         ) == 0;
     }
 
+    //get all checked items from the table
     private List<Integer> getExportList(){
         List<Integer> selected = new ArrayList<>();
         DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
@@ -218,6 +223,7 @@ public class ExportView extends JFrame {
         return selected;
     }
 
+    //compile raw data and put to export
     private void exportData(List<Integer> indexList, String path){
         List<Object[]> data = tagService.countTagsOnFramesOfVideo(indexList);
 
@@ -235,6 +241,7 @@ public class ExportView extends JFrame {
             exportToCsv(tagAmountOnVideos,path,getFileName());
     }
 
+    //compiles and exports to excel
     private void exportToExcel(Map<Video,Map<String,Long>> videoTagMap, String path,String name){
         Map<Video,Long> uniqueTagsOnVideos = tagService.getAmountOfUniqueTagsOnVideos(new ArrayList<>(videoTagMap.keySet()));
 
@@ -260,13 +267,12 @@ public class ExportView extends JFrame {
             //create data row
             for (int row = 0; row < videoTagMap.size(); row++) {
                 Video video = new ArrayList<>(videoTagMap.keySet()).get(row);
-                Video videoForOtherData = new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row);
 
                 Row dataRow = sheet.createRow(row+1);
 
                 dataRow.createCell(0).setCellValue(video.getName());
                 dataRow.createCell(1).setCellValue(video.getTotalFrames());
-                dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(videoForOtherData));
+                dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row)));
                 dataRow.createCell(3).setCellValue(video.getDuration());
                 dataRow.createCell(4).setCellValue(video.getFrameRate());
                 dataRow.createCell(5).setCellValue(getTotalPoints(videoTagMap.get(video)));
@@ -313,6 +319,7 @@ public class ExportView extends JFrame {
         }
     }
 
+    //compiles data
     private void exportToCsv(Map<Video,Map<String,Long>> videoTagMap, String path,String name){
         Map<Video,Long> uniqueTagsOnVideos = tagService.getAmountOfUniqueTagsOnVideos(new ArrayList<>(videoTagMap.keySet()));
 
@@ -327,12 +334,11 @@ public class ExportView extends JFrame {
 
         for (int row = 0; row < videoTagMap.size();row++) {
             Video video = new ArrayList<>(videoTagMap.keySet()).get(row);
-            Video videoForOtherData = new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row);
 
             overviewData.add(new String[]{
                     video.getName(),
                     String.valueOf(video.getTotalFrames()),
-                    String.valueOf(uniqueTagsOnVideos.get(videoForOtherData)),
+                    String.valueOf(uniqueTagsOnVideos.get(new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row))),
                     String.valueOf(video.getDuration()),
                     String.valueOf(video.getFrameRate()),
                     String.valueOf(getTotalPoints(videoTagMap.get(video))),
@@ -361,9 +367,9 @@ public class ExportView extends JFrame {
         }
 
         writeToCSV(tagDetailsData,exportDirectory+detailsFileName);
-
     }
 
+    //writes data to CSV
     private void writeToCSV(List<String[]> data,String path){
         try(FileWriter writer = new FileWriter(path)){
             StringBuilder csvText= new StringBuilder();
@@ -380,6 +386,7 @@ public class ExportView extends JFrame {
         }
     }
 
+    //gets total amount of points of given tag
     private int getTotalPoints(Map<String,Long> tagData){
         int totalPoints = 0;
         for (String s : tagData.keySet())
@@ -387,12 +394,14 @@ public class ExportView extends JFrame {
         return totalPoints;
     }
 
+    //gets complexity of given video
     private double getComplexity(int totalPoints,Video video){
         DecimalFormat df = new DecimalFormat("#.###");
         String complexity = df.format((double)totalPoints/video.getDuration()).replace(',','.');
         return Double.parseDouble(complexity);
     }
 
+    //gets total amount of tags
     private Map<String,Long> getTotalAmountOfTags(Map<Video,Map<String,Long>> videoTagMap){
         Map<String,Long> tagData = new HashMap<>();
         for (Map<String,Long> data : videoTagMap.values())
@@ -407,12 +416,14 @@ public class ExportView extends JFrame {
         return tagData;
     }
 
+    //clears checkboxes
     private void clearCheckboxes(){
         DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
         for (int i = 0; i < model.getRowCount(); i++)
             model.setValueAt(false,i,0);
     }
 
+    //sets up keybindings
     private void setUpKeyBinds(){
         int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK,false),"shiftPressed");
@@ -442,6 +453,7 @@ public class ExportView extends JFrame {
         });
     }
 
+    //gets name of the file to save to
     private String getFileName(){
         JTextField jTextField = new JTextField();
 

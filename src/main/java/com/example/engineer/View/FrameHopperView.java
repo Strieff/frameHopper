@@ -48,9 +48,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 //TODO delete hidden tags that are not assigned to any frame
-//TODO fetch all needed data from DB after getting video - remove unnecessary database calls
 //TODO make a small window for comments under tag list, move left right to find comments
-//TODO take focus away from jump if clicked
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
     public static List<Tag> TAG_LIST;
@@ -310,27 +308,22 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
     }
 
-    //jump to given frame p1
+    //jump to given frame
     private void jumpToSpecifiedFrame() {
         try {
             int frameToJump = Integer.parseInt(jumpTextField.getText());
-            jumpFrame(frameToJump);
+            if (frameToJump < 0 || frameToJump > maxFrameIndex) {
+                throw new Exception("Cannot display frame: " + frameToJump + ". Frame number does not exist.");
+            } else {
+                ctx.getBean(FrameCache.class).jump(frameToJump-1);
+                currentFrameIndex = (frameToJump-1);
+                displayCurrentFrame();
+            }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid frame number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 
-        }
-    }
-
-    //jump to given frame p2
-    public void jumpFrame(int frame) throws Exception {
-        if (frame < 0 || frame > maxFrameIndex) {
-            throw new Exception("Cannot display frame: " + frame + ". Frame number does not exist.");
-        } else {
-            ctx.getBean(FrameCache.class).jump(frame-1);
-            currentFrameIndex = (frame-1);
-            displayCurrentFrame();
         }
     }
 
@@ -399,9 +392,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         setButtonIcon(tagManagerButton,"plus.png");
         tagManagerButton.addActionListener(e -> {
             if(videoFile != null)
-                //SwingUtilities.invokeLater(() -> {
-                    tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
-                //});
+                tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
             else
                 JOptionPane.showMessageDialog(this, "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
         });

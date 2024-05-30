@@ -72,7 +72,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Class getColumnClass(int column) {
+            public Class<?> getColumnClass(int column) {
                 return switch (column) {
                     case 0, 2 -> String.class;
                     case 1 -> Double.class;

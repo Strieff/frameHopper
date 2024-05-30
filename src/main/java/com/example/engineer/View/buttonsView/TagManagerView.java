@@ -57,7 +57,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Class getColumnClass(int column) {
+            public Class<?> getColumnClass(int column) {
                 return switch (column) {
                     case 0 -> Boolean.class;
                     case 1 -> String.class;
