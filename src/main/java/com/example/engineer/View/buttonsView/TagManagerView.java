@@ -199,7 +199,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
                 .orElse(null);
     }
 
-    private void close() {
+    public void close() {
         setVisible(false);
 
         //clear data

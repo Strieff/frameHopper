@@ -1,5 +1,6 @@
 package com.example.engineer.View.buttonsView;
 
+import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
@@ -65,9 +66,10 @@ public class ExportView extends JFrame {
                 int col = videoNameTable.columnAtPoint(e.getPoint());
 
                 if(col == 0){
-                    if(firstCLickedRow == -1 || !isShiftPressed){
+                    if(firstCLickedRow == -1 || !isShiftPressed)
                         firstCLickedRow = row;
-                    } else {
+
+                    if(isShiftPressed){
                         int start = Math.min(firstCLickedRow, row);
                         int end = Math.max(firstCLickedRow, row);
                         for(int i = start; i <= end; i++){
@@ -102,7 +104,7 @@ public class ExportView extends JFrame {
         exportButton.addActionListener(e -> {
             List<Integer> selected = getExportList();
 
-            if(selected.size() == 0){
+            if(selected.isEmpty()){
                 JOptionPane.showMessageDialog(this, "No videos were selected", "No Videos Selected", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -111,9 +113,13 @@ public class ExportView extends JFrame {
             if(path == null)
                 return;
 
-            exportData(selected, path);
+            try{
+                exportData(selected, path);
 
-            JOptionPane.showMessageDialog(this,"Export complete!","Export Status",JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Export complete!", "Export Status", JOptionPane.INFORMATION_MESSAGE);
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
         });
 
         //cancel button
@@ -164,7 +170,7 @@ public class ExportView extends JFrame {
         setVisible(true);
     }
 
-    private void close() {
+    public void close() {
         setVisible(false);
         ((DefaultTableModel) videoNameTable.getModel()).setRowCount(0);
     }
@@ -224,18 +230,15 @@ public class ExportView extends JFrame {
         }
 
         if(getFormatChoice())
-            for(Video video : tagAmountOnVideos.keySet())
-                exportToExcel(video,path,tagAmountOnVideos.get(video));
+            exportToExcel(tagAmountOnVideos,path,getFileName());
         else
-            for(Video video : tagAmountOnVideos.keySet())
-                exportToCsv(video,path,tagAmountOnVideos.get(video));
-
+            exportToCsv(tagAmountOnVideos,path,getFileName());
     }
 
-    private void exportToExcel(Video video, String path, Map<String,Long> tagData){
-        long amount = tagService.getAmountOfUniqueTagsOnVideo(video);
+    private void exportToExcel(Map<Video,Map<String,Long>> videoTagMap, String path,String name){
+        Map<Video,Long> uniqueTagsOnVideos = tagService.getAmountOfUniqueTagsOnVideos(new ArrayList<>(videoTagMap.keySet()));
 
-        String fileName = video.getName().substring(0,video.getName().lastIndexOf('.'))+"_data.xlsx";
+        String fileName = name+"_data.xlsx";
 
         try(
                 Workbook workbook = WorkbookFactory.create(true);
@@ -246,33 +249,32 @@ public class ExportView extends JFrame {
 
             // Create header row
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("FRAME COUNT");
-            headerRow.createCell(1).setCellValue("TAGS");
-            headerRow.createCell(2).setCellValue("RUNTIME (SECONDS)");
-            headerRow.createCell(3).setCellValue("FRAMERATE");
-            headerRow.createCell(4).setCellValue("TOTAL POINTS");
-            headerRow.createCell(5).setCellValue("COMPLEXITY");
+            headerRow.createCell(0).setCellValue("NAME");
+            headerRow.createCell(1).setCellValue("FRAME COUNT");
+            headerRow.createCell(2).setCellValue("TAGS");
+            headerRow.createCell(3).setCellValue("RUNTIME (SECONDS)");
+            headerRow.createCell(4).setCellValue("FRAMERATE");
+            headerRow.createCell(5).setCellValue("TOTAL POINTS");
+            headerRow.createCell(6).setCellValue("COMPLEXITY");
 
             //create data row
-            Row dataRow = sheet.createRow(1);
-            dataRow.createCell(0).setCellValue(video.getTotalFrames());
-            dataRow.createCell(1).setCellValue(amount);
-            dataRow.createCell(2).setCellValue(video.getDuration());
-            dataRow.createCell(3).setCellValue(video.getFrameRate());
+            for (int row = 0; row < videoTagMap.size(); row++) {
+                Video video = new ArrayList<>(videoTagMap.keySet()).get(row);
+                Video videoForOtherData = new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row);
 
-            //get total points
-            int totalPoints = 0;
-            for (String s : tagData.keySet())
-                totalPoints += FrameHopperView.findTagByName(s).getValue()*tagData.get(s);
+                Row dataRow = sheet.createRow(row+1);
 
-            dataRow.createCell(4 ).setCellValue(totalPoints);
-
-            DecimalFormat df = new DecimalFormat("#.###");
-            String complexity = df.format((double)totalPoints/video.getDuration()).replace(',','.');
-            dataRow.createCell(5 ).setCellValue(Double.parseDouble(complexity));
+                dataRow.createCell(0).setCellValue(video.getName());
+                dataRow.createCell(1).setCellValue(video.getTotalFrames());
+                dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(videoForOtherData));
+                dataRow.createCell(3).setCellValue(video.getDuration());
+                dataRow.createCell(4).setCellValue(video.getFrameRate());
+                dataRow.createCell(5).setCellValue(getTotalPoints(videoTagMap.get(video)));
+                dataRow.createCell(6).setCellValue(getComplexity(getTotalPoints(videoTagMap.get(video)),video));
+            }
 
             //resize columns
-            for (int j = 0; j < 6; j++)
+            for (int j = 0; j < 7; j++)
                 sheet.autoSizeColumn(j);
 
             //create tag data info
@@ -284,13 +286,18 @@ public class ExportView extends JFrame {
             tagHeaderRow.createCell(2).setCellValue("AMOUNT");
             tagHeaderRow.createCell(3).setCellValue("TOTAL POINTS");
 
+            //get all amount of tags on all videos
+            Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
+
             int i = 1;
             for(String s : tagData.keySet()){
+                Tag tag = FrameHopperView.findTagByName(s);
+
                 Row infoRow = tagSheet.createRow(i++);
                 infoRow.createCell(0).setCellValue(s);
-                infoRow.createCell(1).setCellValue(FrameHopperView.findTagByName(s).getValue());
+                infoRow.createCell(1).setCellValue(tag.getValue());
                 infoRow.createCell(2).setCellValue(tagData.get(s));
-                infoRow.createCell(3).setCellValue(FrameHopperView.findTagByName(s).getValue()*tagData.get(s));
+                infoRow.createCell(3).setCellValue(tag.getValue()*tagData.get(s));
             }
 
             //resize columns
@@ -306,35 +313,52 @@ public class ExportView extends JFrame {
         }
     }
 
-    private void exportToCsv(Video video, String path, Map<String,Long> tagData){
-        long amount = tagService.getAmountOfUniqueTagsOnVideo(video);
-        String exportDirectory = path + File.separator + video.getName().substring(0,video.getName().lastIndexOf('.'))+"_csv";
+    private void exportToCsv(Map<Video,Map<String,Long>> videoTagMap, String path,String name){
+        Map<Video,Long> uniqueTagsOnVideos = tagService.getAmountOfUniqueTagsOnVideos(new ArrayList<>(videoTagMap.keySet()));
+
+        String exportDirectory = path + File.separator + name;
         new File(exportDirectory).mkdirs();
 
+        //save overview
         String overviewFileName = File.separator + "Overview.csv";
-        List<String[]> overviewData = new ArrayList<>();
-        overviewData.add(new String[]{"FRAME COUNT","TAGS","RUNTIME (SECONDS)","FRAMERATE","TOTAL POINTS","COMPLEXITY"});
-        overviewData.add(new String[]{
-                String.valueOf(video.getTotalFrames()),
-                String.valueOf(amount),
-                String.valueOf(video.getDuration()),
-                String.valueOf(video.getFrameRate()),
-                String.valueOf(getTotalPoints(tagData)),
-                String.valueOf(getComplexity(tagData,video))
-        });
 
+        List<String[]> overviewData = new ArrayList<>();
+        overviewData.add(new String[]{"NAME","FRAME COUNT","TAGS","RUNTIME (SECONDS)","FRAMERATE","TOTAL POINTS","COMPLEXITY"});
+
+        for (int row = 0; row < videoTagMap.size();row++) {
+            Video video = new ArrayList<>(videoTagMap.keySet()).get(row);
+            Video videoForOtherData = new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row);
+
+            overviewData.add(new String[]{
+                    video.getName(),
+                    String.valueOf(video.getTotalFrames()),
+                    String.valueOf(uniqueTagsOnVideos.get(videoForOtherData)),
+                    String.valueOf(video.getDuration()),
+                    String.valueOf(video.getFrameRate()),
+                    String.valueOf(getTotalPoints(videoTagMap.get(video))),
+                    String.valueOf(getComplexity(getTotalPoints(videoTagMap.get(video)),video))
+            });
+        }
         writeToCSV(overviewData,exportDirectory+overviewFileName);
 
+        //save tag data
         String detailsFileName = File.separator + "Tag Details.csv";
+
+        Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
+
         List<String[]> tagDetailsData = new ArrayList<>();
         tagDetailsData.add(new String[]{"TAG","VALUE","AMOUNT","TOTAL POINTS"});
-        for(String s : tagData.keySet())
+
+        for(String s : tagData.keySet()) {
+            Tag tag = FrameHopperView.findTagByName(s);
+
             tagDetailsData.add(new String[]{
                     s,
-                    String.valueOf(FrameHopperView.findTagByName(s).getValue()),
+                    String.valueOf(tag.getValue()),
                     String.valueOf(tagData.get(s)),
-                    String.valueOf(FrameHopperView.findTagByName(s).getValue()*tagData.get(s))
+                    String.valueOf(tag.getValue() * tagData.get(s))
             });
+        }
 
         writeToCSV(tagDetailsData,exportDirectory+detailsFileName);
 
@@ -359,14 +383,28 @@ public class ExportView extends JFrame {
     private int getTotalPoints(Map<String,Long> tagData){
         int totalPoints = 0;
         for (String s : tagData.keySet())
-            totalPoints += FrameHopperView.findTagByName(s).getValue()*tagData.get(s);
+            totalPoints += (int) (FrameHopperView.findTagByName(s).getValue()*tagData.get(s));
         return totalPoints;
     }
 
-    private double getComplexity(Map<String,Long> tagData,Video video){
+    private double getComplexity(int totalPoints,Video video){
         DecimalFormat df = new DecimalFormat("#.###");
-        String complexity = df.format((double)getTotalPoints(tagData)/video.getDuration()).replace(',','.');
+        String complexity = df.format((double)totalPoints/video.getDuration()).replace(',','.');
         return Double.parseDouble(complexity);
+    }
+
+    private Map<String,Long> getTotalAmountOfTags(Map<Video,Map<String,Long>> videoTagMap){
+        Map<String,Long> tagData = new HashMap<>();
+        for (Map<String,Long> data : videoTagMap.values())
+            for(String s : data.keySet())
+                if(!tagData.containsKey(s))
+                    tagData.put(s, data.get(s));
+                else{
+                    long amount = tagData.get(s)+data.get(s);
+                    tagData.put(s, amount);
+                }
+
+        return tagData;
     }
 
     private void clearCheckboxes(){
@@ -384,7 +422,6 @@ public class ExportView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 isShiftPressed = true;
-                System.out.println(isShiftPressed);
             }
         });
 
@@ -393,7 +430,6 @@ public class ExportView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 isShiftPressed = false;
                 firstCLickedRow = -1;
-                //System.out.println(isShiftPressed);
             }
         });
 
@@ -404,5 +440,20 @@ public class ExportView extends JFrame {
                 close();
             }
         });
+    }
+
+    private String getFileName(){
+        JTextField jTextField = new JTextField();
+
+        JPanel panel = new JPanel(new BorderLayout(0,1));
+        panel.add(jTextField);
+
+        panel.requestFocus();
+        int res = JOptionPane.showConfirmDialog(this,panel,"FILE NAME:",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+
+        if(res == JOptionPane.OK_OPTION)
+            return jTextField.getText();
+        else
+            throw new NullPointerException("No file name given");
     }
 }

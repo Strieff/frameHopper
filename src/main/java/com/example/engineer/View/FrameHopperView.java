@@ -189,7 +189,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         getRootPane().getActionMap().put("OpenSettings", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                settingsView.open();
+                if(!settingsView.isVisible())
+                    settingsView.open();
+                else
+                    settingsView.close();
             }
         });
 
@@ -197,7 +200,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         getRootPane().getActionMap().put("OpenExport", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                exportView.open();
+                if(!exportView.isVisible())
+                    exportView.open();
+                else
+                    exportView.close();
             }
         });
 
@@ -206,7 +212,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(video != null)
-                    tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
+                    if(tagManagerView.isVisible())
+                        tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
+                    else
+                        tagManagerView.close();
                 else
                     JOptionPane.showMessageDialog(getRootPane(), "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
             }
@@ -276,6 +285,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 ctx.getBean(StatusView.class).dispose();
             }
         });
+
+        getRootPane().requestFocus();
     }
 
     //initialize buttons

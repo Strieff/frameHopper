@@ -28,4 +28,12 @@ public class Video {
     private Double duration;
     private Integer videoHeight;
     private Integer videoWidth;
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof Video)
+            return ((Video) o).getName().equals(this.getName());
+
+        return false;
+    }
 }

@@ -10,7 +10,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @Service
@@ -71,8 +73,14 @@ public class TagService {
         tagRepository.delete(tag);
     }
 
-    public long getAmountOfUniqueTagsOnVideo(Video video){
-        return tagRepository.countUniqueTagsByVideo(video);
+    public Map<Video,Long> getAmountOfUniqueTagsOnVideos(List<Video> videos){
+        Map<Video,Long> map = new HashMap<>();
+        List<Object[]> data = tagRepository.countUniqueTagsByVideo(videos);
+
+        for(Object[] o : data)
+            map.put((Video)o[0], (Long)o[1]);
+
+        return map;
     }
 
     public List<Object[]> countTagsOnFramesOfVideo(Video video){
