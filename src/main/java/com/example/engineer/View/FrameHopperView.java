@@ -210,7 +210,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(video != null)
-                    if(tagManagerView.isVisible())
+                    if(!tagManagerView.isVisible())
                         tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
                     else
                         tagManagerView.close();

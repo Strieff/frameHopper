@@ -13,12 +13,11 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.Serial;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -28,12 +27,15 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     @Autowired
     private final FrameService frameService;
     private JTable tagTable;
+    private JLabel frameLabel;
 
     private List<Tag> originalTags;
     private List<Tag> currentTags;
     private Integer frameNo;
     private String videoName;
     private FrameHopperView frameHopperView;
+
+    private String search = "";
 
     private static ApplicationContext ctx;
     @Override
@@ -47,10 +49,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         setSize(250, 400);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-        JLabel frameLabel = new JLabel("FRAME: ", SwingConstants.CENTER);
+        frameLabel = new JLabel("FRAME: ", SwingConstants.CENTER);
         frameLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        add(frameLabel, BorderLayout.NORTH);
-
 
         tagTable = new JTable(){
             @Serial
@@ -70,8 +70,71 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         JScrollPane scrollPane = new JScrollPane(tagTable);
 
-        add(scrollPane);
+        JButton nameSortButton = new JButton("TAG");
+        JButton valueSortButton = new JButton("VALUE");
 
+        nameSortButton.addActionListener(e -> {
+            if(nameSortButton.getText().contains("(a-z)"))
+                nameSortButton.setText("TAG (z-a)");
+            else if (nameSortButton.getText().contains("(z-a)"))
+                nameSortButton.setText("TAG");
+            else
+                nameSortButton.setText("TAG (a-z)");
+
+            arrangeTags(nameSortButton,valueSortButton);
+        });
+
+        valueSortButton.addActionListener(e -> {
+            if(valueSortButton.getText().contains("▲"))
+                valueSortButton.setText("VALUE ▼");
+            else if(valueSortButton.getText().contains("▼"))
+                valueSortButton.setText("VALUE");
+            else
+                valueSortButton.setText("VALUE ▲");
+
+            arrangeTags(nameSortButton,valueSortButton);
+        });
+
+        JPanel upperButtonPanel = new JPanel(new GridLayout(1,2));
+        upperButtonPanel.add(nameSortButton);
+        upperButtonPanel.add(valueSortButton);
+
+        JPanel searchPanel = new JPanel(new GridBagLayout());
+
+        JTextField searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(200,25));
+
+        JButton searchButton = new JButton();
+        searchButton.addActionListener(e -> {
+            if(!isCloseIcon(searchButton)) {
+                search = searchField.getText();
+                if(!searchField.getText().isEmpty()) {
+                    changeIcon("/icons/close.png", searchButton);
+                    arrangeTags(nameSortButton,valueSortButton);
+                }
+            }
+            else {
+                search = "";
+                searchField.setText("");
+                changeIcon("/icons/search.png", searchButton);
+                arrangeTags(nameSortButton,valueSortButton);
+            }
+        });
+        changeIcon("/icons/search.png", searchButton);
+        searchButton.setPreferredSize(new Dimension(20, 20));
+
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+
+        JPanel upperPanel = new JPanel(new GridLayout(3, 1));
+        upperPanel.add(frameLabel);
+        upperPanel.add(searchPanel);
+        upperPanel.add(upperButtonPanel);
+
+        add(upperPanel, BorderLayout.NORTH);
+
+        //add scroll pane
+        add(scrollPane);
 
         //save buttons
         JButton saveButton = new JButton("Save");
@@ -116,25 +179,19 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         this.frameNo = frameNo;
 
         // Update the frame number label
-        ((JLabel) getContentPane().getComponent(0)).setText("FRAME: " + (frameNo+1));
+        frameLabel.setText("FRAME: " + (frameNo+1));
 
         originalTags = new ArrayList<>(frameHopperView.getTagsOfFrame(frameNo));
         currentTags = new ArrayList<>(originalTags);
 
         Object[] columnNames = {" ","TAG","VALUE","ID"};
-
-        int tableLen = 0;
-        for(Tag t : FrameHopperView.TAG_LIST)
-            if(!t.isDeleted() || isTagHeld(t))
-                tableLen++;
-
-        Object[][]  data = new Object[tableLen][];
+        Object[][]  data = new Object[getTableLen()][];
 
         int i = 0;
         for (Tag t : FrameHopperView.TAG_LIST){
             if(!t.isDeleted() || isTagHeld(t)){
                 data[i++] = new Object[]{
-                        originalTags.size() != 0 && isTagHeld(t),
+                        !originalTags.isEmpty() && isTagHeld(t),
                         t.getName(),
                         t.getValue(),
                         t.getId()
@@ -170,7 +227,54 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         tagTable.revalidate();
 
+        getRootPane().requestFocus();
         setVisible(true);
+    }
+
+    private void populateTable(){
+        DefaultTableModel model = (DefaultTableModel) tagTable.getModel();
+        model.setRowCount(0);
+
+       for(Tag t : search.isEmpty() ? FrameHopperView.TAG_LIST : getSearchResult(FrameHopperView.TAG_LIST)){
+           if(!t.isDeleted() || isTagHeld(t)){
+               model.addRow(new Object[]{
+                       !originalTags.isEmpty() && isTagHeld(t),
+                       t.getName(),
+                       t.getValue(),
+                       t.getId()
+               });
+           }
+       }
+
+       tagTable.setModel(model);
+    }
+
+    private void populateTable(List<Tag> sortedData){
+        DefaultTableModel model = (DefaultTableModel) tagTable.getModel();
+        model.setRowCount(0);
+
+        for(Tag t : search.isEmpty() ? sortedData : getSearchResult(sortedData)){
+            model.addRow(new Object[]{
+                    !originalTags.isEmpty() && isTagHeld(t),
+                    t.getName(),
+                    t.getValue(),
+                    t.getId()
+            });
+        }
+
+        tagTable.setModel(model);
+    }
+
+    private int getTableLen() {
+        return (int) FrameHopperView.TAG_LIST.stream()
+                .filter(t -> !t.isDeleted() || isTagHeld(t))
+                .count();
+    }
+
+    private List<Tag> getSearchResult(List<Tag> data){
+        return data.stream()
+                .filter(t -> t.getName().contains(search))
+                .toList();
     }
 
     private boolean isTagHeld(Tag tag){
@@ -216,5 +320,101 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         new TagManagerThread().setUp(currentTags,originalTags,frameNo,videoName,frameService).start();
     }
 
+    private void changeIcon(String path, JButton button){
+        URL iconURL = getClass().getResource(path);
+        if(iconURL != null) {
+            ImageIcon imageIcon = new ImageIcon(iconURL);
+            Image scaledIcon = imageIcon.getImage().getScaledInstance(16,16,Image.SCALE_SMOOTH);
+            button.setIcon(new ImageIcon(scaledIcon));
+            button.putClientProperty("icon",path);
+        }
+    }
 
+    private boolean isCloseIcon(JButton button){
+        return ((String) button.getClientProperty("icon")).contains("close");
+    }
+
+    private List<Tag> sortTags(boolean alphabetical, boolean ascending){
+        List<Tag> sortedList = new ArrayList<Tag>(FrameHopperView.TAG_LIST);
+
+        Comparator<Tag> comparator = Comparator.comparing(Tag::getName,String.CASE_INSENSITIVE_ORDER);
+        if(!alphabetical)
+            comparator = comparator.reversed();
+
+        comparator = comparator.thenComparing(Tag::getValue);
+        if(!ascending)
+            comparator = comparator.thenComparing(Comparator.comparing(Tag::getValue).reversed());
+
+        sortedList.sort(comparator);
+        return sortedList;
+    }
+
+    private List<Tag> sortAlphabetical(boolean alphabetical){
+        List<Tag> sortedList = new ArrayList<Tag>(FrameHopperView.TAG_LIST);
+
+        Comparator<Tag> comparator = Comparator.comparing(Tag::getName,String.CASE_INSENSITIVE_ORDER);
+        if(!alphabetical)
+            comparator = comparator.reversed();
+
+        sortedList.sort(comparator);
+
+        return sortedList;
+    }
+
+    private List<Tag> sortByValue(boolean asc){
+        List<Tag> sortedList = new ArrayList<>(FrameHopperView.TAG_LIST);
+
+        Comparator<Tag> comparator = Comparator.comparing(Tag::getValue);
+        if (!asc) {
+            comparator = comparator.reversed();
+        }
+
+        sortedList.sort(comparator);
+        return sortedList;
+    }
+
+    private void arrangeTags(JButton nameButton, JButton valueButton){
+        if(isBlank(nameButton)){
+            if(isBlank(valueButton))
+                populateTable();
+            else if(isAsc(valueButton)) {
+                populateTable(sortByValue(true));
+            }else
+                populateTable(sortByValue(false));
+
+            return;
+        }
+
+        if(isAlphabetical(nameButton)){
+            if(isBlank(valueButton))
+                populateTable(sortAlphabetical(true));
+            else if(isAsc(valueButton))
+                populateTable(sortTags(true,true));
+            else
+                populateTable(sortTags(true,false));
+
+            return;
+        }
+
+        if(!isAlphabetical(nameButton)){
+            if(isBlank(valueButton))
+                populateTable(sortAlphabetical(false));
+            else if(isAsc(valueButton))
+                populateTable(sortTags(false,true));
+            else
+                populateTable(sortTags(false,false));
+        }
+    }
+
+    private boolean isAlphabetical(JButton nameButton){
+        return nameButton.getText().contains("(a-z)");
+    }
+
+    private boolean isAsc(JButton valueButton){
+        return valueButton.getText().contains("▲");
+    }
+
+    private boolean isBlank(JButton button){
+        return (button.getText().equals("TAG") || button.getText().equals("VALUE"));
+    }
 }
