@@ -28,6 +28,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private final FrameService frameService;
     private JTable tagTable;
     private JLabel frameLabel;
+    private JButton nameSortButton;
+    private JButton valueSortButton;
 
     private List<Tag> originalTags;
     private List<Tag> currentTags;
@@ -70,8 +72,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         JScrollPane scrollPane = new JScrollPane(tagTable);
 
-        JButton nameSortButton = new JButton("TAG");
-        JButton valueSortButton = new JButton("VALUE");
+        nameSortButton = new JButton("TAG");
+        valueSortButton = new JButton("VALUE");
 
         nameSortButton.addActionListener(e -> {
             if(nameSortButton.getText().contains("(a-z)"))
@@ -228,6 +230,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         tagTable.revalidate();
 
         getRootPane().requestFocus();
+        arrangeTags(nameSortButton,valueSortButton);
         setVisible(true);
     }
 
