@@ -1,4 +1,4 @@
-package com.example.engineer.View.buttonsView;
+package com.example.engineer.View.WindowViews;
 
 
 import com.example.engineer.Model.Tag;
@@ -8,7 +8,6 @@ import com.example.engineer.Threads.DeleteTagThread;
 import com.example.engineer.Threads.SaveSettingsThread;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
-import com.example.engineer.View.smallViews.TagDetailsView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

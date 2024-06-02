@@ -1,4 +1,4 @@
-package com.example.engineer.View.smallViews;
+package com.example.engineer.View.WindowViews;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
@@ -6,7 +6,6 @@ import com.example.engineer.Service.TagService;
 import com.example.engineer.Threads.SetHiddenStatusThread;
 import com.example.engineer.Threads.TagSettingsThread;
 import com.example.engineer.View.FrameHopperView;
-import com.example.engineer.View.buttonsView.SettingsView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

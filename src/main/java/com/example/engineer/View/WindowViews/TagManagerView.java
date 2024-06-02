@@ -1,4 +1,4 @@
-package com.example.engineer.View.buttonsView;
+package com.example.engineer.View.WindowViews;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;

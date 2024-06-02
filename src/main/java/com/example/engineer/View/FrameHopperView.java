@@ -10,11 +10,10 @@ import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
-import com.example.engineer.View.buttonsView.ExportView;
-import com.example.engineer.View.buttonsView.SettingsView;
-import com.example.engineer.View.buttonsView.TagManagerView;
-import com.example.engineer.View.smallViews.StatusView;
-import com.example.engineer.View.smallViews.TagDetailsView;
+import com.example.engineer.View.WindowViews.ExportView;
+import com.example.engineer.View.WindowViews.SettingsView;
+import com.example.engineer.View.WindowViews.TagManagerView;
+import com.example.engineer.View.WindowViews.TagDetailsView;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -280,7 +279,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 ctx.getBean(SettingsView.class).dispose();
                 ctx.getBean(TagManagerView.class).dispose();
                 ctx.getBean(TagDetailsView.class).dispose();
-                ctx.getBean(StatusView.class).dispose();
             }
         });
 

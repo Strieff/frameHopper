@@ -1,0 +1,1 @@
+pyinstaller --onefile --hidden-import=cv2 FrameProcessorServer.py
