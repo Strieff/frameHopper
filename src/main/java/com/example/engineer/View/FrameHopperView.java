@@ -98,7 +98,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     }
 
     public FrameHopperView(){
-        setTitle("Video Frame Viewer");
+        setTitle("FrameHopper");
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

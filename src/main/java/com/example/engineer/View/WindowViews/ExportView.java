@@ -6,10 +6,7 @@ import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -245,7 +242,7 @@ public class ExportView extends JFrame {
     private void exportToExcel(Map<Video,Map<String,Long>> videoTagMap, String path,String name){
         Map<Video,Long> uniqueTagsOnVideos = tagService.getAmountOfUniqueTagsOnVideos(new ArrayList<>(videoTagMap.keySet()));
 
-        String fileName = name+"_data.xlsx";
+        String fileName = name+".xlsx";
 
         try(
                 Workbook workbook = WorkbookFactory.create(true);
@@ -272,12 +269,33 @@ public class ExportView extends JFrame {
 
                 dataRow.createCell(0).setCellValue(video.getName());
                 dataRow.createCell(1).setCellValue(video.getTotalFrames());
-                dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row)));
+                dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(uniqueTagsOnVideos.keySet().stream().filter(v -> v.getId() == video.getId()).findFirst().get()));
                 dataRow.createCell(3).setCellValue(video.getDuration());
                 dataRow.createCell(4).setCellValue(video.getFrameRate());
                 dataRow.createCell(5).setCellValue(getTotalPoints(videoTagMap.get(video)));
                 dataRow.createCell(6).setCellValue(getComplexity(getTotalPoints(videoTagMap.get(video)),video));
             }
+
+            Row summaryRow = sheet.createRow(videoTagMap.size()+2);
+            summaryRow.createCell(0).setCellValue("TOTAL SHOT AMOUNT");
+            summaryRow.createCell(1).setCellValue("TOTAL FRAME COUNT");
+            summaryRow.createCell(3).setCellValue("TOTAL RUNTIME");
+            summaryRow.createCell(5).setCellValue("TOTAL POINTS");
+            summaryRow.createCell(6).setCellValue("OVERALL COMPLEXITY");
+            summaryRow.createCell(7).setCellValue("ASL");
+
+            CellStyle decimalStyle = workbook.createCellStyle();
+            DataFormat df = workbook.createDataFormat();
+            decimalStyle.setDataFormat(df.getFormat("0.000"));
+
+            Row summaryDataRow = sheet.createRow(videoTagMap.size()+3);
+            summaryDataRow.createCell(0).setCellValue(videoTagMap.size());
+            summaryDataRow.createCell(1).setCellFormula("SUM(B2:B"+ (videoTagMap.size()+1) +")");
+            summaryDataRow.createCell(3).setCellFormula("SUM(D2:D"+ (videoTagMap.size()+1) +")");
+            summaryDataRow.createCell(5).setCellFormula("SUM(F2:F"+ (videoTagMap.size()+1) +")");
+            summaryDataRow.createCell(6).setCellFormula("F" + (videoTagMap.size()+4) + "/D" + (videoTagMap.size()+4));
+            sheet.getRow(videoTagMap.size()+3).getCell(6).setCellStyle(decimalStyle);
+            summaryDataRow.createCell(7).setCellFormula("D" + (videoTagMap.size()+4) + "/A" + (videoTagMap.size()+4));
 
             //resize columns
             for (int j = 0; j < 7; j++)
@@ -338,7 +356,7 @@ public class ExportView extends JFrame {
             overviewData.add(new String[]{
                     video.getName(),
                     String.valueOf(video.getTotalFrames()),
-                    String.valueOf(uniqueTagsOnVideos.get(new ArrayList<>(uniqueTagsOnVideos.keySet()).get(row))),
+                    String.valueOf(uniqueTagsOnVideos.get(uniqueTagsOnVideos.keySet().stream().filter(v -> v.getId() == video.getId()).findFirst().get())),
                     String.valueOf(video.getDuration()),
                     String.valueOf(video.getFrameRate()),
                     String.valueOf(getTotalPoints(videoTagMap.get(video))),

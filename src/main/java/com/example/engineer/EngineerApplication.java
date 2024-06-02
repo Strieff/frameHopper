@@ -43,7 +43,7 @@ public class EngineerApplication {
             try {
                 new Socket("localhost",65444);
             } catch (IOException e) {
-                System.out.println("Loading frame closed");
+                System.out.println("Loading frame closed. FrameHopper is running!");
             }
         }
     }
