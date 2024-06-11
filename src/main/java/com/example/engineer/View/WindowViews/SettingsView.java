@@ -262,15 +262,14 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         switch(actionChoice){
             case 0: //cancel
                 break;
-            case 2: //delete
+            case 1: //delete
                 deleteTag(tagId);
                 break;
         }
     }
 
+    //delete tag from database
     private void deleteTag(Integer id){
-        //delete tag from database
-        //tagService.deleteTag(FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id)));
         Tag tag = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id));
 
         new DeleteTagThread(tagService,tag).start();

@@ -180,10 +180,7 @@ public class ExportView extends JFrame {
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int userSelection = fileChooser.showSaveDialog(this);
 
-        if(userSelection == JFileChooser.APPROVE_OPTION)
-            return fileChooser.getSelectedFile().getAbsolutePath();
-        else
-            return null;
+        return userSelection == JFileChooser.APPROVE_OPTION ? fileChooser.getSelectedFile().getAbsolutePath() : null;
     }
 
     //get format - either excel or CSV
@@ -406,10 +403,10 @@ public class ExportView extends JFrame {
 
     //gets total amount of points of given tag
     private int getTotalPoints(Map<String,Long> tagData){
-        int totalPoints = 0;
-        for (String s : tagData.keySet())
-            totalPoints += (int) (FrameHopperView.findTagByName(s).getValue()*tagData.get(s));
-        return totalPoints;
+        return tagData.entrySet()
+                .stream()
+                .mapToInt(entry -> (int)(FrameHopperView.findTagByName(entry.getKey()).getValue() * entry.getValue()))
+                .sum();
     }
 
     //gets complexity of given video
@@ -422,14 +419,11 @@ public class ExportView extends JFrame {
     //gets total amount of tags
     private Map<String,Long> getTotalAmountOfTags(Map<Video,Map<String,Long>> videoTagMap){
         Map<String,Long> tagData = new HashMap<>();
-        for (Map<String,Long> data : videoTagMap.values())
-            for(String s : data.keySet())
-                if(!tagData.containsKey(s))
-                    tagData.put(s, data.get(s));
-                else{
-                    long amount = tagData.get(s)+data.get(s);
-                    tagData.put(s, amount);
-                }
+
+        videoTagMap.values()
+                .stream()
+                .flatMap(data -> data.entrySet().stream())
+                .forEach(entry -> tagData.merge(entry.getKey(), entry.getValue(), Long::sum));
 
         return tagData;
     }

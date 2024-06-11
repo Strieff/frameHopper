@@ -437,17 +437,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 new ArrayList<>();
     }
 
-    public Tag getTagByIdOnFrame(int id,int frameNo){
-        if(tagsOnFramesOnVideo.get(frameNo)==null)
-            return null;
-
-        for(Tag t : tagsOnFramesOnVideo.get(frameNo))
-            if(t.getId() ==id)
-                return t;
-
-        return null;
-    }
-
     //remove tag from frame
     public void removeTagFromFrame(Tag tag,int frameNo){
         if(tagsOnFramesOnVideo.get(frameNo)==null)

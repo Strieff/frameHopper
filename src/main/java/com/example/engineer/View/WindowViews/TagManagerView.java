@@ -338,7 +338,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private List<Tag> sortTags(boolean alphabetical, boolean ascending){
-        List<Tag> sortedList = new ArrayList<Tag>(FrameHopperView.TAG_LIST);
+        List<Tag> sortedList = new ArrayList<>(FrameHopperView.TAG_LIST);
 
         Comparator<Tag> comparator = Comparator.comparing(Tag::getName,String.CASE_INSENSITIVE_ORDER);
         if(!alphabetical)
@@ -353,7 +353,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private List<Tag> sortAlphabetical(boolean alphabetical){
-        List<Tag> sortedList = new ArrayList<Tag>(FrameHopperView.TAG_LIST);
+        List<Tag> sortedList = new ArrayList<>(FrameHopperView.TAG_LIST);
 
         Comparator<Tag> comparator = Comparator.comparing(Tag::getName,String.CASE_INSENSITIVE_ORDER);
         if(!alphabetical)

@@ -24,6 +24,7 @@ public class FrameCache implements ApplicationContextAware {
 
     File videoFile;
     private String fileName;
+
     private static ApplicationContext ctx;
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {

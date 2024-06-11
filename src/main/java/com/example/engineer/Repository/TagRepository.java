@@ -9,14 +9,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag,Double> {
-    @Query("select t from Tag t where t.name=:name")
-    Optional<Tag> findByName(@Param("name") String name);
-
-    @Modifying(clearAutomatically = true)
+        @Modifying(clearAutomatically = true)
     @Query("update Tag t set t.deleted = true where t.id=:id")
     void hideTag(@Param("id") Integer id);
 

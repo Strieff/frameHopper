@@ -25,7 +25,6 @@ public class Tag {
     private String description;
     @Column(name = "deleted")
     private boolean deleted;
-
     @ManyToMany(mappedBy = "tags")
     private List<Frame> frames;
 }
