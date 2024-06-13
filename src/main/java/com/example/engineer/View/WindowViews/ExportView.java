@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class ExportView extends JFrame {
@@ -387,14 +388,11 @@ public class ExportView extends JFrame {
     //writes data to CSV
     private void writeToCSV(List<String[]> data,String path){
         try(FileWriter writer = new FileWriter(path)){
-            StringBuilder csvText= new StringBuilder();
-            for(String[] record : data) {
-                for (String s : record)
-                    csvText.append(s).append(";");
-                csvText = new StringBuilder(csvText.toString().replaceFirst(".$", ""));
-                csvText.append("\n");
-            }
-            writer.write(csvText.toString());
+            String csvText = data.stream()
+                    .map(record -> String.join(";", record))
+                    .collect(Collectors.joining("\n"));
+
+            writer.write(csvText);
             writer.flush();
         }catch (Exception e){
             e.printStackTrace();
