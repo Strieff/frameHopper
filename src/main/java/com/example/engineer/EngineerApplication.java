@@ -10,6 +10,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -27,12 +29,15 @@ public class EngineerApplication {
             if(us==null){
                 us = UserSettings.builder()
                         .showDeleted(false)
+                        .openRecent(false)
                         .build();
 
                 FrameHopperView.USER_SETTINGS = us;
 
                 context.getBean(SettingsService.class).createUserSettings(us);
             }else{
+                if(us.getOpenRecent() == null)
+                    us.setOpenRecent(false);
                 FrameHopperView.USER_SETTINGS = us;
             }
 
@@ -45,6 +50,25 @@ public class EngineerApplication {
             } catch (IOException e) {
                 System.out.println("Loading frame closed. FrameHopper is running!");
             }
+        }
+
+        //open recent
+        if(FrameHopperView.USER_SETTINGS.getOpenRecent() && FrameHopperView.USER_SETTINGS.getRecentPath()!=null){
+            int response = JOptionPane.showConfirmDialog(
+                    null,
+                    "Recently opened: " + FrameHopperView.USER_SETTINGS.getRecentPath() + "\nOpen recent?",
+                    "Open recent video",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if(response==JOptionPane.YES_OPTION){
+                File recentFile = new File(FrameHopperView.USER_SETTINGS.getRecentPath());
+                if(recentFile.exists())
+                    context.getBean(FrameHopperView.class).openRecentVideo(FrameHopperView.USER_SETTINGS.getRecentPath());
+                else
+                    JOptionPane.showMessageDialog(null, "The file does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
         }
     }
 }

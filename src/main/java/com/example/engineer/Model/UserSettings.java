@@ -16,4 +16,8 @@ public class UserSettings {
     private Long id;
     @Column(name = "showDeleted")
     private Boolean showDeleted;
+    @Column(name = "openRecent")
+    private Boolean openRecent;
+    @Column(name = "recentPath")
+    private String recentPath;
 }

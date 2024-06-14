@@ -17,8 +17,10 @@ public class Video {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private int id;
-    @Column(name = "name", length = 255)
+    @Column(name = "name")
     private String name;
+    @Column(name = "path")
+    private String path;
     @OneToMany(mappedBy = "video")
     private List<Frame> frames;
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL)

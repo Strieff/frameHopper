@@ -1,5 +1,6 @@
 package com.example.engineer.View;
 
+import com.example.engineer.EngineerApplication;
 import com.example.engineer.FrameProcessor.FrameCache;
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Frame;
@@ -7,8 +8,10 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
+import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.Threads.SaveSettingsThread;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.WindowViews.ExportView;
 import com.example.engineer.View.WindowViews.SettingsView;
@@ -58,6 +61,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private TagService tagService;
     @Autowired
     private FrameService frameService;
+    @Autowired
+    private SettingsService settingsService;
 
     private TagManagerView tagManagerView;
     private SettingsView settingsView;
@@ -229,21 +234,13 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                         if (!files.isEmpty()) {
                             videoFile = files.get(0);
 
-                            video = videoService.createVideoIfNotExists(videoFile.getName());
+                            video = videoService.createVideoIfNotExists(videoFile);
                             if(video.getTotalFrames() == null)
                                 setUpVideoData(videoFile.getAbsolutePath());
                             else
                                 setUpVideoData(video);
 
-                            infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
-                            imageLabel.requestFocusInWindow();
-
-                            ctx.getBean(FrameCache.class).setFileName(videoFile);
-                            ctx.getBean(FrameCache.class).firstLoad(videoFile);
-
-                            createTagMapForFile();
-
-                            displayCurrentFrame();
+                            openVideo();
                         }
                     }
                 } catch (Exception ex) {
@@ -282,6 +279,33 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
 
         getRootPane().requestFocus();
+    }
+
+    //opens recent videos
+    public void openRecentVideo(String path){
+        videoFile = new File(path);
+        video = videoService.getByName(videoFile.getName());
+        setUpVideoData(video);
+
+        openVideo();
+    }
+
+    //load video into view
+    private void openVideo(){
+        infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
+        imageLabel.requestFocusInWindow();
+
+        ctx.getBean(FrameCache.class).setFileName(videoFile);
+        ctx.getBean(FrameCache.class).firstLoad(videoFile);
+
+        createTagMapForFile();
+
+        displayCurrentFrame();
+
+        USER_SETTINGS.setRecentPath(video.getPath());
+        if(USER_SETTINGS.getOpenRecent() && !videoFile.getAbsolutePath().equals(USER_SETTINGS.getRecentPath())) {
+            new SaveSettingsThread(settingsService).start();
+        }
     }
 
     //initialize buttons

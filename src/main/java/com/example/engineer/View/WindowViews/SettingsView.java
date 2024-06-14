@@ -298,10 +298,21 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         if(FrameHopperView.USER_SETTINGS.getShowDeleted())
             hiddenTags.doClick();
 
-        JCheckBox checkBox2 = new JCheckBox("TEST 2");
+        JCheckBox openRecent = new JCheckBox("Open recent");
+        openRecent.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED)
+                FrameHopperView.USER_SETTINGS.setOpenRecent(true);
+            else if(e.getStateChange() == ItemEvent.DESELECTED)
+                FrameHopperView.USER_SETTINGS.setOpenRecent(false);
+
+            new SaveSettingsThread(settingsService).start();
+        });
+
+        if(FrameHopperView.USER_SETTINGS.getOpenRecent())
+            hiddenTags.doClick();
 
         settingsPanel.add(hiddenTags);
-        settingsPanel.add(checkBox2);
+        settingsPanel.add(openRecent);
 
         return settingsPanel;
     }

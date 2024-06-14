@@ -5,6 +5,7 @@ import com.example.engineer.Repository.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,16 +23,25 @@ public class VideoService {
         videoRepository.save(video);
     }
 
-    public Video createVideoIfNotExists(String name){
-        Optional<Video> exist = videoRepository.findByName(name);
+    public Video createVideoIfNotExists(File video){
+        Optional<Video> exist = videoRepository.findByName(video.getName());
 
         if(exist.isEmpty()) {
-            Video video = Video.builder()
-                    .name(name)
+            Video newVideo = Video.builder()
+                    .name(video.getName())
+                    .path(video.getAbsolutePath())
                     .build();
-            return videoRepository.save(video);
-        }else
-            return exist.get();
+            return videoRepository.save(newVideo);
+        }else {
+            Video vid = exist.get();
+
+            if(vid.getPath()==null){
+                vid.setPath(video.getAbsolutePath());
+                videoRepository.save(vid);
+            }
+
+            return vid;
+        }
     }
 
     public Video getByName(String name){
