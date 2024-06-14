@@ -14,7 +14,6 @@ import com.example.engineer.View.WindowViews.ExportView;
 import com.example.engineer.View.WindowViews.SettingsView;
 import com.example.engineer.View.WindowViews.TagManagerView;
 import com.example.engineer.View.WindowViews.TagDetailsView;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -232,7 +231,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
                             video = videoService.createVideoIfNotExists(videoFile.getName());
                             if(video.getTotalFrames() == null)
-                                setUpVideoData(videoFile);
+                                setUpVideoData(videoFile.getAbsolutePath());
                             else
                                 setUpVideoData(video);
 
@@ -472,25 +471,16 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         tagsOnFramesOnVideo.put(frameNo,tags);
     }
 
-    //loads all necessary information about the video from file
-    private void setUpVideoData(File videoFile){
-        try(FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile)){
-            currentFrameIndex = 0;
+    //loads all necessary information about the video from file through server
+    private void setUpVideoData(String path){
+        String[] data = ctx.getBean(FrameProcessorClient.class).send("2;null;"+path,true).split(";");
+        maxFrameIndex = Integer.parseInt(data[0]);
+        videoHeight = Integer.parseInt(data[1]);
+        videoWidth = Integer.parseInt(data[2]);
+        videoFramerate = Double.parseDouble(data[3]);
+        videoDuration = Integer.parseInt(data[4]) / 1000d;
 
-            grabber.start();
-
-            maxFrameIndex = grabber.getLengthInFrames();
-            videoHeight = grabber.getImageHeight();
-            videoWidth = grabber.getImageWidth();
-            videoFramerate = grabber.getFrameRate();
-            videoDuration = grabber.getLengthInTime() / 1000000d;
-
-            grabber.stop();
-
-            videoService.addVideoData(video,maxFrameIndex,videoFramerate,videoDuration,videoHeight,videoWidth);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        videoService.addVideoData(video,maxFrameIndex,videoFramerate,videoDuration,videoHeight,videoWidth);
     }
 
     //sets up data if video in database

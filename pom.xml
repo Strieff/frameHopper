@@ -20,10 +20,6 @@
     <properties>
         <java.version>20</java.version>
         <jakarta.validation.api.version>3.0.2</jakarta.validation.api.version>
-        <jcodec.version>0.2.5</jcodec.version>
-        <jcodec.other.version>0.2.1</jcodec.other.version>
-        <javacv.version>1.5.10</javacv.version>
-        <ffmpeg.version>6.1.1-1.5.10</ffmpeg.version>
         <apache.poi.version>4.1.2</apache.poi.version>
         <log4j2.version>2.23.1</log4j2.version>
     </properties>
@@ -64,38 +60,6 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jcodec</groupId>
-            <artifactId>jcodec</artifactId>
-            <version>${jcodec.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jcodec</groupId>
-            <artifactId>jcodec-javase</artifactId>
-            <version>${jcodec.other.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jcodec</groupId>
-            <artifactId>jcodec-android</artifactId>
-            <version>${jcodec.other.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>javacv</artifactId>
-            <version>${javacv.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>ffmpeg-platform</artifactId>
-            <version>${ffmpeg.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>ffmpeg-platform-gpl</artifactId>
-            <version>${ffmpeg.version}</version>
         </dependency>
 
         <dependency>

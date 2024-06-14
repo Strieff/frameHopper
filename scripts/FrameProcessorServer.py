@@ -1,5 +1,4 @@
 import socket
-#import FrameProcessor as fp
 import cv2
 import os
 from pathlib import Path
@@ -8,8 +7,6 @@ import shutil
 video_path = ""
 all_frames = []
 cache_path = ""
-
-#TODO return and send response other than OK
 
 def handle_request(request):
     command,argument,path = request.split(';')
@@ -32,10 +29,13 @@ def handle_request(request):
         cache_path = path[:-2]
 
         return "OK\n"
-        #check if logging is enabled
     elif command == '-1':
         print('Shutting down...')
         exit()
+    elif command == '2':
+        #ask for video info
+        video_path = path
+        return get_video_properties(video_path)
 
 
 def start_server():
@@ -125,6 +125,29 @@ def load_batch(hundred):
         cv2.imwrite(frame_path, all_frames[i])
 
     print(f"Batch of frames starting from frame {start_index} saved in directory: {file_path}")
+
+
+def get_video_properties(video_path):
+    # Open the video file
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        raise ValueError("Could not open the video file")
+
+    # Get the properties
+    length_in_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    image_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    image_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_rate = cap.get(cv2.CAP_PROP_FPS)
+    duration_in_milliseconds = (length_in_frames / frame_rate) * 1000
+
+    # Construct the result string
+    result = f"{length_in_frames};{image_height};{image_width};{frame_rate:.2f};{int(duration_in_milliseconds)}\n"
+
+    # Release the video capture object
+    cap.release()
+
+    return result
 
 
 
