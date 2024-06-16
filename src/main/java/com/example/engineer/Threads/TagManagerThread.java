@@ -29,19 +29,31 @@ public class TagManagerThread{
         return this;
     }
 
+    public TagManagerThread setUp(List<Tag> currentTags,int frameNo,String videoName,FrameService frameService){
+        this.currentTags = currentTags;
+        this.frameNo = frameNo;
+        this.videoName = videoName;
+        this.frameService = frameService;
+
+        return this;
+    }
+
     public void start(){
         executorService.execute(() -> {
-            if(currentTags.isEmpty() && !originalTags.isEmpty())
-                frameService.modifyTagsOfFrame(new ArrayList<>(),frameNo,videoName);
+            if(originalTags!=null){
+                if (currentTags.isEmpty() && !originalTags.isEmpty())
+                    frameService.modifyTagsOfFrame(new ArrayList<>(), frameNo, videoName);
 
-            if(
-                    (!currentTags.isEmpty() && originalTags.isEmpty()) ||
-                    (!currentTags.isEmpty() && currentTags.size() != originalTags.size())
-            ){
-                frameService.modifyTagsOfFrame(currentTags,frameNo,videoName);
-            }
+                if (
+                        (!currentTags.isEmpty() && originalTags.isEmpty()) ||
+                                (!currentTags.isEmpty() && currentTags.size() != originalTags.size())
+                ) {
+                    frameService.modifyTagsOfFrame(currentTags, frameNo, videoName);
+                }
 
-            if(compareTagListsWhenEqualLen())
+                if (compareTagListsWhenEqualLen())
+                    frameService.modifyTagsOfFrame(currentTags, frameNo, videoName);
+            }else
                 frameService.modifyTagsOfFrame(currentTags,frameNo,videoName);
 
             executorService.shutdown();

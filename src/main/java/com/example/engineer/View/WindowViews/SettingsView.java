@@ -279,6 +279,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         //notify settings
         notifyTableChange();
+
+        ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(tag);
+        ctx.getBean(FrameHopperView.class).displayTagList();
     }
 
     private JPanel setUpSettings(){

@@ -40,6 +40,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private FrameHopperView frameHopperView;
 
     private String search = "";
+    private Integer lastTagId = -1;
 
     private static ApplicationContext ctx;
     @Override
@@ -191,18 +192,6 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         Object[] columnNames = {" ","TAG","VALUE","ID"};
         Object[][]  data = new Object[getTableLen()][];
 
-        int i = 0;
-        for (Tag t : FrameHopperView.TAG_LIST){
-            if(!t.isDeleted() || isTagHeld(t)){
-                data[i++] = new Object[]{
-                        !originalTags.isEmpty() && isTagHeld(t),
-                        t.getName() + ((FrameHopperView.USER_SETTINGS.getShowDeleted() && t.isDeleted())? " (hidden)" : ""),
-                        t.getValue(),
-                        t.getId()
-                };
-            }
-        }
-
         DefaultTableModel model = new DefaultTableModel(data,columnNames);
 
         //checkbox for tags
@@ -304,6 +293,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private void addTag(Integer tagId){
+        lastTagId = tagId;
         currentTags.add(getTagById(tagId));
     }
 
@@ -339,6 +329,11 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         //save data async
         new TagManagerThread().setUp(currentTags,originalTags,frameNo,videoName,frameService).start();
+    }
+
+    public void addLastTag(){
+        if(lastTagId!=-1)
+            ctx.getBean(FrameHopperView.class).addLastTag(getTagById(lastTagId));
     }
 
     private void changeIcon(String path, JButton button){

@@ -12,6 +12,7 @@ import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.Threads.SaveSettingsThread;
+import com.example.engineer.Threads.TagManagerThread;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.WindowViews.ExportView;
 import com.example.engineer.View.WindowViews.SettingsView;
@@ -221,6 +222,16 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                     JOptionPane.showMessageDialog(getRootPane(), "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
             }
         });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_V,KeyEvent.CTRL_DOWN_MASK,false),"addLastTag");
+        getRootPane().getActionMap().put("addLastTag", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ctx.getBean(TagManagerView.class).addLastTag();
+            }
+        });
+
+
 
 
         // Add drag and drop support
@@ -465,7 +476,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         if(tagsOnFramesOnVideo.get(frameNo)==null)
             return;
 
-        tagsOnFramesOnVideo.get(frameNo).removeIf(t -> Objects.equals(t.getId(),tag.getId()));
+        tagsOnFramesOnVideo.get(frameNo).removeIf(t -> t.getId().equals(tag.getId()));
     }
 
     //remove tag from all frames
@@ -493,6 +504,17 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     //set tags on given frame in local data representation
     public void setCurrentTags(List<Tag> tags,int frameNo){
         tagsOnFramesOnVideo.put(frameNo,tags);
+    }
+
+    public void addLastTag(Tag tag){
+        if(tagsOnFramesOnVideo.computeIfAbsent(currentFrameIndex, k -> new ArrayList<>())
+                .stream().noneMatch(t -> t.getId().equals(tag.getId()))) {
+            tagsOnFramesOnVideo.get(currentFrameIndex).add(tag);
+
+            displayTagList();
+
+            new TagManagerThread().setUp(tagsOnFramesOnVideo.get(currentFrameIndex),currentFrameIndex,video.getName(),frameService).start();
+        }
     }
 
     //loads all necessary information about the video from file through server

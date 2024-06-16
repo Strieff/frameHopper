@@ -15,6 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
+//TODO: file path reeling
+//TODO: open files with unicode characters - copy file with temp name and remove at the end
+
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.example.engineer.Repository")
 @EntityScan(basePackages = {"com.example.engineer.Model"})
