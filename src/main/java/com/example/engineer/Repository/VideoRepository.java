@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface VideoRepository extends JpaRepository<Video,Long> {
     @Query("select v from Video v where v.name=:name")
     Optional<Video> findByName(@Param("name") String name);
+
+    Optional<Video> findByPath(String path);
 }

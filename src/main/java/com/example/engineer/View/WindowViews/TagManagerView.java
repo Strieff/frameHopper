@@ -3,6 +3,7 @@ package com.example.engineer.View.WindowViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Threads.TagManagerThread;
+import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.FrameHopperView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -194,7 +196,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
             if(!t.isDeleted() || isTagHeld(t)){
                 data[i++] = new Object[]{
                         !originalTags.isEmpty() && isTagHeld(t),
-                        t.getName(),
+                        t.getName() + ((FrameHopperView.USER_SETTINGS.getShowDeleted() && t.isDeleted())? " (hidden)" : ""),
                         t.getValue(),
                         t.getId()
                 };
@@ -222,10 +224,25 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         tagTable.setModel(model);
         tagTable.getTableHeader().setReorderingAllowed(false);
 
-        //set size of ID to 0 - 4th row
+        //set size of ID to 0 - 4th column
         tagTable.getColumnModel().getColumn(3).setMinWidth(0);
         tagTable.getColumnModel().getColumn(3).setMaxWidth(0);
         tagTable.getColumnModel().getColumn(3).setWidth(0);
+
+        //set size of checkbox to - 1st column
+        tagTable.getColumnModel().getColumn(0).setPreferredWidth(24);
+        tagTable.getColumnModel().getColumn(0).setMaxWidth(24);
+
+        //make name column wrap - 2nd column
+        tagTable.getColumnModel().getColumn(1).setCellRenderer(new MultilineTableCellRenderer());
+
+        //center value column - 3rd column
+        DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();
+        centerRender.setHorizontalAlignment(SwingConstants.CENTER);
+        tagTable.getColumnModel().getColumn(2).setCellRenderer(centerRender);
+
+        //disable row select
+        tagTable.setRowSelectionAllowed(false);
 
         tagTable.revalidate();
 
@@ -239,10 +256,10 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         model.setRowCount(0);
 
        for(Tag t : search.isEmpty() ? FrameHopperView.TAG_LIST : getSearchResult(FrameHopperView.TAG_LIST)){
-           if(!t.isDeleted() || isTagHeld(t)){
+           if(FrameHopperView.USER_SETTINGS.getShowDeleted() || !t.isDeleted()){
                model.addRow(new Object[]{
                        !originalTags.isEmpty() && isTagHeld(t),
-                       t.getName(),
+                       t.getName() + ((FrameHopperView.USER_SETTINGS.getShowDeleted() && t.isDeleted())? " (hidden)" : ""),
                        t.getValue(),
                        t.getId()
                });
@@ -257,12 +274,13 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         model.setRowCount(0);
 
         for(Tag t : search.isEmpty() ? sortedData : getSearchResult(sortedData)){
-            model.addRow(new Object[]{
+            if(FrameHopperView.USER_SETTINGS.getShowDeleted() || !t.isDeleted())
+                model.addRow(new Object[]{
                     !originalTags.isEmpty() && isTagHeld(t),
-                    t.getName(),
+                    t.getName() + ((FrameHopperView.USER_SETTINGS.getShowDeleted() && t.isDeleted())? " (hidden)" : ""),
                     t.getValue(),
                     t.getId()
-            });
+                });
         }
 
         tagTable.setModel(model);

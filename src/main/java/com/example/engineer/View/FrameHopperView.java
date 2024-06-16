@@ -236,7 +236,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
                             video = videoService.createVideoIfNotExists(videoFile);
                             if(video.getTotalFrames() == null)
-                                setUpVideoData(videoFile.getAbsolutePath());
+                                setUpVideoData(videoFile);
                             else
                                 setUpVideoData(video);
 
@@ -282,9 +282,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     }
 
     //opens recent videos
-    public void openRecentVideo(String path){
-        videoFile = new File(path);
-        video = videoService.getByName(videoFile.getName());
+    public void openRecentVideo(File videoFile){
+        video = videoService.getByPath(videoFile.getAbsolutePath());
+        this.videoFile = videoFile;
         setUpVideoData(video);
 
         openVideo();
@@ -496,8 +496,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     }
 
     //loads all necessary information about the video from file through server
-    private void setUpVideoData(String path){
-        String[] data = ctx.getBean(FrameProcessorClient.class).send("2;null;"+path,true).split(";");
+    private void setUpVideoData(File videoFile){
+        String[] data = ctx.getBean(FrameProcessorClient.class).send("2;null;"+videoFile.getAbsolutePath(),true).split(";");
         maxFrameIndex = Integer.parseInt(data[0]);
         videoHeight = Integer.parseInt(data[1]);
         videoWidth = Integer.parseInt(data[2]);

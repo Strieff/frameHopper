@@ -48,6 +48,10 @@ public class VideoService {
         return videoRepository.findByName(name).orElse(null);
     }
 
+    public Video getByPath(String path){
+        return videoRepository.findByPath(path).orElse(null);
+    }
+
     public List<Video> getAll(){
         return videoRepository.findAll();
     }

@@ -52,7 +52,10 @@ public class EngineerApplication {
             }
         }
 
-        //open recent
+        openRecent(context);
+    }
+
+    private static void openRecent(ConfigurableApplicationContext context){
         if(FrameHopperView.USER_SETTINGS.getOpenRecent() && FrameHopperView.USER_SETTINGS.getRecentPath()!=null){
             int response = JOptionPane.showConfirmDialog(
                     null,
@@ -64,7 +67,7 @@ public class EngineerApplication {
             if(response==JOptionPane.YES_OPTION){
                 File recentFile = new File(FrameHopperView.USER_SETTINGS.getRecentPath());
                 if(recentFile.exists())
-                    context.getBean(FrameHopperView.class).openRecentVideo(FrameHopperView.USER_SETTINGS.getRecentPath());
+                    context.getBean(FrameHopperView.class).openRecentVideo(recentFile);
                 else
                     JOptionPane.showMessageDialog(null, "The file does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
             }

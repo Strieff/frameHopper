@@ -128,15 +128,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();
         centerRender.setHorizontalAlignment(SwingConstants.CENTER);
 
-        //set size to trash icon - 5th row
+        //set size to trash icon - 5th column
         tagTable.getColumnModel().getColumn(4).setPreferredWidth(24);
         tagTable.getColumnModel().getColumn(4).setMaxWidth(24);
 
-        //set size to edit icon - 4th row
+        //set size to edit icon - 4th column
         tagTable.getColumnModel().getColumn(3).setPreferredWidth(24);
         tagTable.getColumnModel().getColumn(3).setMaxWidth(24);
 
-        //set size to value and center - 2nd row
+        //set size to value and center - 2nd column
         tagTable.getColumnModel().getColumn(1).setPreferredWidth(100);
         tagTable.getColumnModel().getColumn(1).setMaxWidth(100);
         tagTable.getColumnModel().getColumn(1).setCellRenderer(centerRender);
@@ -144,7 +144,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         //set multi row to description and name
         tagTable.getColumnModel().getColumn(2).setCellRenderer(new MultilineTableCellRenderer());
 
-        //set size of ID to 0 - 6th row
+        //set size of ID to 0 - 6th column
         tagTable.getColumnModel().getColumn(5).setMinWidth(0);
         tagTable.getColumnModel().getColumn(5).setMaxWidth(0);
         tagTable.getColumnModel().getColumn(5).setWidth(0);
@@ -295,8 +295,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             notifyTableChange();
         });
 
-        if(FrameHopperView.USER_SETTINGS.getShowDeleted())
-            hiddenTags.doClick();
+        hiddenTags.setSelected(FrameHopperView.USER_SETTINGS.getShowDeleted());
 
         JCheckBox openRecent = new JCheckBox("Open recent");
         openRecent.addItemListener(e -> {
@@ -308,8 +307,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             new SaveSettingsThread(settingsService).start();
         });
 
-        if(FrameHopperView.USER_SETTINGS.getOpenRecent())
-            hiddenTags.doClick();
+        openRecent.setSelected(FrameHopperView.USER_SETTINGS.getOpenRecent());
 
         settingsPanel.add(hiddenTags);
         settingsPanel.add(openRecent);

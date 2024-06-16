@@ -10,9 +10,9 @@ cache_path = ""
 
 def handle_request(request):
     command,argument,path = request.split(';')
+    global video_path
 
     if command == '0':
-        global video_path
         video_path = path
 
         global all_frames
@@ -34,8 +34,9 @@ def handle_request(request):
         exit()
     elif command == '2':
         #ask for video info
+
         video_path = path
-        return get_video_properties(video_path)
+        return get_video_properties()
 
 
 def start_server():
@@ -127,12 +128,12 @@ def load_batch(hundred):
     print(f"Batch of frames starting from frame {start_index} saved in directory: {file_path}")
 
 
-def get_video_properties(video_path):
+def get_video_properties():
     # Open the video file
     cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
-        raise ValueError("Could not open the video file")
+        raise ValueError("Could not open the video file (video properties)")
 
     # Get the properties
     length_in_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
