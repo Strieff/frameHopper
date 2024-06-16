@@ -1,6 +1,5 @@
 package com.example.engineer.View;
 
-import com.example.engineer.EngineerApplication;
 import com.example.engineer.FrameProcessor.FrameCache;
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Frame;
@@ -506,14 +505,19 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         tagsOnFramesOnVideo.put(frameNo,tags);
     }
 
-    public void addLastTag(Tag tag){
-        if(tagsOnFramesOnVideo.computeIfAbsent(currentFrameIndex, k -> new ArrayList<>())
-                .stream().noneMatch(t -> t.getId().equals(tag.getId()))) {
-            tagsOnFramesOnVideo.get(currentFrameIndex).add(tag);
+    public void addLastTags(List<Tag> tags) {
+        List<Tag> existingTags = tagsOnFramesOnVideo.computeIfAbsent(currentFrameIndex, k -> new ArrayList<>());
 
+        // Filter tags that are not held in existingTags
+        List<Tag> newTags = tags.stream()
+                .filter(tag -> existingTags.stream().noneMatch(existingTag -> existingTag.getId().equals(tag.getId())))
+                .toList();
+
+        // Add filtered tags if there are any new ones
+        if (!newTags.isEmpty()) {
+            existingTags.addAll(newTags);
             displayTagList();
-
-            new TagManagerThread().setUp(tagsOnFramesOnVideo.get(currentFrameIndex),currentFrameIndex,video.getName(),frameService).start();
+            new TagManagerThread().setUp(existingTags, currentFrameIndex, video.getName(), frameService).start();
         }
     }
 

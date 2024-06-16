@@ -40,7 +40,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private FrameHopperView frameHopperView;
 
     private String search = "";
-    private Integer lastTagId = -1;
+    private List<Integer> lastTagsId;
 
     private static ApplicationContext ctx;
     @Override
@@ -182,6 +182,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     public void setUpData(String videoName, int frameNo){
         this.videoName = videoName;
         this.frameNo = frameNo;
+        lastTagsId = new ArrayList<>();
 
         // Update the frame number label
         frameLabel.setText("FRAME: " + (frameNo+1));
@@ -293,7 +294,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private void addTag(Integer tagId){
-        lastTagId = tagId;
+        lastTagsId.add(tagId);
         currentTags.add(getTagById(tagId));
     }
 
@@ -332,8 +333,13 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     public void addLastTag(){
-        if(lastTagId!=-1)
-            ctx.getBean(FrameHopperView.class).addLastTag(getTagById(lastTagId));
+        if(!lastTagsId.isEmpty()) {
+            List<Tag> temp = new ArrayList<>();
+            for (Integer lastTagId : lastTagsId)
+                temp.add(getTagById(lastTagId));
+
+            ctx.getBean(FrameHopperView.class).addLastTags(temp);
+        }
     }
 
     private void changeIcon(String path, JButton button){

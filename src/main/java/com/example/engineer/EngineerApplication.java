@@ -17,6 +17,7 @@ import java.net.Socket;
 
 //TODO: file path reeling
 //TODO: open files with unicode characters - copy file with temp name and remove at the end
+//TODO: remove absolute path in getting video info, path already exists after initial movie connection
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.example.engineer.Repository")
