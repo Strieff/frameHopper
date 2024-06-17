@@ -1,11 +1,9 @@
 package com.example.engineer.Service;
 
-import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Repository.FrameRepository;
 import com.example.engineer.Repository.TagRepository;
-import com.example.engineer.Repository.VideoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -53,20 +50,31 @@ public class TagService {
     @Transactional
     public void deleteTag(Tag tag) {
         //remove tag from all the associated frames
-        for(Frame f : frameRepository.getAllFramesWithTag(tag)){
-            f.getTags().remove(IntStream.range(0,f.getTags().size())
-                    .filter(i -> f.getTags().get(i).getId().equals(tag.getId()))
-                    .findFirst()
-                    .orElse(-1));
-
-            frameRepository.save(f);
-        }
+        deleteTagRelations(List.of(tag));
 
         //clear the list of
         tag.setFrames(null);
 
         //delete tag
         tagRepository.delete(tag);
+    }
+
+    @Transactional
+    public void deleteTag(List<Tag> tags){
+        deleteTagRelations(tags);
+
+        tagRepository.batchTagDelete(tags.stream().map(Tag::getId).toList());
+    }
+
+    @Transactional
+    public void deleteTagRelations(List<Tag> tags){
+        //delete entities in many-to-many table
+        tagRepository.totalDeleteTags(tags.stream().map(Tag::getId).toList());
+    }
+
+    @Transactional
+    public void hideTags(List<Integer> tagIds, boolean hideAction){
+        tagRepository.batchHideTag(tagIds,hideAction);
     }
 
     public Map<Video,Long> getAmountOfUniqueTagsOnVideos(List<Video> videos){

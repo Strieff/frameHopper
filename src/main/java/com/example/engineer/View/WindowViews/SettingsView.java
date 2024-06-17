@@ -15,12 +15,18 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.io.Serial;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -55,9 +61,100 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             getApplicationContext().getBean(TagDetailsView.class).openWindow();
         });
 
+        JButton addBatchTagsButton = new JButton("Add tags");
+        addBatchTagsButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Text and CSV files", "txt", "csv");
+            fileChooser.setFileFilter(filter);
+
+            int returnValue = fileChooser.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION)
+                loadTagsFromFile(fileChooser.getSelectedFile().getAbsolutePath());
+        });
+
+        JButton massHideButton = new JButton("Hide tags");
+        massHideButton.addActionListener(e -> {
+            int[] selectedRows = tagTable.getSelectedRows();
+            if (selectedRows.length == 0) {
+                JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            List<Integer> ids = new ArrayList<>();
+            for (int selectedRow : selectedRows) {
+                int tagId = (int) tagTable.getValueAt(selectedRow, 5);
+
+                ids.add(tagId);
+
+                FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(tagId)).setDeleted(true);
+            }
+
+            ctx.getBean(FrameHopperView.class).displayTagList();
+            notifyTableChange();
+
+            tagService.hideTags(ids,true);
+        });
+
+        JButton massUnhideButton = new JButton("Unhide tags");
+        massUnhideButton.addActionListener(e -> {
+            int[] selectedRows = tagTable.getSelectedRows();
+            if (selectedRows.length == 0) {
+                JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            List<Integer> ids = new ArrayList<>();
+            for (int selectedRow : selectedRows) {
+                int tagId = (int) tagTable.getValueAt(selectedRow, 5);
+
+                ids.add(tagId);
+
+                FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(tagId)).setDeleted(false);
+            }
+
+            ctx.getBean(FrameHopperView.class).displayTagList();
+            notifyTableChange();
+
+            tagService.hideTags(ids,false);
+        });
+
+        JButton massDeleteButton = new JButton("Delete tags");
+        massDeleteButton.addActionListener(e -> {
+            int[] selectedRows = tagTable.getSelectedRows();
+            if (selectedRows.length == 0) {
+                JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            List<Tag> tagsToDelete = new ArrayList<>();
+            for (int selectedRow : selectedRows) {
+                Tag temp = Tag.builder()
+                        .name((String) tagTable.getValueAt(selectedRow, 0))
+                        .value((Double) tagTable.getValueAt(selectedRow, 1))
+                        .description((String) tagTable.getValueAt(selectedRow, 2))
+                        .id((int) tagTable.getValueAt(selectedRow, 5))
+                        .build();
+
+                ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(temp);
+                FrameHopperView.TAG_LIST.remove(FrameHopperView.findTagIndexById(temp.getId()));
+
+                tagsToDelete.add(temp);
+            }
+
+            ctx.getBean(FrameHopperView.class).displayTagList();
+            notifyTableChange();
+
+
+            tagService.deleteTag(tagsToDelete);
+        });
+
         //toolbar
         JToolBar toolBar = new JToolBar();
         toolBar.add(createNewTagButton);
+        toolBar.add(addBatchTagsButton);
+        toolBar.add(massHideButton);
+        toolBar.add(massUnhideButton);
+        toolBar.add(massDeleteButton);
         tablePanel.add(toolBar,BorderLayout.NORTH);
 
         //settings label
@@ -96,17 +193,13 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         //create data rows
         int i = 0;
         for (Tag t : FrameHopperView.TAG_LIST) {
-            Image scaledIconBin = getIconFromPath("/icons/bin.png");
-
-            Image scaledIconEdit = getIconFromPath("/icons/edit.png");
-
             if(!t.isDeleted()){
                 data[i++] = new Object[]{
                         t.getName(),
                         t.getValue(),
                         t.getDescription(),
-                        new ImageIcon(scaledIconEdit),
-                        new ImageIcon(scaledIconBin),
+                        new ImageIcon(getIconFromPath("/icons/bin.png")),
+                        new ImageIcon(getIconFromPath("/icons/edit.png")),
                         t.getId()
                 };
             }
@@ -148,9 +241,6 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         tagTable.getColumnModel().getColumn(5).setMinWidth(0);
         tagTable.getColumnModel().getColumn(5).setMaxWidth(0);
         tagTable.getColumnModel().getColumn(5).setWidth(0);
-
-        //disable row select
-        tagTable.setRowSelectionAllowed(false);
 
         //set resizable to false
         tagTable.getTableHeader().setResizingAllowed(false);
@@ -316,6 +406,28 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         settingsPanel.add(openRecent);
 
         return settingsPanel;
+    }
+
+    private void loadTagsFromFile(String path){
+        try {
+            List<String> read = Files.readAllLines(Paths.get(path));
+
+            for(String line : read) {
+                String[] tagInfo = line.split(";");
+
+                Tag tag = tagService.createTag(
+                        tagInfo[0],
+                        Double.valueOf(tagInfo[1]),
+                        tagInfo.length == 3 ? tagInfo[2] : ""
+                );
+
+                FrameHopperView.TAG_LIST.add(tag);
+            }
+
+            notifyTableChange();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

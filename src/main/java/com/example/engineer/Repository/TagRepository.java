@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag,Double> {
-        @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true)
     @Query("update Tag t set t.deleted = true where t.id=:id")
     void hideTag(@Param("id") Integer id);
 
@@ -28,4 +28,16 @@ public interface TagRepository extends JpaRepository<Tag,Double> {
 
     @Query("select v, t.name, count(t) from Tag t join t.frames f join f.video v where v.id in :videoIds group by t.name,v.name")
     List<Object[]> countTagOccurrencesInVideoFrames(@Param("videoIds") List<Integer> videoIds);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "delete from FRAME_TAG where TAG_ID in :tags", nativeQuery = true)
+    void totalDeleteTags(@Param("tags") List<Integer> tags);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete Tag t where t.id in :tags")
+    void batchTagDelete(@Param("tags") List<Integer> tags);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Tag t set t.deleted = :hideAction where t.id in :tags")
+    void batchHideTag(@Param("tags") List<Integer> tags, @Param("hideAction") boolean hideAction);
 }

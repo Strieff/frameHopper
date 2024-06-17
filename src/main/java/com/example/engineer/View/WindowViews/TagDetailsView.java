@@ -109,7 +109,10 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         cancelButton.addActionListener(e -> close(false));
 
         hiddenStatusButton = new JButton();
-        hiddenStatusButton.addActionListener(e -> changeHiddenStatus());
+        hiddenStatusButton.addActionListener(e -> {
+            changeHiddenStatus();
+            close(false);
+        });
 
         // Panel for buttons
         buttonPanel = new JPanel(new GridLayout(1,3));
@@ -174,7 +177,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
 
         if(save){
             //if empty name/value
-            if (nameTextField.getText().isEmpty() || valueTextField.getText().isEmpty()) {
+            if (nameTextField.getText().isEmpty()) {
                 clearData();
                 return;
             }
@@ -182,7 +185,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
             //if ID == -1 => new tag - program waits
             if(ID == -1)
                 FrameHopperView.TAG_LIST.add(tagService.createTag(nameTextField.getText(),
-                        Double.parseDouble(valueTextField.getText()),
+                        Double.parseDouble(valueTextField.getText().isEmpty()? "0" : valueTextField.getText()),
                         descriptionTextArea.getText()));
             else {
                 new TagSettingsThread(tagService,
