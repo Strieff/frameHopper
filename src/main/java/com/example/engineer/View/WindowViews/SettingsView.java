@@ -26,7 +26,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -80,6 +82,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                 return;
             }
 
+            if(!getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"hide"))
+                return;
+
             List<Integer> ids = new ArrayList<>();
             for (int selectedRow : selectedRows) {
                 int tagId = (int) tagTable.getValueAt(selectedRow, 5);
@@ -103,6 +108,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                 return;
             }
 
+            if(!getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"unhide"))
+                return;
+
             List<Integer> ids = new ArrayList<>();
             for (int selectedRow : selectedRows) {
                 int tagId = (int) tagTable.getValueAt(selectedRow, 5);
@@ -125,6 +133,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                 JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
+
+            if(!getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"delete"))
+                return;
 
             List<Tag> tagsToDelete = new ArrayList<>();
             for (int selectedRow : selectedRows) {
@@ -430,5 +441,16 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         }
     }
 
+    private boolean getActionConfirmation(List<String> names, String action){
+        StringBuilder toDelete = new StringBuilder();
+        for(String name : names)
+            toDelete.append("\n").append(name);
 
+        return JOptionPane.showConfirmDialog(
+                null,
+                "Do you want to " + action + " these tags?" + toDelete,
+                "Confirm action",
+                JOptionPane.YES_NO_OPTION
+        ) == JOptionPane.YES_OPTION;
+    }
 }
