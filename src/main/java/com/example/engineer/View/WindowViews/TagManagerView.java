@@ -75,16 +75,16 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         JScrollPane scrollPane = new JScrollPane(tagTable);
 
-        nameSortButton = new JButton("TAG");
+        nameSortButton = new JButton("CODE");
         valueSortButton = new JButton("VALUE");
 
         nameSortButton.addActionListener(e -> {
             if(nameSortButton.getText().contains("(a-z)"))
-                nameSortButton.setText("TAG (z-a)");
+                nameSortButton.setText("CODE (z-a)");
             else if (nameSortButton.getText().contains("(z-a)"))
-                nameSortButton.setText("TAG");
+                nameSortButton.setText("CODE");
             else
-                nameSortButton.setText("TAG (a-z)");
+                nameSortButton.setText("CODE (a-z)");
 
             arrangeTags(nameSortButton,valueSortButton);
         });
@@ -190,7 +190,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         originalTags = new ArrayList<>(frameHopperView.getTagsOfFrame(frameNo));
         currentTags = new ArrayList<>(originalTags);
 
-        Object[] columnNames = {" ","TAG","VALUE","ID"};
+        Object[] columnNames = {" ","CODE","VALUE","ID"};
         Object[][]  data = new Object[getTableLen()][];
 
         DefaultTableModel model = new DefaultTableModel(data,columnNames);
@@ -437,6 +437,6 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private boolean isBlank(JButton button){
-        return (button.getText().equals("TAG") || button.getText().equals("VALUE"));
+        return (button.getText().equals("CODE") || button.getText().equals("VALUE"));
     }
 }

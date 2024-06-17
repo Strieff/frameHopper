@@ -58,15 +58,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         JPanel tablePanel = new JPanel(new BorderLayout());
 
         //new tag button
-        JButton createNewTagButton = new JButton("Add tag");
+        JButton createNewTagButton = new JButton("Add Code");
         createNewTagButton.addActionListener(e -> {
             getApplicationContext().getBean(TagDetailsView.class).openWindow();
         });
 
-        JButton addBatchTagsButton = new JButton("Add tags");
+        JButton addBatchTagsButton = new JButton("Add Codes");
         addBatchTagsButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("Text and CSV files", "txt", "csv");
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("txt/csv files", "txt", "csv");
             fileChooser.setFileFilter(filter);
 
             int returnValue = fileChooser.showOpenDialog(null);
@@ -74,15 +74,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                 loadTagsFromFile(fileChooser.getSelectedFile().getAbsolutePath());
         });
 
-        JButton massHideButton = new JButton("Hide tags");
+        JButton massHideButton = new JButton("Hide codes");
         massHideButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "No codes selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(!getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"hide"))
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"hide"))
                 return;
 
             List<Integer> ids = new ArrayList<>();
@@ -100,15 +100,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             tagService.hideTags(ids,true);
         });
 
-        JButton massUnhideButton = new JButton("Unhide tags");
+        JButton massUnhideButton = new JButton("Unhide codes");
         massUnhideButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "No codes selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(!getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"unhide"))
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"unhide"))
                 return;
 
             List<Integer> ids = new ArrayList<>();
@@ -126,15 +126,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             tagService.hideTags(ids,false);
         });
 
-        JButton massDeleteButton = new JButton("Delete tags");
+        JButton massDeleteButton = new JButton("Delete codes");
         massDeleteButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, "No tags selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "No codes selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(!getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"delete"))
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"delete"))
                 return;
 
             List<Tag> tagsToDelete = new ArrayList<>();
@@ -169,7 +169,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         tablePanel.add(toolBar,BorderLayout.NORTH);
 
         //settings label
-        JLabel frameLabel = new JLabel("Tag manager | Settings", SwingConstants.CENTER);
+        JLabel frameLabel = new JLabel("Code manager | Settings", SwingConstants.CENTER);
         frameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         mainPanel.add(frameLabel, BorderLayout.NORTH);
 
@@ -194,7 +194,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             }
         };
 
-        Object[] columnNames = {"TAG", "VALUE", "DESCRIPTION", " ", " ","ID"};
+        Object[] columnNames = {"CODE", "VALUE", "DESCRIPTION", " ", " ","ID"};
 
         int tableLen = FrameHopperView.USER_SETTINGS.getShowDeleted()?
                 FrameHopperView.TAG_LIST.size():
@@ -448,9 +448,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         return JOptionPane.showConfirmDialog(
                 null,
-                "Do you want to " + action + " these tags?" + toDelete,
+                "Do you want to " + action + " these codes?" + toDelete,
                 "Confirm action",
                 JOptionPane.YES_NO_OPTION
-        ) == JOptionPane.YES_OPTION;
+        ) == JOptionPane.NO_OPTION;
     }
 }

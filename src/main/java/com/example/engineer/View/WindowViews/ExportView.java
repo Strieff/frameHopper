@@ -253,7 +253,7 @@ public class ExportView extends JFrame {
             Row headerRow = sheet.createRow(0);
             headerRow.createCell(0).setCellValue("NAME");
             headerRow.createCell(1).setCellValue("FRAME COUNT");
-            headerRow.createCell(2).setCellValue("TAGS");
+            headerRow.createCell(2).setCellValue("CODES");
             headerRow.createCell(3).setCellValue("RUNTIME (SECONDS)");
             headerRow.createCell(4).setCellValue("FRAMERATE");
             headerRow.createCell(5).setCellValue("TOTAL POINTS");
@@ -300,10 +300,10 @@ public class ExportView extends JFrame {
                 sheet.autoSizeColumn(j);
 
             //create tag data info
-            Sheet tagSheet = workbook.createSheet("Tag data");
+            Sheet tagSheet = workbook.createSheet("Code data");
 
             Row tagHeaderRow = tagSheet.createRow(0);
-            tagHeaderRow.createCell(0).setCellValue("TAG");
+            tagHeaderRow.createCell(0).setCellValue("CODE");
             tagHeaderRow.createCell(1).setCellValue("VALUE");
             tagHeaderRow.createCell(2).setCellValue("AMOUNT");
             tagHeaderRow.createCell(3).setCellValue("TOTAL POINTS");
@@ -346,7 +346,7 @@ public class ExportView extends JFrame {
         String overviewFileName = File.separator + "Overview.csv";
 
         List<String[]> overviewData = new ArrayList<>();
-        overviewData.add(new String[]{"NAME","FRAME COUNT","TAGS","RUNTIME (SECONDS)","FRAMERATE","TOTAL POINTS","COMPLEXITY"});
+        overviewData.add(new String[]{"NAME","FRAME COUNT","CODES","RUNTIME (SECONDS)","FRAMERATE","TOTAL POINTS","COMPLEXITY"});
 
         for (int row = 0; row < videoTagMap.size();row++) {
             Video video = new ArrayList<>(videoTagMap.keySet()).get(row);
@@ -364,12 +364,12 @@ public class ExportView extends JFrame {
         writeToCSV(overviewData,exportDirectory+overviewFileName);
 
         //save tag data
-        String detailsFileName = File.separator + "Tag Details.csv";
+        String detailsFileName = File.separator + "Code Details.csv";
 
         Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
 
         List<String[]> tagDetailsData = new ArrayList<>();
-        tagDetailsData.add(new String[]{"TAG","VALUE","AMOUNT","TOTAL POINTS"});
+        tagDetailsData.add(new String[]{"CODE","VALUE","AMOUNT","TOTAL POINTS"});
 
         for(String s : tagData.keySet()) {
             Tag tag = FrameHopperView.findTagByName(s);
