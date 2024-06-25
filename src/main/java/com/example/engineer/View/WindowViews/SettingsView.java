@@ -4,9 +4,11 @@ package com.example.engineer.View.WindowViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
-import com.example.engineer.Threads.DeleteTagThread;
-import com.example.engineer.Threads.SaveSettingsThread;
+import com.example.engineer.DBActions.DeleteTagAction;
+import com.example.engineer.DBActions.SaveSettingsAction;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.View.Elements.actions.PasteRecentAction;
+import com.example.engineer.View.Elements.TagListManager;
 import com.example.engineer.View.FrameHopperView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,11 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     private final TagService tagService;
     @Autowired
     private final SettingsService settingsService;
+    @Autowired
+    private TagListManager tagList;
+    @Autowired
+    PasteRecentAction pasteRecentAction;
+
     private JTable tagTable;
     private JPanel mainPanel;
 
@@ -91,7 +98,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
                 ids.add(tagId);
 
-                FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(tagId)).setDeleted(true);
+                tagList.changeHideStatus(tagId,true);
             }
 
             ctx.getBean(FrameHopperView.class).displayTagList();
@@ -117,7 +124,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
                 ids.add(tagId);
 
-                FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(tagId)).setDeleted(false);
+                tagList.changeHideStatus(tagId,false);
             }
 
             ctx.getBean(FrameHopperView.class).displayTagList();
@@ -147,7 +154,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                         .build();
 
                 ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(temp);
-                FrameHopperView.TAG_LIST.remove(FrameHopperView.findTagIndexById(temp.getId()));
+                tagList.removeTag(temp.getId());
 
                 tagsToDelete.add(temp);
             }
@@ -197,13 +204,13 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         Object[] columnNames = {"CODE", "VALUE", "DESCRIPTION", " ", " ","ID"};
 
         int tableLen = FrameHopperView.USER_SETTINGS.getShowDeleted()?
-                FrameHopperView.TAG_LIST.size():
-                FrameHopperView.getNumberOfVisibleTags();
+                tagList.getSize():
+                tagList.getNumberOfVisibleTags();
         Object[][] data = new Object[tableLen][];
 
         //create data rows
         int i = 0;
-        for (Tag t : FrameHopperView.TAG_LIST) {
+        for (Tag t : tagList.getTagList()) {
             if(!t.isDeleted()){
                 data[i++] = new Object[]{
                         t.getName(),
@@ -267,7 +274,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                     Double tagValue = (Double) tagTable.getValueAt(row, 1);
                     String tagDescription = (String) tagTable.getValueAt(row, 2);
                     Integer tagID = (Integer) tagTable.getValueAt(row,5);
-                    boolean hidden = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(tagID)).isDeleted();
+                    boolean hidden = tagList.getTag(tagID).isDeleted();
                     getApplicationContext().getBean(TagDetailsView.class).getDetailsData(tagName, tagValue, tagDescription,tagID,hidden);
                 }
 
@@ -324,7 +331,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         model.setRowCount(0); // Clear the existing rows
 
 
-        for (Tag tag : FrameHopperView.TAG_LIST) {
+        for (Tag tag : tagList.getTagList()) {
             // Assuming tag has properties: id, name, value, description
             if(!tag.isDeleted() || FrameHopperView.USER_SETTINGS.getShowDeleted()){
                 model.addRow(new Object[]{
@@ -371,18 +378,20 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
     //delete tag from database
     private void deleteTag(Integer id){
-        Tag tag = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(id));
+        Tag tag = tagList.getTag(id);
 
-        new DeleteTagThread(tagService,tag).start();
+        new DeleteTagAction(tagService,tag).run();
 
         //remove tag from list
-        FrameHopperView.TAG_LIST.remove(FrameHopperView.findTagIndexById(id));
+        tagList.removeTag(id);
 
         //notify settings
         notifyTableChange();
 
-        ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(tag);
-        ctx.getBean(FrameHopperView.class).displayTagList();
+        if(ctx.getBean(FrameHopperView.class).loaded){
+            ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(tag);
+            ctx.getBean(FrameHopperView.class).displayTagList();
+        }
     }
 
     private JPanel setUpSettings(){
@@ -395,7 +404,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             else if(e.getStateChange() == ItemEvent.DESELECTED)
                 FrameHopperView.USER_SETTINGS.setShowDeleted(false);
 
-            new SaveSettingsThread(settingsService).start();
+            new SaveSettingsAction(settingsService).run();
             notifyTableChange();
         });
 
@@ -408,7 +417,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             else if(e.getStateChange() == ItemEvent.DESELECTED)
                 FrameHopperView.USER_SETTINGS.setOpenRecent(false);
 
-            new SaveSettingsThread(settingsService).start();
+            new SaveSettingsAction(settingsService).run();
         });
 
         openRecent.setSelected(FrameHopperView.USER_SETTINGS.getOpenRecent());
@@ -426,13 +435,10 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             for(String line : read) {
                 String[] tagInfo = line.split(";");
 
-                Tag tag = tagService.createTag(
+                tagList.addTag(
                         tagInfo[0],
-                        Double.valueOf(tagInfo[1]),
-                        tagInfo.length == 3 ? tagInfo[2] : ""
-                );
-
-                FrameHopperView.TAG_LIST.add(tag);
+                        Double.parseDouble(tagInfo[1].replace(",",".")),
+                        tagInfo.length == 3 ? tagInfo[2] : "");
             }
 
             notifyTableChange();

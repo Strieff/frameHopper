@@ -3,9 +3,8 @@ package com.example.engineer.View.WindowViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
-import com.example.engineer.Threads.SetHiddenStatusThread;
-import com.example.engineer.Threads.TagSettingsThread;
-import com.example.engineer.View.FrameHopperView;
+import com.example.engineer.DBActions.HiddenStatusAction;
+import com.example.engineer.View.Elements.TagListManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -31,6 +30,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     TagService tagService;
     @Autowired
     FrameService frameService;
+    @Autowired
+    TagListManager tagList;
 
     List<JLabel> labels = new ArrayList<>();
 
@@ -156,11 +157,11 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     }
 
     public void changeHiddenStatus(){
-        Tag t = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID));
+        Tag t = tagList.getTag(ID);
 
         t.setDeleted(!t.isDeleted());
 
-        new SetHiddenStatusThread(tagService,ID,t.isDeleted()).start();
+        new HiddenStatusAction(tagService,ID,t.isDeleted()).run();
 
         notifyTagsChanged();
 
@@ -184,19 +185,23 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
 
             //if ID == -1 => new tag - program waits
             if(ID == -1)
-                FrameHopperView.TAG_LIST.add(tagService.createTag(nameTextField.getText(),
-                        Double.parseDouble(valueTextField.getText().isEmpty()? "0" : valueTextField.getText()),
-                        descriptionTextArea.getText()));
+                tagList.addTag(
+                        nameTextField.getText(),
+                        Double.parseDouble(valueTextField.getText().isEmpty()? "0" : valueTextField.getText().replace(",",".")),
+                        descriptionTextArea.getText()
+                );
             else {
-                new TagSettingsThread(tagService,
+                tagList.editTag(
                         ID,
                         nameTextField.getText(),
-                        Double.parseDouble(valueTextField.getText()),
-                        descriptionTextArea.getText()).start();
+                        Double.parseDouble(valueTextField.getText().replace(",",".")),
+                        descriptionTextArea.getText(),
+                        hiddenStatusButton.getText().contains("hid")
+                );
 
-                Tag t = FrameHopperView.TAG_LIST.get(FrameHopperView.findTagIndexById(ID));
+                Tag t = tagList.getTag(ID);
                 t.setName(nameTextField.getText());
-                t.setValue(Double.parseDouble(valueTextField.getText()));
+                t.setValue(Double.parseDouble(valueTextField.getText().replace(",",".")));
                 t.setDescription(descriptionTextArea.getText());
             }
 

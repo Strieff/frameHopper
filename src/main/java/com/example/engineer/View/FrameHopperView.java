@@ -10,9 +10,11 @@ import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.Threads.SaveSettingsThread;
-import com.example.engineer.Threads.TagManagerThread;
-import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.DBActions.SaveSettingsAction;
+import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.actions.PasteRecentAction;
+import com.example.engineer.View.Elements.actions.RemoveRecentAction;
+import com.example.engineer.View.Elements.actions.UndoRedoAction;
 import com.example.engineer.View.WindowViews.ExportView;
 import com.example.engineer.View.WindowViews.SettingsView;
 import com.example.engineer.View.WindowViews.TagManagerView;
@@ -46,13 +48,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
-import java.util.stream.IntStream;
 
 //TODO delete hidden tags that are not assigned to any frame
 //TODO make a small window for comments under tag list, move left right to find comments
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
-    public static List<Tag> TAG_LIST;
     public static UserSettings USER_SETTINGS;
 
     @Autowired
@@ -63,6 +63,14 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private FrameService frameService;
     @Autowired
     private SettingsService settingsService;
+    @Autowired
+    private TagListManager tagList;
+    @Autowired
+    PasteRecentAction pasteRecentAction;
+    @Autowired
+    RemoveRecentAction removeRecentAction;
+    @Autowired
+    UndoRedoAction undoRedoAction;
 
     private TagManagerView tagManagerView;
     private SettingsView settingsView;
@@ -87,7 +95,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private static final String MOVE_RIGHT = "move right";
     private static final String MOVE_LEFT = "move left";
 
-    Video video;
+    private Video video;
+    public boolean loaded = false;
 
     private static ApplicationContext ctx;
     public static ApplicationContext getApplicationContext() {
@@ -96,9 +105,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;
-
-        //get global list of tags
-        TAG_LIST = Collections.synchronizedList(tagService.getAllTags());
     }
 
     public FrameHopperView(){
@@ -226,7 +232,39 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         getRootPane().getActionMap().put("addLastTag", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ctx.getBean(TagManagerView.class).addLastTag();
+                pasteRecentAction.performAction(
+                        tagsOnFramesOnVideo.computeIfAbsent(currentFrameIndex, k -> new ArrayList<>()),
+                        currentFrameIndex,
+                        video
+                );
+            }
+        });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_X,KeyEvent.CTRL_DOWN_MASK,false),"removeLastTag");
+        getRootPane().getActionMap().put("removeLastTag", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeRecentAction.performAction(
+                        tagsOnFramesOnVideo.computeIfAbsent(currentFrameIndex, k -> new ArrayList<>()),
+                        currentFrameIndex,
+                        video
+                );
+            }
+        });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z,KeyEvent.CTRL_DOWN_MASK,false),"undo");
+        getRootPane().getActionMap().put("undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                undoRedoAction.undoAction();
+            }
+        });
+
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Y,KeyEvent.CTRL_DOWN_MASK,false),"redo");
+        getRootPane().getActionMap().put("redo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                undoRedoAction.redoAction();
             }
         });
 
@@ -314,8 +352,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         USER_SETTINGS.setRecentPath(video.getPath());
         if(USER_SETTINGS.getOpenRecent() && !videoFile.getAbsolutePath().equals(USER_SETTINGS.getRecentPath())) {
-            new SaveSettingsThread(settingsService).start();
+            new SaveSettingsAction(settingsService).run();
         }
+
+        loaded = true;
     }
 
     //initialize buttons
@@ -323,19 +363,17 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         //initialize tagManagerView
         SwingUtilities.invokeLater(() -> {
             //set up tag manager
-            tagManagerView = getApplicationContext().getBean(TagManagerView.class);
+            tagManagerView = ctx.getBean(TagManagerView.class);
             tagManagerView.setUpView(this);
 
             //set up settings
-            settingsView = getApplicationContext().getBean(SettingsView.class);
+            settingsView = ctx.getBean(SettingsView.class);
             settingsView.setUpView();
 
-            //set up tag details
-            getApplicationContext().getBean(TagDetailsView.class).setUpView();
+            ctx.getBean(TagDetailsView.class).setUpView();
 
             exportView = ctx.getBean(ExportView.class);
             exportView.setUpView();
-
         });
     }
 
@@ -470,6 +508,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 new ArrayList<>();
     }
 
+    public void putTagsOnFrame(int frameNo, List<Tag> tags){
+        tagsOnFramesOnVideo.put(frameNo,tags);
+    }
+
     //remove tag from frame
     public void removeTagFromFrame(Tag tag,int frameNo){
         if(tagsOnFramesOnVideo.get(frameNo)==null)
@@ -503,22 +545,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     //set tags on given frame in local data representation
     public void setCurrentTags(List<Tag> tags,int frameNo){
         tagsOnFramesOnVideo.put(frameNo,tags);
-    }
-
-    public void addLastTags(List<Tag> tags) {
-        List<Tag> existingTags = tagsOnFramesOnVideo.computeIfAbsent(currentFrameIndex, k -> new ArrayList<>());
-
-        // Filter tags that are not held in existingTags
-        List<Tag> newTags = tags.stream()
-                .filter(tag -> existingTags.stream().noneMatch(existingTag -> existingTag.getId().equals(tag.getId())))
-                .toList();
-
-        // Add filtered tags if there are any new ones
-        if (!newTags.isEmpty()) {
-            existingTags.addAll(newTags);
-            displayTagList();
-            new TagManagerThread().setUp(existingTags, currentFrameIndex, video.getName(), frameService).start();
-        }
     }
 
     //loads all necessary information about the video from file through server
@@ -569,28 +595,5 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         public void actionPerformed(ActionEvent e) {
             app.moveRight();
         }
-    }
-
-    //get index of tag in global list
-    public synchronized static int findTagIndexById(Integer id){
-        return IntStream.range(0, TAG_LIST.size())
-                .filter(i -> TAG_LIST.get(i).getId().equals(id))
-                .findFirst()
-                .orElse(-1);
-    }
-
-    //get tag by name
-    public static Tag findTagByName(String name){
-        return TAG_LIST.stream()
-                .filter(t -> t.getName().equals(name))
-                .findFirst()
-                .orElse(null);
-    }
-
-    //get amount of not hidden tags
-    public synchronized static int getNumberOfVisibleTags(){
-        return (int) TAG_LIST.stream()
-                .filter(t -> !t.isDeleted())
-                .count();
     }
 }

@@ -5,7 +5,7 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
-import com.example.engineer.View.FrameHopperView;
+import com.example.engineer.View.Elements.TagListManager;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,6 +28,8 @@ public class ExportView extends JFrame {
     private VideoService videoService;
     @Autowired
     private TagService tagService;
+    @Autowired
+    private TagListManager tagList;
 
     boolean isShiftPressed = false;
     int firstCLickedRow = -1;
@@ -313,7 +315,8 @@ public class ExportView extends JFrame {
 
             int i = 1;
             for(String s : tagData.keySet()){
-                Tag tag = FrameHopperView.findTagByName(s);
+                Tag tag = tagList.getTag(s);
+
 
                 Row infoRow = tagSheet.createRow(i++);
                 infoRow.createCell(0).setCellValue(s);
@@ -372,7 +375,7 @@ public class ExportView extends JFrame {
         tagDetailsData.add(new String[]{"CODE","VALUE","AMOUNT","TOTAL POINTS"});
 
         for(String s : tagData.keySet()) {
-            Tag tag = FrameHopperView.findTagByName(s);
+            Tag tag = tagList.getTag(s);
 
             tagDetailsData.add(new String[]{
                     s,
@@ -403,7 +406,7 @@ public class ExportView extends JFrame {
     private int getTotalPoints(Map<String,Long> tagData){
         return tagData.entrySet()
                 .stream()
-                .mapToInt(entry -> (int)(FrameHopperView.findTagByName(entry.getKey()).getValue() * entry.getValue()))
+                .mapToInt(entry -> (int)(tagList.getTag(entry.getKey()).getValue() * entry.getValue()))
                 .sum();
     }
 

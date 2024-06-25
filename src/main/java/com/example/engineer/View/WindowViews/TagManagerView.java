@@ -2,8 +2,11 @@ package com.example.engineer.View.WindowViews;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
-import com.example.engineer.Threads.TagManagerThread;
-import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.DBActions.TagManagerAction;
+import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.actions.PasteRecentAction;
+import com.example.engineer.View.Elements.actions.RemoveRecentAction;
+import com.example.engineer.View.Elements.actions.UndoRedoAction;
 import com.example.engineer.View.FrameHopperView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,8 @@ import java.util.stream.IntStream;
 public class TagManagerView extends JFrame implements ApplicationContextAware {
     @Autowired
     private final FrameService frameService;
+    @Autowired
+    private TagListManager tagList;
     private JTable tagTable;
     private JLabel frameLabel;
     private JButton nameSortButton;
@@ -40,9 +45,15 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private FrameHopperView frameHopperView;
 
     private String search = "";
-    private List<Integer> lastTagsId;
 
     private static ApplicationContext ctx;
+    @Autowired
+    private PasteRecentAction pasteRecentAction;
+    @Autowired
+    private RemoveRecentAction removeRecentAction;
+    @Autowired
+    private UndoRedoAction undoRedoAction;
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;
@@ -182,7 +193,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     public void setUpData(String videoName, int frameNo){
         this.videoName = videoName;
         this.frameNo = frameNo;
-        lastTagsId = new ArrayList<>();
+        pasteRecentAction.clearTagList();
+        removeRecentAction.clearTagList();
 
         // Update the frame number label
         frameLabel.setText("FRAME: " + (frameNo+1));
@@ -245,7 +257,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         DefaultTableModel model = (DefaultTableModel) tagTable.getModel();
         model.setRowCount(0);
 
-       for(Tag t : search.isEmpty() ? FrameHopperView.TAG_LIST : getSearchResult(FrameHopperView.TAG_LIST)){
+       for(Tag t : search.isEmpty() ? tagList.getTagList() : getSearchResult(tagList.getTagList())){
            if(FrameHopperView.USER_SETTINGS.getShowDeleted() || !t.isDeleted()){
                model.addRow(new Object[]{
                        !originalTags.isEmpty() && isTagHeld(t),
@@ -277,7 +289,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private int getTableLen() {
-        return (int) FrameHopperView.TAG_LIST.stream()
+        return (int) tagList.getTagList().stream()
                 .filter(t -> !t.isDeleted() || isTagHeld(t))
                 .count();
     }
@@ -294,7 +306,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private void addTag(Integer tagId){
-        lastTagsId.add(tagId);
+        pasteRecentAction.addTag(tagId);
         currentTags.add(getTagById(tagId));
     }
 
@@ -304,12 +316,14 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
                 .findFirst()
                 .orElse(-1);
 
+        removeRecentAction.addTag(tagId);
+
         if(forRemoval!=-1)
             currentTags.remove(forRemoval);
     }
 
     private Tag getTagById(Integer id){
-        return FrameHopperView.TAG_LIST.stream()
+        return tagList.getTagList().stream()
                 .filter(t -> t.getId().equals(id))
                 .findFirst()
                 .orElse(null);
@@ -328,18 +342,10 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         ctx.getBean(FrameHopperView.class).displayTagList();
 
+        undoRedoAction.setUp(originalTags,currentTags,frameNo,videoName);
+
         //save data async
-        new TagManagerThread().setUp(currentTags,originalTags,frameNo,videoName,frameService).start();
-    }
-
-    public void addLastTag(){
-        if(!lastTagsId.isEmpty()) {
-            List<Tag> temp = new ArrayList<>();
-            for (Integer lastTagId : lastTagsId)
-                temp.add(getTagById(lastTagId));
-
-            ctx.getBean(FrameHopperView.class).addLastTags(temp);
-        }
+        new TagManagerAction(frameService,currentTags,originalTags,frameNo,videoName).run();
     }
 
     private void changeIcon(String path, JButton button){
@@ -357,7 +363,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private List<Tag> sortTags(boolean alphabetical, boolean ascending){
-        List<Tag> sortedList = new ArrayList<>(FrameHopperView.TAG_LIST);
+        List<Tag> sortedList = new ArrayList<>(tagList.getTagList());
 
         Comparator<Tag> comparator = Comparator.comparing(Tag::getName,String.CASE_INSENSITIVE_ORDER);
         if(!alphabetical)
@@ -372,7 +378,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private List<Tag> sortAlphabetical(boolean alphabetical){
-        List<Tag> sortedList = new ArrayList<>(FrameHopperView.TAG_LIST);
+        List<Tag> sortedList = new ArrayList<>(tagList.getTagList());
 
         Comparator<Tag> comparator = Comparator.comparing(Tag::getName,String.CASE_INSENSITIVE_ORDER);
         if(!alphabetical)
@@ -384,7 +390,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private List<Tag> sortByValue(boolean asc){
-        List<Tag> sortedList = new ArrayList<>(FrameHopperView.TAG_LIST);
+        List<Tag> sortedList = new ArrayList<>(tagList.getTagList());
 
         Comparator<Tag> comparator = Comparator.comparing(Tag::getValue);
         if (!asc) {

@@ -1,71 +1,55 @@
-package com.example.engineer.Threads;
+package com.example.engineer.DBActions;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
-
-public class TagManagerThread{
+public class TagManagerAction extends DBAction{
     FrameService frameService;
-    List<Tag> currentTags = null;
-    List<Tag> originalTags = null;
-    int frameNo = -1;
-    String videoName = null;
+    List<Tag> currentTags;
+    List<Tag> originalTags;
+    int frameNo;
+    String videoName;
 
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    public TagManagerThread setUp(List<Tag> currentTags, List<Tag> originalTags, int frameNo, String videoName,FrameService frameService){
+    public TagManagerAction(FrameService frameService, List<Tag> currentTags, List<Tag> originalTags, int frameNo, String videoName) {
+        super();
+        this.frameService = frameService;
         this.currentTags = currentTags;
         this.originalTags = originalTags;
         this.frameNo = frameNo;
         this.videoName = videoName;
-        this.frameService = frameService;
-
-        return this;
     }
 
-    public TagManagerThread setUp(List<Tag> currentTags,int frameNo,String videoName,FrameService frameService){
+    public TagManagerAction(FrameService frameService, List<Tag> currentTags, int frameNo, String videoName) {
+        super();
+        this.frameService = frameService;
         this.currentTags = currentTags;
         this.frameNo = frameNo;
         this.videoName = videoName;
-        this.frameService = frameService;
-
-        return this;
     }
 
-    public void start(){
-        executorService.execute(() -> {
+    @Override
+    public void run() {
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             if(originalTags!=null){
                 if (currentTags.isEmpty() && !originalTags.isEmpty())
                     frameService.modifyTagsOfFrame(new ArrayList<>(), frameNo, videoName);
 
-                if (
-                        (!currentTags.isEmpty() && originalTags.isEmpty()) ||
-                                (!currentTags.isEmpty() && currentTags.size() != originalTags.size())
-                ) {
+                if ((!currentTags.isEmpty() && originalTags.isEmpty()) || (!currentTags.isEmpty() && currentTags.size() != originalTags.size()))
                     frameService.modifyTagsOfFrame(currentTags, frameNo, videoName);
-                }
 
                 if (compareTagListsWhenEqualLen())
                     frameService.modifyTagsOfFrame(currentTags, frameNo, videoName);
             }else
                 frameService.modifyTagsOfFrame(currentTags,frameNo,videoName);
+        },executor);
 
-            executorService.shutdown();
+        future.join();
 
-            try {
-                if(!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)){
-                    executorService.shutdownNow();
-                }
-            }catch (Exception e){
-                executorService.shutdownNow();
-            }
-        });
+        shutdown();
     }
 
     private boolean compareTagListsWhenEqualLen(){
