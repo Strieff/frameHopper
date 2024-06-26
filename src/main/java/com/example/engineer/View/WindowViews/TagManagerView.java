@@ -302,7 +302,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
     private boolean isTagHeld(Tag tag){
         return currentTags.stream()
-                .anyMatch(t -> t.getId().equals(tag.getId()));
+                .anyMatch(t -> t.equals(tag));
     }
 
     private void addTag(Integer tagId){

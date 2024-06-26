@@ -118,7 +118,7 @@ public class ExportView extends JFrame {
 
                 JOptionPane.showMessageDialog(this, "Export complete!", "Export Status", JOptionPane.INFORMATION_MESSAGE);
             }catch (Exception ex){
-                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Export canceled!", "Export Status", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
@@ -221,7 +221,7 @@ public class ExportView extends JFrame {
     }
 
     //compile raw data and put to export
-    private void exportData(List<Integer> indexList, String path){
+    private void exportData(List<Integer> indexList, String path) throws Exception{
         List<Object[]> data = tagService.countTagsOnFramesOfVideo(indexList);
 
         Map<Video,Map<String,Long>> tagAmountOnVideos = new HashMap<>();
@@ -232,10 +232,15 @@ public class ExportView extends JFrame {
             tagAmountOnVideos.get((Video)o[0]).put((String)o[1],(Long)o[2]);
         }
 
-        if(getFormatChoice())
-            exportToExcel(tagAmountOnVideos,path,getFileName());
+        boolean formatChoice = getFormatChoice();
+        String fileName = getFileName(path,formatChoice);
+        if(fileName == null)
+            throw new Exception();
+
+        if(formatChoice)
+            exportToExcel(tagAmountOnVideos,path,fileName);
         else
-            exportToCsv(tagAmountOnVideos,path,getFileName());
+            exportToCsv(tagAmountOnVideos,path,fileName);
     }
 
     //compiles and exports to excel
@@ -467,18 +472,42 @@ public class ExportView extends JFrame {
     }
 
     //gets name of the file to save to
-    private String getFileName(){
+    private String getFileName(String path,boolean format) throws Exception{
+        String[] options = {"Cancel","Rename","Overwrite"};
         JTextField jTextField = new JTextField();
 
         JPanel panel = new JPanel(new BorderLayout(0,1));
         panel.add(jTextField);
 
-        panel.requestFocus();
-        int res = JOptionPane.showConfirmDialog(this,panel,"FILE NAME:",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+        String fileName = "";
+        while(fileName.isEmpty()){
+            int nameChoice = JOptionPane.showConfirmDialog(this,panel,"FILE NAME:",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
 
-        if(res == JOptionPane.OK_OPTION)
-            return jTextField.getText();
-        else
-            throw new NullPointerException("No file name given");
+            if(nameChoice == JOptionPane.OK_OPTION){
+                fileName = jTextField.getText();
+
+                if(
+                        (!format && new File(path + File.separator + fileName).exists()) ||
+                        (format && new File(path + File.separator + fileName + ".xlsx").getAbsoluteFile().exists())
+                ){
+                    int actionChoice = JOptionPane.showOptionDialog(this, fileName+" already exists. Do you want to overwrite it?", "",
+                            JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                            null, options, options[0]);
+
+                    switch(actionChoice){
+                        case 0:
+                            throw new Exception();
+                        case 1:
+                            fileName = "";
+                            break;
+                        case 2:
+                            return fileName;
+                    }
+                }
+            }else
+                throw new Exception();
+        }
+
+        return fileName;
     }
 }

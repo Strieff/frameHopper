@@ -58,13 +58,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     @Autowired
     private VideoService videoService;
     @Autowired
-    private TagService tagService;
-    @Autowired
     private FrameService frameService;
     @Autowired
     private SettingsService settingsService;
-    @Autowired
-    private TagListManager tagList;
     @Autowired
     PasteRecentAction pasteRecentAction;
     @Autowired
@@ -92,16 +88,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private Map<Integer,List<Tag>> tagsOnFramesOnVideo;
 
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
-    private static final String MOVE_RIGHT = "move right";
-    private static final String MOVE_LEFT = "move left";
 
     private Video video;
     public boolean loaded = false;
 
     private static ApplicationContext ctx;
-    public static ApplicationContext getApplicationContext() {
-        return ctx;
-    }
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;
@@ -128,7 +119,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         // New JButton for jumping to the specified frame
         JButton jumpButton = new JButton("Jump to Frame");
-        jumpButton.addActionListener((e) -> jumpToSpecifiedFrame());
+        jumpButton.addActionListener(e -> jumpToSpecifiedFrame());
         jumpPanel.add(jumpButton);
 
         add(jumpPanel, BorderLayout.NORTH);
@@ -185,11 +176,21 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         add(splitPane, BorderLayout.EAST);
 
         //movement key binds
-        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke('.'), MOVE_RIGHT);
-        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(','), MOVE_LEFT);
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke('.'), "MoveRight");
+        getRootPane().getActionMap().put("MoveRight", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveRight();
+            }
+        });
 
-        getRootPane().getActionMap().put(MOVE_RIGHT, new MoveRightAction(this));
-        getRootPane().getActionMap().put(MOVE_LEFT, new MoveLeftAction(this));
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(','), "MoveLeft");
+        getRootPane().getActionMap().put("MoveLeft", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveLeft();
+            }
+        });
 
         //shortcut key binds
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK,false),"OpenSettings");
@@ -517,7 +518,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         if(tagsOnFramesOnVideo.get(frameNo)==null)
             return;
 
-        tagsOnFramesOnVideo.get(frameNo).removeIf(t -> t.getId().equals(tag.getId()));
+        tagsOnFramesOnVideo.get(frameNo).removeIf(t -> t.equals(tag));
     }
 
     //remove tag from all frames
@@ -567,33 +568,5 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         videoWidth = video.getVideoWidth();
         videoFramerate = video.getFrameRate();
         videoDuration = video.getDuration();
-    }
-
-    //move left class
-    private static class MoveLeftAction extends AbstractAction {
-        FrameHopperView app;
-
-        public MoveLeftAction(FrameHopperView app) {
-            this.app = app;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            app.moveLeft();
-        }
-    }
-
-    //move right class
-    private static class MoveRightAction extends AbstractAction {
-        FrameHopperView app;
-
-        public MoveRightAction(FrameHopperView app) {
-            this.app = app;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            app.moveRight();
-        }
     }
 }

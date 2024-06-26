@@ -10,6 +10,7 @@ import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.TagListManager;
 import com.example.engineer.View.FrameHopperView;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -141,27 +142,27 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"delete"))
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).toList(),"delete"))
                 return;
 
             List<Tag> tagsToDelete = new ArrayList<>();
             for (int selectedRow : selectedRows) {
                 Tag temp = Tag.builder()
-                        .name((String) tagTable.getValueAt(selectedRow, 0))
-                        .value((Double) tagTable.getValueAt(selectedRow, 1))
-                        .description((String) tagTable.getValueAt(selectedRow, 2))
                         .id((int) tagTable.getValueAt(selectedRow, 5))
                         .build();
 
-                ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(temp);
-                tagList.removeTag(temp.getId());
+                if(ctx.getBean(FrameHopperView.class).loaded)
+                    ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(temp);
 
                 tagsToDelete.add(temp);
             }
 
-            ctx.getBean(FrameHopperView.class).displayTagList();
-            notifyTableChange();
+            tagList.removeTags(tagsToDelete);
 
+            if(ctx.getBean(FrameHopperView.class).loaded)
+                ctx.getBean(FrameHopperView.class).displayTagList();
+
+            notifyTableChange();
 
             tagService.deleteTag(tagsToDelete);
         });
@@ -203,8 +204,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         Object[] columnNames = {"CODE", "VALUE", "DESCRIPTION", " ", " ","ID"};
 
-        int tableLen = FrameHopperView.USER_SETTINGS.getShowDeleted()?
-                tagList.getSize():
+        int tableLen = FrameHopperView.USER_SETTINGS.getShowDeleted() ?
+                tagList.getSize() :
                 tagList.getNumberOfVisibleTags();
         Object[][] data = new Object[tableLen][];
 
@@ -379,8 +380,6 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     //delete tag from database
     private void deleteTag(Integer id){
         Tag tag = tagList.getTag(id);
-
-        new DeleteTagAction(tagService,tag).run();
 
         //remove tag from list
         tagList.removeTag(id);

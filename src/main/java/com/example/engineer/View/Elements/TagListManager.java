@@ -18,7 +18,6 @@ import java.util.stream.IntStream;
 public class TagListManager {
     @Autowired
     TagService tagService;
-
     @Getter
     List<Tag> tagList;
 
@@ -59,33 +58,24 @@ public class TagListManager {
     }
 
     public void removeTag(int id){
-        int index = getIndex(id);
-        Tag t = tagList.get(index);
+        Tag t = getTag(id);
 
-        tagList.remove(index);
+        tagList.remove(t);
 
         new DeleteTagAction(tagService,t).run();
 
         //TODO: notify table changed
     }
 
-    public void removeTag(List<Integer> ids){
-        List<Tag> tags = tagList.stream()
-                .filter(t -> ids.contains(t.getId()))
-                .toList();
+    public void removeTags(List<Tag> toDelete){
+        tagList.removeAll(toDelete);
 
-        for(Tag t : tags)
-            tagList.remove(getIndex(t.getId()));
-
-        new DeleteTagAction(tagService,tags).run();
-
-        //TODO: notify table changed
+        new DeleteTagAction(tagService,toDelete).run();
     }
 
     public void addTag(String name, double value, String description){
         Tag t = tagService.createTag(name,value,description);
         tagList.add(t);
-
 
         //TODO: notify table changed
     }

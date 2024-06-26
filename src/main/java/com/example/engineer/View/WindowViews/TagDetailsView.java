@@ -159,17 +159,13 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     public void changeHiddenStatus(){
         Tag t = tagList.getTag(ID);
 
-        t.setDeleted(!t.isDeleted());
-
-        new HiddenStatusAction(tagService,ID,t.isDeleted()).run();
+        tagList.changeHideStatus(ID,!t.isDeleted());
 
         notifyTagsChanged();
 
         hiddenStatusButton.setText(t.isDeleted() ? "Unhide" : "Hide");
 
         setComponentColor(t.isDeleted() ? Color.DARK_GRAY : null);
-
-        hiddenStatusButton.revalidate();
     }
 
     public void close(boolean save){
