@@ -53,6 +53,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private RemoveRecentAction removeRecentAction;
     @Autowired
     private UndoRedoAction undoRedoAction;
+    @Autowired
+    private UserSettingsManager userSettings;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
@@ -258,10 +260,10 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         model.setRowCount(0);
 
        for(Tag t : search.isEmpty() ? tagList.getTagList() : getSearchResult(tagList.getTagList())){
-           if(FrameHopperView.USER_SETTINGS.getShowDeleted() || !t.isDeleted()){
+           if(userSettings.ShowHidden() || !t.isDeleted()){
                model.addRow(new Object[]{
                        !originalTags.isEmpty() && isTagHeld(t),
-                       t.getName() + ((FrameHopperView.USER_SETTINGS.getShowDeleted() && t.isDeleted())? " (hidden)" : ""),
+                       t.getName() + ((userSettings.ShowHidden() && t.isDeleted())? " (hidden)" : ""),
                        t.getValue(),
                        t.getId()
                });
@@ -276,10 +278,10 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         model.setRowCount(0);
 
         for(Tag t : search.isEmpty() ? sortedData : getSearchResult(sortedData)){
-            if(FrameHopperView.USER_SETTINGS.getShowDeleted() || !t.isDeleted())
+            if(userSettings.ShowHidden() || !t.isDeleted())
                 model.addRow(new Object[]{
                     !originalTags.isEmpty() && isTagHeld(t),
-                    t.getName() + ((FrameHopperView.USER_SETTINGS.getShowDeleted() && t.isDeleted())? " (hidden)" : ""),
+                    t.getName() + ((userSettings.ShowHidden() && t.isDeleted())? " (hidden)" : ""),
                     t.getValue(),
                     t.getId()
                 });

@@ -4,13 +4,11 @@ package com.example.engineer.View.WindowViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.SettingsService;
 import com.example.engineer.Service.TagService;
-import com.example.engineer.DBActions.DeleteTagAction;
-import com.example.engineer.DBActions.SaveSettingsAction;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.View.Elements.UserSettingsManager;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.TagListManager;
 import com.example.engineer.View.FrameHopperView;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -44,6 +42,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     private TagListManager tagList;
     @Autowired
     PasteRecentAction pasteRecentAction;
+    @Autowired
+    UserSettingsManager userSettings;
 
     private JTable tagTable;
     private JPanel mainPanel;
@@ -204,7 +204,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         Object[] columnNames = {"CODE", "VALUE", "DESCRIPTION", " ", " ","ID"};
 
-        int tableLen = FrameHopperView.USER_SETTINGS.getShowDeleted() ?
+        int tableLen = userSettings.ShowHidden() ?
                 tagList.getSize() :
                 tagList.getNumberOfVisibleTags();
         Object[][] data = new Object[tableLen][];
@@ -334,7 +334,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         for (Tag tag : tagList.getTagList()) {
             // Assuming tag has properties: id, name, value, description
-            if(!tag.isDeleted() || FrameHopperView.USER_SETTINGS.getShowDeleted()){
+            if(!tag.isDeleted() || userSettings.ShowHidden()){
                 model.addRow(new Object[]{
                         tag.getName() + (tag.isDeleted() ? " (hidden)" : ""),
                         tag.getValue(),
@@ -399,27 +399,28 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         JCheckBox hiddenTags = new JCheckBox("Show hidden tags");
         hiddenTags.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
-                FrameHopperView.USER_SETTINGS.setShowDeleted(true);
+                userSettings.setShowHidden(true);
             else if(e.getStateChange() == ItemEvent.DESELECTED)
-                FrameHopperView.USER_SETTINGS.setShowDeleted(false);
+                userSettings.setShowHidden(false);
 
-            new SaveSettingsAction(settingsService).run();
+            userSettings.save();
+
             notifyTableChange();
         });
 
-        hiddenTags.setSelected(FrameHopperView.USER_SETTINGS.getShowDeleted());
+        hiddenTags.setSelected(userSettings.ShowHidden());
 
         JCheckBox openRecent = new JCheckBox("Open recent");
         openRecent.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
-                FrameHopperView.USER_SETTINGS.setOpenRecent(true);
+                userSettings.setOpenRecent(true);
             else if(e.getStateChange() == ItemEvent.DESELECTED)
-                FrameHopperView.USER_SETTINGS.setOpenRecent(false);
+                userSettings.setOpenRecent(false);
 
-            new SaveSettingsAction(settingsService).run();
+            userSettings.save();
         });
 
-        openRecent.setSelected(FrameHopperView.USER_SETTINGS.getOpenRecent());
+        openRecent.setSelected(userSettings.OpenRecent());
 
         settingsPanel.add(hiddenTags);
         settingsPanel.add(openRecent);

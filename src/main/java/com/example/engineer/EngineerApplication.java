@@ -1,8 +1,7 @@
 package com.example.engineer;
 
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
-import com.example.engineer.Model.UserSettings;
-import com.example.engineer.Service.SettingsService;
+import com.example.engineer.View.Elements.UserSettingsManager;
 import com.example.engineer.View.FrameHopperView;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -16,7 +15,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 //TODO: file path reeling
-//TODO: open files with unicode characters - copy file with temp name and remove at the end
+//TODO: open files with unicode characters - hard link in python
 //TODO: remove absolute path in getting video info, path already exists after initial movie connection
 
 @SpringBootApplication
@@ -28,27 +27,25 @@ public class EngineerApplication {
         ConfigurableApplicationContext context = builder.run(args);
 
         try{
-            UserSettings us = context.getBean(SettingsService.class).getUserSettings();
-
-            if(us==null){
-                us = UserSettings.builder()
-                        .showDeleted(false)
-                        .openRecent(false)
-                        .build();
-
-                FrameHopperView.USER_SETTINGS = us;
-
-                context.getBean(SettingsService.class).createUserSettings(us);
-            }else{
-                if(us.getOpenRecent() == null)
-                    us.setOpenRecent(false);
-                FrameHopperView.USER_SETTINGS = us;
-            }
+            context.getBean(UserSettingsManager.class).createUserSettings();
 
             context.getBean(FrameHopperView.class).setUpButtonViews();
 
             context.getBean(FrameProcessorClient.class).connect();
-        }finally {
+
+            if(!isPathValid())
+                throw new Exception();
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(
+                    null,
+                    new JLabel("<html><center>Path Invalid!<br>"
+                            + System.getProperty("user.dir") + " contains non-standard characters.<br>"
+                            + "Please run the program again after resolving the issue"),
+                    "ERROR",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            System.exit(0);
+        }finally{
             try {
                 new Socket("localhost",65444);
             } catch (IOException e) {
@@ -60,16 +57,18 @@ public class EngineerApplication {
     }
 
     private static void openRecent(ConfigurableApplicationContext context){
-        if(FrameHopperView.USER_SETTINGS.getOpenRecent() && FrameHopperView.USER_SETTINGS.getRecentPath()!=null){
+        UserSettingsManager userSettings = context.getBean(UserSettingsManager.class);
+
+        if(userSettings.OpenRecent() && userSettings.getRecentPath()!=null){
             int response = JOptionPane.showConfirmDialog(
                     null,
-                    "Recently opened: " + FrameHopperView.USER_SETTINGS.getRecentPath() + "\nOpen recent?",
+                    "Recently opened: " + userSettings.getRecentPath() + "\nOpen recent?",
                     "Open recent video",
                     JOptionPane.YES_NO_OPTION
             );
 
             if(response==JOptionPane.YES_OPTION){
-                File recentFile = new File(FrameHopperView.USER_SETTINGS.getRecentPath());
+                File recentFile = new File(userSettings.getRecentPath());
                 if(recentFile.exists())
                     context.getBean(FrameHopperView.class).openRecentVideo(recentFile);
                 else
@@ -77,5 +76,10 @@ public class EngineerApplication {
             }
 
         }
+    }
+
+    private static boolean isPathValid(){
+        String path = System.getProperty("user.dir");
+        return path.matches("\\A\\p{ASCII}*\\z");
     }
 }

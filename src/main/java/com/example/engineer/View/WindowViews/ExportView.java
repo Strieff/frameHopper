@@ -32,7 +32,7 @@ public class ExportView extends JFrame {
     private TagListManager tagList;
 
     boolean isShiftPressed = false;
-    int firstCLickedRow = -1;
+    int firstCLickedRow = 0;
 
     private JTable videoNameTable;
 
@@ -66,7 +66,7 @@ public class ExportView extends JFrame {
                 int col = videoNameTable.columnAtPoint(e.getPoint());
 
                 if(col == 0){
-                    if(firstCLickedRow == -1 || !isShiftPressed)
+                    if(!isShiftPressed)
                         firstCLickedRow = row;
 
                     if(isShiftPressed){
@@ -75,7 +75,6 @@ public class ExportView extends JFrame {
                         for(int i = start; i <= end; i++){
                             videoNameTable.setValueAt(true,i,0);
                         }
-                        firstCLickedRow = -1;
                     }
                 }
             }
@@ -322,7 +321,6 @@ public class ExportView extends JFrame {
             for(String s : tagData.keySet()){
                 Tag tag = tagList.getTag(s);
 
-
                 Row infoRow = tagSheet.createRow(i++);
                 infoRow.createCell(0).setCellValue(s);
                 infoRow.createCell(1).setCellValue(tag.getValue());
@@ -458,7 +456,6 @@ public class ExportView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 isShiftPressed = false;
-                firstCLickedRow = -1;
             }
         });
 
@@ -486,10 +483,7 @@ public class ExportView extends JFrame {
             if(nameChoice == JOptionPane.OK_OPTION){
                 fileName = jTextField.getText();
 
-                if(
-                        (!format && new File(path + File.separator + fileName).exists()) ||
-                        (format && new File(path + File.separator + fileName + ".xlsx").getAbsoluteFile().exists())
-                ){
+                if(new File(path + File.separator + fileName + (format ? ".xlsx" : "")).exists()){
                     int actionChoice = JOptionPane.showOptionDialog(this, fileName+" already exists. Do you want to overwrite it?", "",
                             JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
                             null, options, options[0]);

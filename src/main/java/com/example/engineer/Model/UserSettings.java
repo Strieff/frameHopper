@@ -20,4 +20,6 @@ public class UserSettings {
     private Boolean openRecent;
     @Column(name = "recentPath")
     private String recentPath;
+    @Column(name = "recentExportPath")
+    private String recentExportPath;
 }

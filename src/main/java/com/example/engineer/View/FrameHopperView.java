@@ -49,24 +49,20 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 
-//TODO delete hidden tags that are not assigned to any frame
-//TODO make a small window for comments under tag list, move left right to find comments
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
-    public static UserSettings USER_SETTINGS;
-
     @Autowired
     private VideoService videoService;
     @Autowired
     private FrameService frameService;
-    @Autowired
-    private SettingsService settingsService;
     @Autowired
     PasteRecentAction pasteRecentAction;
     @Autowired
     RemoveRecentAction removeRecentAction;
     @Autowired
     UndoRedoAction undoRedoAction;
+    @Autowired
+    UserSettingsManager userSettings;
 
     private TagManagerView tagManagerView;
     private SettingsView settingsView;
@@ -351,9 +347,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         displayCurrentFrame();
 
-        USER_SETTINGS.setRecentPath(video.getPath());
-        if(USER_SETTINGS.getOpenRecent() && !videoFile.getAbsolutePath().equals(USER_SETTINGS.getRecentPath())) {
-            new SaveSettingsAction(settingsService).run();
+        userSettings.setRecentPath(video.getPath());
+        if(userSettings.OpenRecent() && !videoFile.getAbsolutePath().equals(userSettings.getRecentPath())) {
+            userSettings.save();
         }
 
         loaded = true;
