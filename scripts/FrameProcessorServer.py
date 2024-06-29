@@ -2,7 +2,6 @@ import socket
 import cv2
 import os
 from pathlib import Path
-import shutil
 
 video_path = ""
 all_frames = []
@@ -35,7 +34,6 @@ def handle_request(request):
     elif command == '2':
         #ask for video info
 
-        video_path = path
         return get_video_properties()
 
 
@@ -60,6 +58,7 @@ def start_server():
                 response = handle_request(request)
                 print("Prepared response: ", response)
                 conn.sendall(response.encode('utf-8'))
+
 
 def save_first_hundred_frames():
     global all_frames

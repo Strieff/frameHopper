@@ -36,21 +36,20 @@ public class EngineerApplication {
             if(!isPathValid())
                 throw new Exception();
         }catch (Exception e){
+            closeLoadingWindow();
+
             JOptionPane.showMessageDialog(
                     null,
-                    new JLabel("<html><center>Path Invalid!<br>"
-                            + System.getProperty("user.dir") + " contains non-standard characters.<br>"
+                    new JLabel("<html><center>"
+                            + System.getProperty("user.dir") + " contains non-standard characters!<br>"
                             + "Please run the program again after resolving the issue"),
                     "ERROR",
                     JOptionPane.ERROR_MESSAGE
             );
+
             System.exit(0);
         }finally{
-            try {
-                new Socket("localhost",65444);
-            } catch (IOException e) {
-                System.out.println("Loading frame closed. FrameHopper is running!");
-            }
+            closeLoadingWindow();
         }
 
         openRecent(context);
@@ -81,5 +80,13 @@ public class EngineerApplication {
     private static boolean isPathValid(){
         String path = System.getProperty("user.dir");
         return path.matches("\\A\\p{ASCII}*\\z");
+    }
+
+    private static void closeLoadingWindow(){
+        try {
+            new Socket("localhost",65444);
+        } catch (IOException e) {
+            System.out.println("Loading frame closed. FrameHopper is running!");
+        }
     }
 }

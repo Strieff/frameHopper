@@ -18,10 +18,8 @@ public class SettingsService implements ApplicationContextAware {
         ctx = applicationContext;
     }
 
-
     @Autowired
     SettingsRepository settingsRepository;
-
 
     public void changeSettings(){
         settingsRepository.save(ctx.getBean(UserSettingsManager.class).getUserSettings());

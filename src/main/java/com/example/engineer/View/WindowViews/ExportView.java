@@ -6,6 +6,7 @@ import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.MultilineTableCellRenderer;
 import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.UserSettingsManager;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,8 @@ public class ExportView extends JFrame {
     private TagService tagService;
     @Autowired
     private TagListManager tagList;
+    @Autowired
+    private UserSettingsManager userSettings;
 
     boolean isShiftPressed = false;
     int firstCLickedRow = 0;
@@ -111,6 +114,10 @@ public class ExportView extends JFrame {
             String path = getSaveLocation();
             if(path == null)
                 return;
+            else {
+                userSettings.setExportRecent(path);
+                userSettings.save();
+            }
 
             try{
                 exportData(selected, path);
@@ -178,11 +185,26 @@ public class ExportView extends JFrame {
 
     //gets path for saving file
     private String getSaveLocation(){
+        if(openRecent())
+            return userSettings.getExportPath();
+
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int userSelection = fileChooser.showSaveDialog(this);
 
         return userSelection == JFileChooser.APPROVE_OPTION ? fileChooser.getSelectedFile().getAbsolutePath() : null;
+    }
+
+    private boolean openRecent(){
+        if(userSettings.getExportPath() == null)
+            return false;
+
+        return JOptionPane.showConfirmDialog(
+                null,
+                "Save to: " + userSettings.getExportPath(),
+                "EXPORT",
+                JOptionPane.YES_NO_OPTION
+        ) == JOptionPane.YES_OPTION;
     }
 
     //get format - either excel or CSV

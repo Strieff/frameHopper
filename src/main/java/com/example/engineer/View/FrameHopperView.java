@@ -277,7 +277,21 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                     if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                         java.util.List<File> files = (java.util.List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
                         if (!files.isEmpty()) {
-                            videoFile = files.get(0);
+                            File tempVid = files.get(0);
+
+                            if(!tempVid.getAbsolutePath().matches("\\A\\p{ASCII}*\\z")) {
+                                JOptionPane.showMessageDialog(
+                                        null,
+                                        new JLabel("<html><center>"
+                                                + tempVid.getAbsolutePath() + " contains non-standard characters!<br>"
+                                                + "Please try again after resolving the issue"),
+                                        "ERROR",
+                                        JOptionPane.ERROR_MESSAGE
+                                );
+                                return;
+                            }
+
+                            videoFile = tempVid;
 
                             video = videoService.createVideoIfNotExists(videoFile);
                             if(video.getTotalFrames() == null)
