@@ -1,16 +1,12 @@
 package com.example.engineer.View;
 
 import com.example.engineer.FrameProcessor.FrameCache;
-import com.example.engineer.FrameProcessor.FrameProcessorClient;
+import com.example.engineer.FrameProcessor.FrameProcessorRequestManager;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
-import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
-import com.example.engineer.Service.SettingsService;
-import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.DBActions.SaveSettingsAction;
 import com.example.engineer.View.Elements.*;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.actions.RemoveRecentAction;
@@ -63,6 +59,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     UndoRedoAction undoRedoAction;
     @Autowired
     UserSettingsManager userSettings;
+    @Autowired
+    FrameProcessorRequestManager requestManager;
 
     private TagManagerView tagManagerView;
     private SettingsView settingsView;
@@ -279,27 +277,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                         if (!files.isEmpty()) {
                             File tempVid = files.get(0);
 
-                            if(!tempVid.getAbsolutePath().matches("\\A\\p{ASCII}*\\z")) {
-                                JOptionPane.showMessageDialog(
-                                        null,
-                                        new JLabel("<html><center>"
-                                                + tempVid.getAbsolutePath() + " contains non-standard characters!<br>"
-                                                + "Please try again after resolving the issue"),
-                                        "ERROR",
-                                        JOptionPane.ERROR_MESSAGE
-                                );
-                                return;
-                            }
-
                             videoFile = tempVid;
 
                             video = videoService.createVideoIfNotExists(videoFile);
-                            if(video.getTotalFrames() == null)
-                                setUpVideoData(videoFile);
-                            else
-                                setUpVideoData(video);
 
-                            openVideo();
+                            setUpVideo(videoFile,video);
                         }
                     }
                 } catch (Exception ex) {
@@ -313,7 +295,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ctx.getBean(FrameProcessorClient.class).send("-1;0;0",false);
+                requestManager.closeServer();
 
                 try{
                     Files.walk(Paths.get("cache"))
@@ -340,11 +322,20 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         getRootPane().requestFocus();
     }
 
-    //opens recent videos
+    //opens recent video
     public void openRecentVideo(File videoFile){
         video = videoService.getByPath(videoFile.getAbsolutePath());
         this.videoFile = videoFile;
-        setUpVideoData(video);
+        setUpVideo(videoFile,video);
+    }
+
+    public void setUpVideo(File videoFile,Video video){
+        ctx.getBean(FrameCache.class).firstLoad(videoFile);
+
+        if(video.getTotalFrames() == null)
+            setUpVideoData(videoFile);
+        else
+            setUpVideoData(video);
 
         openVideo();
     }
@@ -354,15 +345,12 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
         imageLabel.requestFocusInWindow();
 
-        ctx.getBean(FrameCache.class).setFileName(videoFile);
-        ctx.getBean(FrameCache.class).firstLoad(videoFile);
-
         createTagMapForFile();
 
         displayCurrentFrame();
 
         userSettings.setRecentPath(video.getPath());
-        if(userSettings.OpenRecent() && !videoFile.getAbsolutePath().equals(userSettings.getRecentPath())) {
+        if(userSettings.openRecent() && !videoFile.getAbsolutePath().equals(userSettings.getRecentPath())) {
             userSettings.save();
         }
 
@@ -560,7 +548,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //loads all necessary information about the video from file through server
     private void setUpVideoData(File videoFile){
-        String[] data = ctx.getBean(FrameProcessorClient.class).send("2;null;"+videoFile.getAbsolutePath(),true).split(";");
+        String[] data = requestManager.getVideoData().split(";");
         maxFrameIndex = Integer.parseInt(data[0]);
         videoHeight = Integer.parseInt(data[1]);
         videoWidth = Integer.parseInt(data[2]);

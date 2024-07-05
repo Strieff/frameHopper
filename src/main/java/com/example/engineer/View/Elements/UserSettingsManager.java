@@ -28,25 +28,21 @@ public class UserSettingsManager {
 
     public void setRecentPath(String path){
         userSettings.setRecentPath(path);
-        //run();
     }
 
     public void setShowHidden(boolean showHidden){
         userSettings.setShowDeleted(showHidden);
-        //run();
     }
 
     public void setOpenRecent(boolean openRecent){
         userSettings.setOpenRecent(openRecent);
-        //run();
     }
 
     public void setExportRecent(String path){
         userSettings.setRecentExportPath(path);
-        //run();
     }
 
-    public boolean OpenRecent(){
+    public boolean openRecent(){
         return userSettings.getOpenRecent();
     }
 

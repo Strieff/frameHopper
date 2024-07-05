@@ -2,138 +2,151 @@ import socket
 import cv2
 import os
 from pathlib import Path
+import win32api as w32
 
 video_path = ""
-all_frames = []
 cache_path = ""
+frame_cache = []
 
-def handle_request(request):
-    command,argument,path = request.split(';')
-    global video_path
-
-    if command == '0':
-        video_path = path
-
-        global all_frames
-        all_frames = []
-
-        print(video_path)
-        save_first_hundred_frames()
-        return "OK\n"
-    elif command == '1':
-        load_batch(argument)
-        return "OK\n"
-    elif command == '200':
-        global cache_path
-        cache_path = path[:-2]
-
-        return "OK\n"
-    elif command == '-1':
-        print('Shutting down...')
-        exit()
-    elif command == '2':
-        #ask for video info
-
-        return get_video_properties()
-
+# TODO: overloading for loading batches
 
 def start_server():
     HOST = '127.0.0.1'
     PORT = 65432
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
+    with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as s:
+        s.bind((HOST,PORT))
         s.listen()
 
-        print("Started, listening on port: ", PORT)
-        conn, addr = s.accept()
+        print(f'Server started, listening on port: {PORT}')
+
+        conn,addr = s.accept()
         with conn:
-            print('Connected by', addr)
+            print(f'Conneted by: {addr}')
+            
             while True:
                 data = conn.recv(1024)
                 if not data:
                     break
+                
                 request = data.decode('utf-8')
-                print("Received:", request)
+                print(f'Request: {request}')
                 response = handle_request(request)
-                print("Prepared response: ", response)
+                print(f'Response: {response}')
                 conn.sendall(response.encode('utf-8'))
 
 
-def save_first_hundred_frames():
-    global all_frames
+def handle_request(request: str):
+    global video_path,cache_path
+
+    command,argument,path = request.split(';')
+    path = path.replace('\r', '').replace('\n', '')
+
+    if command == '-1': # close program
+        print('Shutting down...')
+        exit()
+    elif command == '0': #set cache pat
+        if path.isascii():
+            cache_path = str(os.path.abspath(path))
+        else:
+            cache_path = w32.GetShortPathName(str(os.path.abspath(path)))    
+
+        print(f'Cache set to: {cache_path}')
+
+        return f'{cache_path}\n'
+    elif command == '1': # load first set
+        if path.isascii():
+            path = str(os.path.abspath(path))
+        else:
+            path = w32.GetShortPathName(str(os.path.abspath(path)))
+
+        video_path = path    
+
+        print(f'Video path: {video_path}')  
+
+        load_first_batch()
+
+        return f'{video_path}\n'
+    elif command == '2': # get video properties
+        print(f'Loading video properties of: {video_path}')
+
+        return f'{get_video_properties()}\n'
+    elif command == '3': # load given set
+        print('Loading batch')
+        load_batch(argument)
+
+        return 'OK\n'
+    
+
+
+def load_first_batch():
+    global video_path,cache_path,frame_cache
 
     # Create a VideoCapture object
     cap = cv2.VideoCapture(video_path)
 
     # Check if the video opened successfully
     if not cap.isOpened():
-        print("Error: Unable to open video.")
-        return
+        raise ValueError(f'Could not open the video file: {video_path}')
     
-    # Read all frames and store them in the list
+    # Clear frame cache and read all frames and store them in the list
+    # TODO: set limit on frame amount - first come first gone
+    frame_cache = []
     while True:
-        ret, frame = cap.read()
+        ret,frame = cap.read()
         if not ret:
             break
-        all_frames.append(frame)
-
+        frame_cache.append(frame)
+    
     # Release the VideoCapture object
-    cap.release()    
+    cap.release()
 
-    # Create a directory to save frames
-    file_name = Path(video_path).name[:-2]
+    # Create a directory to save frames to
+    file_name = Path(video_path).name
     file_path = os.path.join(cache_path,file_name)
     os.makedirs(file_path, exist_ok=True)
 
-    # Save the first hundred frames as JPEG images
-    for i in range(min(100, len(all_frames))):
-        frame_path = os.path.join(file_path, f"{i}.jpg")
-        cv2.imwrite(frame_path, all_frames[i])
+    for i in range(min(100,len(frame_cache))):
+        frame_path = os.path.join(file_path,f'{i}.jpg')
+        cv2.imwrite(frame_path,frame_cache[i])
 
+    print(f'First hundred frames saved to: {file_path}')
 
-    print(f"First hundred frames saved in directory: {file_path}")
+def load_batch(set):
+    global frame_cache,cache_path,video_path
 
-
-def load_batch(hundred):
-    global all_frames
-
-    # Check if frames have been loaded
-    if not all_frames:
-        print("Error: No frames have been loaded.")
-        return
+    if not frame_cache:
+        raise ValueError('No frames were loaded')
     
     # Determine the starting index for the batch
-    start_index = int(hundred) * 100
+    start_index = int(set)*100
 
     # Check if the starting index exceeds the maximum frame index
-    if start_index >= len(all_frames):
+    if start_index >= len(frame_cache):
         print("Error: Starting index exceeds maximum frame index.")
         return
-
-    # Create a directory to save frames
-    file_name = Path(video_path).name[:-2]
+    
+    file_name = Path(video_path).name
     file_path = os.path.join(cache_path,file_name)
-    os.makedirs(file_path, exist_ok=True)
 
-    # Calculate the end index for the batch
-    end_index = min((int(start_index) + 100), int(len(all_frames)))
+    end_index = min(int(start_index) + 100,int(len(frame_cache)))
 
-    # Save the batch of frames as JPEG images
-    for i in range(int(start_index), int(end_index)):
-        frame_path = os.path.join(file_path, f"{i}.jpg")
-        cv2.imwrite(frame_path, all_frames[i])
+    for i in range(start_index,end_index):
+        frame_path = os.path.join(file_path,f'{i}.jpg')
+        cv2.imwrite(frame_path,frame_cache[i])
 
-    print(f"Batch of frames starting from frame {start_index} saved in directory: {file_path}")
+    print(f'Batch from {start_index} to {end_index} saved to: {file_path}')    
 
 
 def get_video_properties():
+    global video_path
+
     # Open the video file
     cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
-        raise ValueError("Could not open the video file (video properties)")
-
+        raise ValueError(f'Could not open the video file: {video_path}')
+    
     # Get the properties
     length_in_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     image_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -141,16 +154,14 @@ def get_video_properties():
     frame_rate = cap.get(cv2.CAP_PROP_FPS)
     duration_in_milliseconds = (length_in_frames / frame_rate) * 1000
 
-    # Construct the result string
-    result = f"{length_in_frames};{image_height};{image_width};{frame_rate:.2f};{int(duration_in_milliseconds)}\n"
-
     # Release the video capture object
     cap.release()
+
+    # Construct the result string
+    result = f"{length_in_frames};{image_height};{image_width};{frame_rate:.2f};{int(duration_in_milliseconds)}"
 
     return result
 
 
-
-# def open_file(path):
 if __name__ == "__main__":
     start_server()

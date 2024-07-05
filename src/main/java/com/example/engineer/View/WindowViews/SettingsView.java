@@ -420,7 +420,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
             userSettings.save();
         });
 
-        openRecent.setSelected(userSettings.OpenRecent());
+        openRecent.setSelected(userSettings.openRecent());
 
         settingsPanel.add(hiddenTags);
         settingsPanel.add(openRecent);

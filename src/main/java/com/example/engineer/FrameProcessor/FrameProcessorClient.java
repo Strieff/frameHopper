@@ -1,16 +1,24 @@
 package com.example.engineer.FrameProcessor;
 
+import lombok.Getter;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
-public class FrameProcessorClient extends Thread{
+public class FrameProcessorClient extends Thread implements ApplicationContextAware {
+    private static ApplicationContext ctx;
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        ctx = applicationContext;
+    }
+
     private static final String HOST = "localhost";
     private static final int PORT = 65432;
 
@@ -30,7 +38,7 @@ public class FrameProcessorClient extends Thread{
             Thread clientThread = new Thread(new ClientRunnable());
             clientThread.start();
 
-            send("200;0;"+ Paths.get("cache").toAbsolutePath(),true);
+            ctx.getBean(FrameProcessorRequestManager.class).setCachePath();
         }catch (Exception e){
             e.printStackTrace();
         }

@@ -26,31 +26,13 @@ public class EngineerApplication {
         SpringApplicationBuilder builder = new SpringApplicationBuilder(EngineerApplication.class).headless(false);
         ConfigurableApplicationContext context = builder.run(args);
 
-        try{
-            context.getBean(UserSettingsManager.class).createUserSettings();
+        context.getBean(UserSettingsManager.class).createUserSettings();
 
-            context.getBean(FrameHopperView.class).setUpButtonViews();
+        context.getBean(FrameHopperView.class).setUpButtonViews();
 
-            context.getBean(FrameProcessorClient.class).connect();
+        context.getBean(FrameProcessorClient.class).connect();
 
-            if(!isPathValid())
-                throw new Exception();
-        }catch (Exception e){
-            closeLoadingWindow();
-
-            JOptionPane.showMessageDialog(
-                    null,
-                    new JLabel("<html><center>"
-                            + System.getProperty("user.dir") + " contains non-standard characters!<br>"
-                            + "Please run the program again after resolving the issue"),
-                    "ERROR",
-                    JOptionPane.ERROR_MESSAGE
-            );
-
-            System.exit(0);
-        }finally{
-            closeLoadingWindow();
-        }
+        closeLoadingWindow();
 
         openRecent(context);
     }
@@ -58,28 +40,27 @@ public class EngineerApplication {
     private static void openRecent(ConfigurableApplicationContext context){
         UserSettingsManager userSettings = context.getBean(UserSettingsManager.class);
 
-        if(userSettings.OpenRecent() && userSettings.getRecentPath()!=null){
-            int response = JOptionPane.showConfirmDialog(
-                    null,
-                    "Recently opened: " + userSettings.getRecentPath() + "\nOpen recent?",
-                    "Open recent video",
-                    JOptionPane.YES_NO_OPTION
-            );
+        if(!userSettings.openRecent())
+            return;
 
-            if(response==JOptionPane.YES_OPTION){
-                File recentFile = new File(userSettings.getRecentPath());
-                if(recentFile.exists())
-                    context.getBean(FrameHopperView.class).openRecentVideo(recentFile);
-                else
-                    JOptionPane.showMessageDialog(null, "The file does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        if(userSettings.getRecentPath() == null)
+            return;
 
+        int response = JOptionPane.showConfirmDialog(
+                null,
+                "Recently opened: " + userSettings.getRecentPath() + "\nOpen recent?",
+                "Open recent video",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            File recentFile = new File(userSettings.getRecentPath());
+            if (recentFile.exists())
+                context.getBean(FrameHopperView.class).openRecentVideo(recentFile);
+            else
+                JOptionPane.showMessageDialog(null, "The file does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
 
-    private static boolean isPathValid(){
-        String path = System.getProperty("user.dir");
-        return path.matches("\\A\\p{ASCII}*\\z");
     }
 
     private static void closeLoadingWindow(){
