@@ -3,6 +3,10 @@ package com.example.engineer;
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.View.Elements.UserSettingsManager;
 import com.example.engineer.View.FrameHopperView;
+import com.example.engineer.View.WindowViews.ExportView;
+import com.example.engineer.View.WindowViews.SettingsView;
+import com.example.engineer.View.WindowViews.TagDetailsView;
+import com.example.engineer.View.WindowViews.TagManagerView;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -28,7 +32,10 @@ public class EngineerApplication {
 
         context.getBean(UserSettingsManager.class).createUserSettings();
 
-        context.getBean(FrameHopperView.class).setUpButtonViews();
+        context.getBean(ExportView.class).setUpView();
+        context.getBean(SettingsView.class).setUpView();
+        context.getBean(TagManagerView.class).setUpView(context.getBean(FrameHopperView.class));
+        context.getBean(TagDetailsView.class).setUpView();
 
         context.getBean(FrameProcessorClient.class).connect();
 

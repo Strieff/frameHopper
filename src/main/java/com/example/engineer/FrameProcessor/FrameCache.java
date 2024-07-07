@@ -1,5 +1,8 @@
 package com.example.engineer.FrameProcessor;
 
+import com.example.engineer.Model.Video;
+import com.example.engineer.Service.VideoService;
+import jakarta.annotation.PostConstruct;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,19 +17,24 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 
 @Component
-public class FrameCache {
+public class FrameCache extends Cache{
     private static int CACHE_SIZE = 7;
 
     @Autowired
     FrameProcessorRequestManager requestManager;
 
-    private final LinkedBlockingDeque<BufferedImage> cache = new LinkedBlockingDeque<>();
     private final LinkedBlockingDeque<Integer> indexCache = new LinkedBlockingDeque<>();
     private Map<Integer,Boolean> loadMap;
 
     @Setter
     private String dir;
 
+    @PostConstruct
+    private void init(){
+        FRAME_CACHE = this;
+    }
+
+    @Override
     public void move(int currentIndex, int newIndex){
         if(currentIndex > newIndex){ //move left
             cache.addFirst(loadImage(newIndex));
@@ -51,6 +59,7 @@ public class FrameCache {
         }
     }
 
+    @Override
     public void jump(int newIndex){
         cache.clear();
         indexCache.clear();
@@ -82,9 +91,9 @@ public class FrameCache {
                 }
             }
         }
-
     }
 
+    @Override
     public void firstLoad(File file){
         loadMap = new HashMap<>();
         cache.clear();
@@ -122,6 +131,7 @@ public class FrameCache {
         return image;
     }
 
+    @Override
     public BufferedImage getCurrentFrame(Integer index){
         List<BufferedImage> cacheCopy = List.copyOf(cache);
         List<Integer> indexCacheCopy = List.copyOf(indexCache);
@@ -129,4 +139,23 @@ public class FrameCache {
         return cacheCopy.get(indexCacheCopy.indexOf(index));
     }
 
+    @Override
+    public void setUpVideoMetadata(VideoService videoService, Video video){
+        if(video.getTotalFrames() == null) {
+            String[] data = requestManager.getVideoData().split(";");
+            maxFrameIndex = Integer.parseInt(data[0]);
+            height = Integer.parseInt(data[1]);
+            width = Integer.parseInt(data[2]);
+            frameRate = Double.parseDouble(data[3]);
+            duration = Integer.parseInt(data[4]) / 1000d;
+
+            videoService.addVideoData(video,maxFrameIndex,frameRate,duration,height,width);
+        }else {
+            maxFrameIndex = video.getTotalFrames();
+            height = video.getVideoHeight();
+            width = video.getVideoWidth();
+            frameRate = video.getFrameRate();
+            duration = video.getDuration();
+        }
+    }
 }

@@ -1,20 +1,22 @@
 package com.example.engineer.View;
 
-import com.example.engineer.FrameProcessor.FrameCache;
+import com.example.engineer.FrameProcessor.Cache;
 import com.example.engineer.FrameProcessor.FrameProcessorRequestManager;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.View.Elements.UserSettingsManager;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.actions.RemoveRecentAction;
 import com.example.engineer.View.Elements.actions.UndoRedoAction;
 import com.example.engineer.View.WindowViews.ExportView;
 import com.example.engineer.View.WindowViews.SettingsView;
-import com.example.engineer.View.WindowViews.TagManagerView;
 import com.example.engineer.View.WindowViews.TagDetailsView;
+import com.example.engineer.View.WindowViews.TagManagerView;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -42,83 +44,100 @@ import java.io.Serial;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class FrameHopperView extends JFrame implements ApplicationContextAware {
+    private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
+
+    //needed services
     @Autowired
     private VideoService videoService;
     @Autowired
     private FrameService frameService;
-    @Autowired
-    PasteRecentAction pasteRecentAction;
-    @Autowired
-    RemoveRecentAction removeRecentAction;
-    @Autowired
-    UndoRedoAction undoRedoAction;
-    @Autowired
-    UserSettingsManager userSettings;
-    @Autowired
-    FrameProcessorRequestManager requestManager;
 
-    private TagManagerView tagManagerView;
-    private SettingsView settingsView;
-    private ExportView exportView;
+    //actions
+    @Autowired
+    private PasteRecentAction pasteRecentAction;
+    @Autowired
+    private RemoveRecentAction removeRecentAction;
+    @Autowired
+    private UndoRedoAction undoRedoAction;
 
+    //data managers
+    @Autowired
+    private UserSettingsManager userSettings;
+    @Autowired
+    private FrameProcessorRequestManager requestManager;
+
+    //other views
+    @Autowired
+    TagManagerView tagManagerView;
+    @Autowired
+    SettingsView settingsView;
+    @Autowired
+    ExportView exportView;
+
+    //cache
+    private Cache cache;
+
+    //JComponents
     private final JLabel imageLabel;
     private final JLabel infoLabel;
     private final JTextField jumpTextField;
     private final JTable tagsTableList;
 
-    private File videoFile;
+    //needed data
     private int currentFrameIndex;
-    private int maxFrameIndex;
-    private int videoHeight;
-    private int videoWidth;
-    private double videoFramerate;
-    private double videoDuration;
-
-    private Map<Integer,List<Tag>> tagsOnFramesOnVideo;
-
-    private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
-
+    public boolean loaded;
+    private File videoFile;
     private Video video;
-    public boolean loaded = false;
+    private Map<Integer, List<Tag>> tagsOnFramesOnVideo;
 
+    //get context
     private static ApplicationContext ctx;
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;
     }
 
+    //constructor
     public FrameHopperView(){
         setTitle("FrameHopper");
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loaded = false;
 
-        // Initialize components
+        //CREATE COMPONENTS
+
+        //image display
         imageLabel = new JLabel();
         add(imageLabel, BorderLayout.CENTER);
 
-        // New JLabel for displaying current frame and frame rate
-        infoLabel = new JLabel("Current Frame: 0/0 | Frame Rate: 0 fps");
-        infoLabel.setFont(new Font("Comic Sans", Font.BOLD, 24));
-        add(infoLabel, BorderLayout.SOUTH);
+        //label for displaying some metadata
+        infoLabel = new JLabel("No video currently open");
+        infoLabel.setFont(new Font("Comic Sans",Font.BOLD,24));
+        add(infoLabel,BorderLayout.SOUTH);
 
-        // New JPanel to hold the JTextField and JButton
-        JPanel jumpPanel = new JPanel();
+        //textfield for jump panel
         jumpTextField = new JTextField(5);
-        jumpPanel.add(jumpTextField);
 
-        // New JButton for jumping to the specified frame
+        //button for jump panel
         JButton jumpButton = new JButton("Jump to Frame");
-        jumpButton.addActionListener(e -> jumpToSpecifiedFrame());
+        jumpButton.addActionListener(e -> {
+            jumpToSpecifiedFrame();
+        });
+
+        //JPanel for jump functionality
+        JPanel jumpPanel = new JPanel();
+        add(jumpPanel,BorderLayout.NORTH);
+        jumpPanel.add(jumpTextField);
         jumpPanel.add(jumpButton);
 
-        add(jumpPanel, BorderLayout.NORTH);
-
-        //create tag list for frame
+        //tag list for a frame
         tagsTableList = new JTable(){
             @Serial
             private static final long serialVersionUID = 1L;
@@ -136,57 +155,90 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 return false;
             }
         };
-        Object[] columnNames = {"NAME","VALUE"};
-        Object[][] data = new Object[0][];
-
-        DefaultTableModel model = new DefaultTableModel(data,columnNames);
-        tagsTableList.setModel(model);
+        tagsTableList.setModel(new DefaultTableModel(new String[][]{},new String[]{"NAME","VALUE"}));
         tagsTableList.getTableHeader().setReorderingAllowed(false);
 
-        // Center align the cells under the "VALUE" column
+        //center the value column
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         tagsTableList.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
-        // Wrap text in the "NAME" column
+        //wrap text in name column
         TableColumn nameColumn = tagsTableList.getColumnModel().getColumn(0);
         nameColumn.setCellRenderer(new MultilineTableCellRenderer());
 
+        //set actions on table
         tagsTableList.setFocusable(false);
         tagsTableList.setRowSelectionAllowed(false);
 
-        JScrollPane tagsScrollPane = new JScrollPane(tagsTableList);
+        //scroll pane for the table
+        JScrollPane tagScrollPane = new JScrollPane(tagsTableList);
+        tagScrollPane.setPreferredSize(new Dimension(200,getHeight()));
 
-        tagsScrollPane.setPreferredSize(new Dimension(200, getHeight())); // Set preferred size
+        //tag manager button
+        JButton tagMangerButton = new JButton();
+        setButtonIcon(tagMangerButton,"plus.png");
+        tagMangerButton.addActionListener(e -> {
+            if(videoFile!=null)
+                tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
+            else
+                JOptionPane.showMessageDialog(this, "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
+        });
 
-        // New JPanel for the right section
+        //settings button
+        JButton settingsButton = new JButton();
+        setButtonIcon(settingsButton,"settings.png");
+        settingsButton.addActionListener(e -> settingsView.open());
+
+        //export button
+        JButton exportButton = new JButton();
+        setButtonIcon(exportButton,"export.png");
+        exportButton.addActionListener(e -> exportView.open());
+
+        //panel for view buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(tagMangerButton);
+        buttonPanel.add(settingsButton);
+        buttonPanel.add(exportButton);
+
+        //panel for table-button section
         JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.add(createButtonPanel(), BorderLayout.NORTH);
-        rightPanel.add(tagsScrollPane, BorderLayout.CENTER);
+        rightPanel.add(buttonPanel,BorderLayout.NORTH);
+        rightPanel.add(tagScrollPane, BorderLayout.CENTER);
 
-        // Use JSplitPane for layout
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, new JPanel(), rightPanel);
-        splitPane.setResizeWeight(1.0);
-        add(splitPane, BorderLayout.EAST);
+        //split pane for the layout
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,true,new JPanel(),rightPanel);
+        splitPane.setResizeWeight(1f);
+        add(splitPane,BorderLayout.EAST);
 
-        //movement key binds
+
+        //KEYBINDINGS
+
+        //move right key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke('.'), "MoveRight");
         getRootPane().getActionMap().put("MoveRight", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                moveRight();
+                if(currentFrameIndex != cache.getMaxFrameIndex() - 1){
+                    cache.move(currentFrameIndex,++currentFrameIndex);
+                    displayCurrentFrame();
+                }
             }
         });
 
+        //move left key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(','), "MoveLeft");
         getRootPane().getActionMap().put("MoveLeft", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                moveLeft();
+                if(currentFrameIndex >= 1){
+                    cache.move(currentFrameIndex,--currentFrameIndex);
+                    displayCurrentFrame();
+                }
             }
         });
 
-        //shortcut key binds
+        //open settings key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK,false),"OpenSettings");
         getRootPane().getActionMap().put("OpenSettings", new AbstractAction() {
             @Override
@@ -198,6 +250,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //open export key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E,KeyEvent.SHIFT_DOWN_MASK,false),"OpenExport");
         getRootPane().getActionMap().put("OpenExport", new AbstractAction() {
             @Override
@@ -209,6 +262,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //open tag manager key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,KeyEvent.SHIFT_DOWN_MASK,false),"OpenManager");
         getRootPane().getActionMap().put("OpenManager", new AbstractAction() {
             @Override
@@ -223,6 +277,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //add last tags key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_V,KeyEvent.CTRL_DOWN_MASK,false),"addLastTag");
         getRootPane().getActionMap().put("addLastTag", new AbstractAction() {
             @Override
@@ -235,6 +290,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //remove last tags key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_X,KeyEvent.CTRL_DOWN_MASK,false),"removeLastTag");
         getRootPane().getActionMap().put("removeLastTag", new AbstractAction() {
             @Override
@@ -247,6 +303,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //undo key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z,KeyEvent.CTRL_DOWN_MASK,false),"undo");
         getRootPane().getActionMap().put("undo", new AbstractAction() {
             @Override
@@ -255,6 +312,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //redo action
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Y,KeyEvent.CTRL_DOWN_MASK,false),"redo");
         getRootPane().getActionMap().put("redo", new AbstractAction() {
             @Override
@@ -264,34 +322,39 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
 
 
-
-
-        // Add drag and drop support
+        //drag and drop functionality
         new DropTarget(this, new DropTargetAdapter() {
+            @Override
             public void drop(DropTargetDropEvent evt) {
-                try {
+                try{
                     evt.acceptDrop(DnDConstants.ACTION_COPY);
                     Transferable t = evt.getTransferable();
-                    if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                        java.util.List<File> files = (java.util.List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
-                        if (!files.isEmpty()) {
-                            File tempVid = files.get(0);
-
-                            videoFile = tempVid;
-
+                    if(t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
+                        List<File> fileList = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+                        if(!fileList.isEmpty()){
+                            videoFile = fileList.get(0);
                             video = videoService.createVideoIfNotExists(videoFile);
 
-                            setUpVideo(videoFile,video);
+                            //set cache
+                            cache = Cache.getCache(videoFile.getAbsolutePath());
+
+                            //prepare video data
+                            prepareVideo();
+
+                            //open video
+                            openVideo();
                         }
                     }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
         });
 
         setVisible(true);
+        getRootPane().requestFocus();
 
+        //actions to take when closing application
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -313,191 +376,142 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 }
 
                 //dispose of views
-                ctx.getBean(SettingsView.class).dispose();
-                ctx.getBean(TagManagerView.class).dispose();
+                settingsView.dispose();
+                exportView.dispose();
+                tagManagerView.dispose();
                 ctx.getBean(TagDetailsView.class).dispose();
             }
         });
-
-        getRootPane().requestFocus();
     }
 
-    //opens recent video
-    public void openRecentVideo(File videoFile){
-        video = videoService.getByPath(videoFile.getAbsolutePath());
-        this.videoFile = videoFile;
-        setUpVideo(videoFile,video);
-    }
+    /*@PostConstruct
+    private void init(){
 
-    public void setUpVideo(File videoFile,Video video){
-        ctx.getBean(FrameCache.class).firstLoad(videoFile);
+    }*/
 
-        if(video.getTotalFrames() == null)
-            setUpVideoData(videoFile);
-        else
-            setUpVideoData(video);
-
-        openVideo();
-    }
-
-    //load video into view
-    private void openVideo(){
-        infoLabel.setText("Current Frame: " + (currentFrameIndex+1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
-        imageLabel.requestFocusInWindow();
-
-        createTagMapForFile();
-
-        displayCurrentFrame();
-
-        userSettings.setRecentPath(video.getPath());
-        if(userSettings.openRecent() && !videoFile.getAbsolutePath().equals(userSettings.getRecentPath())) {
-            userSettings.save();
-        }
-
-        loaded = true;
-    }
-
-    //initialize buttons
-    public void setUpButtonViews(){
-        //initialize tagManagerView
-        SwingUtilities.invokeLater(() -> {
-            //set up tag manager
-            tagManagerView = ctx.getBean(TagManagerView.class);
-            tagManagerView.setUpView(this);
-
-            //set up settings
-            settingsView = ctx.getBean(SettingsView.class);
-            settingsView.setUpView();
-
-            ctx.getBean(TagDetailsView.class).setUpView();
-
-            exportView = ctx.getBean(ExportView.class);
-            exportView.setUpView();
-        });
-    }
-
-    //jump to given frame
-    private void jumpToSpecifiedFrame() {
-        try {
-            int frameToJump = Integer.parseInt(jumpTextField.getText());
-            if (frameToJump < 0 || frameToJump > maxFrameIndex) {
-                throw new Exception("Cannot display frame: " + frameToJump + ". Frame number does not exist.");
-            } else {
-                ctx.getBean(FrameCache.class).jump(frameToJump-1);
-                currentFrameIndex = (frameToJump-1);
-                displayCurrentFrame();
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid frame number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-
-        }
-    }
-
-    //move to the frame on the right
-    public void moveRight() {
-        if (currentFrameIndex != maxFrameIndex - 1) {
-            ctx.getBean(FrameCache.class).move(currentFrameIndex,currentFrameIndex+1);
-            currentFrameIndex++;
-            displayCurrentFrame();
-        }
-    }
-
-    //move to the frame on the left
-    public void moveLeft() {
-        if (currentFrameIndex >= 1) {
-            ctx.getBean(FrameCache.class).move(currentFrameIndex,currentFrameIndex-1);
-            currentFrameIndex--;
-            displayCurrentFrame();
-        }
-    }
-
-    //display frame
-    private void displayCurrentFrame() {
-        //display tag list
-        displayTagList();
-
-        // Decode the current frame of the video from cache
-        BufferedImage bufferedImage = ctx.getBean(FrameCache.class).getCurrentFrame(currentFrameIndex);
-
-        // Get the dimensions of the JFrame
-        int frameWidth = imageLabel.getWidth() - 10;
-        int frameHeight = imageLabel.getHeight() - 10;
-
-        // Calculate scaling factors to maintain proportionality
-        double scaleWidth = (double) frameWidth / videoWidth;
-        double scaleHeight = (double) frameHeight / videoHeight;
-        double scaleFactor = Math.min(scaleWidth, scaleHeight);
-
-        // Calculate the target dimensions
-        int targetWidth = (int) (scaleFactor * videoWidth);
-        int targetHeight = (int) (scaleFactor * videoHeight);
-
-        // Scale the image to fit inside the JLabel
-        BufferedImage scaledImage = scaleImage(bufferedImage, targetWidth, targetHeight);
-
-        // Display the scaled image in the JLabel
-        imageLabel.setIcon(new ImageIcon(scaledImage));
-
-        infoLabel.setText("Current Frame: " + (currentFrameIndex + 1) + "/" + maxFrameIndex + " | Frame Rate: " + videoFramerate + " fps");
-    }
-
-    //scale image to window size
-    private BufferedImage scaleImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
-        BufferedImage scaledImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = scaledImage.createGraphics();
-        g.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
-        g.dispose();
-        return scaledImage;
-    }
-
-    //create buttons
-    private JPanel createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-
-        JButton tagManagerButton = new JButton();
-        setButtonIcon(tagManagerButton,"plus.png");
-        tagManagerButton.addActionListener(e -> {
-            if(videoFile != null)
-                tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
-            else
-                JOptionPane.showMessageDialog(this, "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
-        });
-
-        JButton settingsButton = new JButton();
-        setButtonIcon(settingsButton,"settings.png");
-        settingsButton.addActionListener(e -> SwingUtilities.invokeLater(() -> settingsView.open()));
-
-        JButton exportButton = new JButton();
-        setButtonIcon(exportButton,"export.png");
-        exportButton.addActionListener(e -> SwingUtilities.invokeLater(() -> exportView.open()));
-
-        buttonPanel.add(tagManagerButton);
-        buttonPanel.add(settingsButton);
-        buttonPanel.add(exportButton);
-
-        return buttonPanel;
-    }
-
-    //add icons to button
-    private void setButtonIcon(JButton button,String icon){
-        URL iconURL = getClass().getResource("/icons/"+icon);
-        if(iconURL != null) {
+    //add icon to a button
+    private void setButtonIcon(JButton button,String name){
+        URL iconURL = getClass().getResource("/icons/"+name);
+        if(iconURL != null){
             ImageIcon imageIcon = new ImageIcon(iconURL);
             Image scaledIcon = imageIcon.getImage().getScaledInstance(32,32,Image.SCALE_SMOOTH);
             button.setIcon(new ImageIcon(scaledIcon));
         }
     }
 
-    //create local representation of data in the database
-    private void createTagMapForFile(){
+    //open recent video functionality
+    public void openRecentVideo(File videoFile){
+        //set cache
+        cache = Cache.getCache(videoFile.getAbsolutePath());
+
+        //prepare needed data
+        this.videoFile = videoFile;
+        this.video = videoService.getByPath(videoFile.getAbsolutePath());
+
+        //prepare video data
+        prepareVideo();
+
+        //open video
+        openVideo();
+    }
+
+    //prepare needed data to open video
+    private void prepareVideo(){
+        cache.firstLoad(videoFile);
+        cache.setUpVideoMetadata(videoService,video);
+        currentFrameIndex = 0;
+    }
+
+    //open video frame and load tags
+    public void openVideo(){
+        //set up metadata info label
+        infoLabel.setText(String.format("Current Frame: %d / %d | Frame Rate: %f fps",(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
+        imageLabel.requestFocus();
+
+        //create local representation of tag data on video
         tagsOnFramesOnVideo = new HashMap<>();
-
-        List<Frame> frames = frameService.getAllByVideo(videoService.getByName(videoFile.getName()));
-
+        List<Frame> frames = frameService.getAllByVideo(video);
         for(Frame f : frames)
             tagsOnFramesOnVideo.put(f.getFrameNumber(),f.getTags());
+
+        //display current frame
+        displayCurrentFrame();
+
+        //set loaded to true
+        loaded = true;
+
+        //save recent path
+        userSettings.setRecentPath(video.getPath());
+        userSettings.save();
+    }
+
+    //display tag list for given frame
+    public void displayTagList(){
+        DefaultTableModel model = (DefaultTableModel) tagsTableList.getModel();
+        model.setRowCount(0);
+
+        if(tagsOnFramesOnVideo.containsKey(currentFrameIndex))
+            for(Tag t : tagsOnFramesOnVideo.get(currentFrameIndex))
+                model.addRow(new Object[]{
+                        t.getName(),
+                        t.getValue()
+                });
+
+        tagsTableList.setModel(model);
+        tagsTableList.revalidate();
+    }
+
+    //display current frame
+    public void displayCurrentFrame(){
+        //display tag list
+        displayTagList();
+
+        //get dimension of the application window
+        int appWidth = imageLabel.getWidth() - 10;
+        int appHeight = imageLabel.getHeight() - 10;
+
+        //calculate scale factor for proportions
+        double scaleWidth = (double) appWidth / cache.getWidth();
+        double scaleHeight = (double) appHeight / cache.getHeight();
+        double scaleFactor = Math.min(scaleWidth,scaleHeight);
+
+        //calculate target dimensions
+        int targetWidth = (int) (scaleFactor * cache.getWidth());
+        int targetHeight = (int) (scaleFactor * cache.getHeight());
+
+        //get current frame and scale it
+        BufferedImage frame = cache.getCurrentFrame(currentFrameIndex);
+        frame = scaleImage(frame,targetWidth,targetHeight);
+
+        //display frame and update displayed metadata
+        imageLabel.setIcon(new ImageIcon(frame));
+        infoLabel.setText(String.format("Current Frame: %d / %d | Frame Rate: %f fps",(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
+    }
+
+    //scale image to fit the application window
+    private BufferedImage scaleImage(BufferedImage originalImage,int targetWidth,int targetHeight){
+        BufferedImage scaledImage = new BufferedImage(targetWidth,targetHeight,BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = scaledImage.createGraphics();
+        g.drawImage(originalImage,0,0,targetWidth,targetHeight,null);
+        g.dispose();
+        return scaledImage;
+    }
+
+    private void jumpToSpecifiedFrame() {
+        try{
+            int frameToJump = Integer.parseInt(jumpTextField.getText());
+            if(frameToJump < 0 || frameToJump > cache.getMaxFrameIndex()){
+                throw new Exception("Cannot display frame: " + frameToJump + ". Frame number does not exist.");
+            }else{
+                cache.jump(frameToJump-1);
+                currentFrameIndex = frameToJump-1;
+                displayCurrentFrame();
+            }
+        }catch (NumberFormatException e){
+            JOptionPane.showMessageDialog(this, "Please enter a valid frame number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     //get all tags of given frame
@@ -507,6 +521,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 new ArrayList<>();
     }
 
+    //add tags to frame
     public void putTagsOnFrame(int frameNo, List<Tag> tags){
         tagsOnFramesOnVideo.put(frameNo,tags);
     }
@@ -526,45 +541,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 removeTagFromFrame(tag,frameNo);
     }
 
-    public void displayTagList(){
-        DefaultTableModel model = (DefaultTableModel) tagsTableList.getModel();
-        model.setRowCount(0);
-
-        if(tagsOnFramesOnVideo.containsKey(currentFrameIndex))
-            for(Tag tag : tagsOnFramesOnVideo.get(currentFrameIndex))
-                model.addRow(new Object[]{
-                        tag.getName(),
-                        tag.getValue(),
-                });
-
-        tagsTableList.setModel(model);
-        tagsTableList.revalidate();
-    }
-
     //set tags on given frame in local data representation
     public void setCurrentTags(List<Tag> tags,int frameNo){
         tagsOnFramesOnVideo.put(frameNo,tags);
-    }
-
-    //loads all necessary information about the video from file through server
-    private void setUpVideoData(File videoFile){
-        String[] data = requestManager.getVideoData().split(";");
-        maxFrameIndex = Integer.parseInt(data[0]);
-        videoHeight = Integer.parseInt(data[1]);
-        videoWidth = Integer.parseInt(data[2]);
-        videoFramerate = Double.parseDouble(data[3]);
-        videoDuration = Integer.parseInt(data[4]) / 1000d;
-
-        videoService.addVideoData(video,maxFrameIndex,videoFramerate,videoDuration,videoHeight,videoWidth);
-    }
-
-    //sets up data if video in database
-    private void setUpVideoData(Video video){
-        currentFrameIndex = 0;
-        maxFrameIndex = video.getTotalFrames();
-        videoHeight = video.getVideoHeight();
-        videoWidth = video.getVideoWidth();
-        videoFramerate = video.getFrameRate();
-        videoDuration = video.getDuration();
     }
 }
