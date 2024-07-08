@@ -3,9 +3,7 @@ package com.example.engineer.View.WindowViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
-import com.example.engineer.DBActions.HiddenStatusAction;
 import com.example.engineer.View.Elements.TagListManager;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -19,13 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class TagDetailsView extends JFrame implements ApplicationContextAware {
+    //context
     private static ApplicationContext ctx;
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = applicationContext;
     }
+
+    //needed services and components
     @Autowired
     TagService tagService;
     @Autowired
@@ -33,29 +33,31 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     @Autowired
     TagListManager tagList;
 
+    //JComponents
+    private final JTextField nameTextField;
+    private final JTextField valueTextField;
+    private final JTextArea descriptionTextArea;
+    private final JButton hiddenStatusButton;
+    private final JButton addButton;
+    private final JButton cancelButton;
+    private final JPanel buttonPanel;
+    private final JPanel namePanel;
+    private final JPanel valuePanel;
+    private final JPanel lowerPanel;
+
+    //needed data
+    private Integer ID = -1;
     List<JLabel> labels = new ArrayList<>();
 
-    private JTextField nameTextField;
-    private JTextField valueTextField;
-    private JTextArea descriptionTextArea;
-    private JButton hiddenStatusButton;
-    private JButton addButton;
-    private JButton cancelButton;
-
-    private JPanel buttonPanel;
-    private JPanel namePanel;
-    private JPanel valuePanel;
-    private JPanel lowerPanel;
-
-    private Integer ID = -1;
-
-    public void setUpView(){
+    public TagDetailsView(){
+        //set needed information
         setSize(300, 300);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setResizable(false);
 
-        setLayout(new BorderLayout());
+        //COMPONENTS
 
-        // set up name section
+        //tag name section
         namePanel = new JPanel();
         namePanel.setLayout(new BorderLayout());
 
@@ -66,8 +68,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         namePanel.add(nameLabel,BorderLayout.NORTH);
         namePanel.add(nameTextField, BorderLayout.CENTER);
 
-
-        //set up value section
+        //tag value section
         valuePanel = new JPanel();
         valuePanel.setLayout(new BorderLayout());
 
@@ -78,7 +79,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         valuePanel.add(valueLabel,BorderLayout.NORTH);
         valuePanel.add(valueTextField, BorderLayout.CENTER);
 
-        //set up upper part
+        //panel to hold name and value section
         JPanel upperPanel = new JPanel();
         upperPanel.setLayout(new GridLayout(1,2));
 
@@ -87,14 +88,15 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
 
         add(upperPanel,BorderLayout.NORTH);
 
-        //set up lower part
-        lowerPanel = new JPanel();
-        lowerPanel.setLayout(new BorderLayout());
-
+        //tag description panel
         JLabel descriptionLabel = new JLabel("Description:");
         descriptionTextArea = new JTextArea();
-        descriptionTextArea.setLineWrap(true); // Enable word wrap for the description text area
+        descriptionTextArea.setLineWrap(true);
         labels.add(descriptionLabel);
+
+        //lower panel
+        lowerPanel = new JPanel();
+        lowerPanel.setLayout(new BorderLayout());
 
         lowerPanel.add(descriptionLabel,BorderLayout.NORTH);
         lowerPanel.add(descriptionTextArea,BorderLayout.CENTER);
@@ -109,23 +111,22 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e -> close(false));
 
+        //hide button
         hiddenStatusButton = new JButton();
         hiddenStatusButton.addActionListener(e -> {
             changeHiddenStatus();
             close(false);
         });
 
-        // Panel for buttons
+        //button panel
         buttonPanel = new JPanel(new GridLayout(1,3));
         buttonPanel.add(cancelButton);
         buttonPanel.add(hiddenStatusButton);
         buttonPanel.add(addButton);
 
-        // Add button panel to the frame
         add(buttonPanel,BorderLayout.SOUTH);
 
-        setResizable(false);
-
+        //operation on close
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {

@@ -19,9 +19,6 @@ import java.io.IOException;
 import java.net.Socket;
 
 //TODO: file path reeling
-//TODO: open files with unicode characters - hard link in python
-//TODO: remove absolute path in getting video info, path already exists after initial movie connection
-
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.example.engineer.Repository")
 @EntityScan(basePackages = {"com.example.engineer.Model"})
@@ -32,10 +29,8 @@ public class EngineerApplication {
 
         context.getBean(UserSettingsManager.class).createUserSettings();
 
-        context.getBean(ExportView.class).setUpView();
         context.getBean(SettingsView.class).setUpView();
         context.getBean(TagManagerView.class).setUpView(context.getBean(FrameHopperView.class));
-        context.getBean(TagDetailsView.class).setUpView();
 
         context.getBean(FrameProcessorClient.class).connect();
 

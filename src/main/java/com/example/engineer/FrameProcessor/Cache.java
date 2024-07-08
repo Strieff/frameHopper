@@ -43,5 +43,12 @@ public class Cache {
 
     public void jump(int newIndex){}
 
-    public void setUpVideoMetadata(VideoService videoService, Video video){}
+    public void setUpVideoMetadata(VideoService videoService, Video video){
+        if(video.getTotalFrames() == null)
+            videoService.addVideoData(video,maxFrameIndex,frameRate,duration,height,width);
+    }
+
+    public void clearCache(){
+        cache.clear();
+    }
 }

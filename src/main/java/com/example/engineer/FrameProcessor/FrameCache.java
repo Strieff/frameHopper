@@ -158,4 +158,10 @@ public class FrameCache extends Cache{
             duration = video.getDuration();
         }
     }
+
+    @Override
+    public void clearCache(){
+        cache.clear();
+        indexCache.clear();
+    }
 }

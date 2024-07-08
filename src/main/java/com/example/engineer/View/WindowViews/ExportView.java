@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class ExportView extends JFrame {
+    private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
+
+    //needed services and components
     @Autowired
     private VideoService videoService;
     @Autowired
@@ -34,19 +37,51 @@ public class ExportView extends JFrame {
     @Autowired
     private UserSettingsManager userSettings;
 
+    //needed data
     boolean isShiftPressed = false;
     int firstCLickedRow = 0;
 
-    private JTable videoNameTable;
+    //JComponents
+    private final JTable videoNameTable;
 
-    public void setUpView(){
-        setUpKeyBinds();
+    public ExportView(){
+        //KEYBINDINGS
 
+        //when shift pressed
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK,false),"shiftPressed");
+        getRootPane().getActionMap().put("shiftPressed", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isShiftPressed = true;
+            }
+        });
+
+        //when shift released
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,0,true),"shiftReleased");
+        getRootPane().getActionMap().put("shiftReleased", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isShiftPressed = false;
+            }
+        });
+
+        //close window
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E,KeyEvent.SHIFT_DOWN_MASK,false),"OpenExport");
+        getRootPane().getActionMap().put("OpenExport", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                close();
+            }
+        });
+
+        //set needed information
         setSize(300, 400);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setResizable(false);
 
-        //set up key bind
+        //COMPONENTS
 
+        //create table for holding videos
         DefaultTableModel model = new DefaultTableModel(null, new String[]{"","",""});
         videoNameTable = new JTable(model){
             @Serial
@@ -62,6 +97,7 @@ public class ExportView extends JFrame {
             }
         };
 
+        //listener for multi select
         videoNameTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -88,17 +124,20 @@ public class ExportView extends JFrame {
         videoNameTable.getColumnModel().getColumn(2).setMaxWidth(0);
         videoNameTable.getColumnModel().getColumn(2).setWidth(0);
 
-        //set checkbox cell size
+        //set checkbox cell size - 1st row
         videoNameTable.getColumnModel().getColumn(0).setPreferredWidth(24);
         videoNameTable.getColumnModel().getColumn(0).setMaxWidth(24);
 
+        //add wrap to name cells - 2nd row
         videoNameTable.getColumnModel().getColumn(1).setCellRenderer(new MultilineTableCellRenderer());
 
+        //set up table properties
         videoNameTable.setTableHeader(null);
         videoNameTable.setFocusable(false);
         videoNameTable.setRowSelectionAllowed(false);
-        JScrollPane scrollPane = new JScrollPane(videoNameTable);
 
+        //scroll pane to hold the table
+        JScrollPane scrollPane = new JScrollPane(videoNameTable);
         add(scrollPane);
 
         //export button
@@ -132,24 +171,27 @@ public class ExportView extends JFrame {
         JButton cancelButton = new JButton("CANCEL");
         cancelButton.addActionListener(e -> close());
 
+        //panel to hold export and cancel buttons
         JPanel buttonPanel = new JPanel(new GridLayout(1,2));
         buttonPanel.add(cancelButton);
         buttonPanel.add(exportButton);
 
+        //clear button
         JButton clearButton = new JButton("CLEAR");
         clearButton.addActionListener(e -> clearCheckboxes());
 
+        //pane to hold clear button
         JPanel clearButtonPanel = new JPanel();
         clearButtonPanel.add(clearButton);
 
+        //panel to hold export panel and clear panel
         JPanel lowerPanel = new JPanel(new GridLayout(2,1));
         lowerPanel.add(clearButtonPanel);
         lowerPanel.add(buttonPanel);
-
         add(lowerPanel,BorderLayout.SOUTH);
 
-        setResizable(false);
 
+        //operation on close
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {

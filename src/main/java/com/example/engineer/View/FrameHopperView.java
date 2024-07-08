@@ -16,7 +16,6 @@ import com.example.engineer.View.WindowViews.ExportView;
 import com.example.engineer.View.WindowViews.SettingsView;
 import com.example.engineer.View.WindowViews.TagDetailsView;
 import com.example.engineer.View.WindowViews.TagManagerView;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -335,7 +334,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                             videoFile = fileList.get(0);
                             video = videoService.createVideoIfNotExists(videoFile);
 
-                            //set cache
+                            //clear and set cache
+                            if(cache != null)
+                                cache.clearCache();
                             cache = Cache.getCache(videoFile.getAbsolutePath());
 
                             //prepare video data
@@ -351,6 +352,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
 
+        //open window
         setVisible(true);
         getRootPane().requestFocus();
 
@@ -358,8 +360,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                //send close request to server
                 requestManager.closeServer();
 
+                //delete external cache
                 try{
                     Files.walk(Paths.get("cache"))
                             .filter(p -> !p.equals(Paths.get("cache")))
@@ -383,11 +387,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             }
         });
     }
-
-    /*@PostConstruct
-    private void init(){
-
-    }*/
 
     //add icon to a button
     private void setButtonIcon(JButton button,String name){
@@ -417,8 +416,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //prepare needed data to open video
     private void prepareVideo(){
+        //load first cache
         cache.firstLoad(videoFile);
+        //load video metadata
         cache.setUpVideoMetadata(videoService,video);
+        //set current index to 0
         currentFrameIndex = 0;
     }
 
@@ -447,9 +449,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
     //display tag list for given frame
     public void displayTagList(){
+        //get and reset model
         DefaultTableModel model = (DefaultTableModel) tagsTableList.getModel();
         model.setRowCount(0);
 
+        //populate table
         if(tagsOnFramesOnVideo.containsKey(currentFrameIndex))
             for(Tag t : tagsOnFramesOnVideo.get(currentFrameIndex))
                 model.addRow(new Object[]{
@@ -457,6 +461,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                         t.getValue()
                 });
 
+        //set model
         tagsTableList.setModel(model);
         tagsTableList.revalidate();
     }
@@ -497,6 +502,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         return scaledImage;
     }
 
+    //jump to specified frame
     private void jumpToSpecifiedFrame() {
         try{
             int frameToJump = Integer.parseInt(jumpTextField.getText());
