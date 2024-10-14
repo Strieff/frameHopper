@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -27,8 +28,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 @Component
+@DependsOn("LanguageManager")
 @RequiredArgsConstructor
-public class TagManagerView extends JFrame implements ApplicationContextAware {
+public class TagManagerView extends JFrame implements ApplicationContextAware, LanguageChangeListener {
     @Autowired
     private final FrameService frameService;
     @Autowired
@@ -37,6 +39,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private JLabel frameLabel;
     private JButton nameSortButton;
     private JButton valueSortButton;
+    private JButton saveButton;
+    private JButton cancelButton;
 
     private List<Tag> originalTags;
     private List<Tag> currentTags;
@@ -55,6 +59,8 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     private UndoRedoAction undoRedoAction;
     @Autowired
     private UserSettingsManager userSettings;
+    @Autowired
+    private LanguageManager languageManager;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
@@ -62,12 +68,15 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     public void setUpView(FrameHopperView frameHopperView){
+        //register listener
+        languageManager.addListener(this);
+
         this.frameHopperView = frameHopperView;
 
         setSize(250, 400);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-        frameLabel = new JLabel("FRAME: ", SwingConstants.CENTER);
+        frameLabel = new JLabel(Dictionary.getText("tm.frame"), SwingConstants.CENTER);
         frameLabel.setFont(new Font("Arial", Font.BOLD, 16));
 
         tagTable = new JTable(){
@@ -88,27 +97,30 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         JScrollPane scrollPane = new JScrollPane(tagTable);
 
-        nameSortButton = new JButton("CODE");
-        valueSortButton = new JButton("VALUE");
+        nameSortButton = new JButton(Dictionary.getText("tm.tag.name"));
+        nameSortButton.putClientProperty("text", "tm.tag.name");
+
+        valueSortButton = new JButton(Dictionary.getText("tm.tag.value"));
+        valueSortButton.putClientProperty("text", "tm.tag.value");
 
         nameSortButton.addActionListener(e -> {
             if(nameSortButton.getText().contains("(a-z)"))
-                nameSortButton.setText("CODE (z-a)");
+                nameSortButton.setText(Dictionary.getText("tm.tag.name") + " (z-a)");
             else if (nameSortButton.getText().contains("(z-a)"))
-                nameSortButton.setText("CODE");
+                nameSortButton.setText(Dictionary.getText("tm.tag.name"));
             else
-                nameSortButton.setText("CODE (a-z)");
+                nameSortButton.setText(Dictionary.getText("tm.tag.name") + " (a-z)");
 
             arrangeTags(nameSortButton,valueSortButton);
         });
 
         valueSortButton.addActionListener(e -> {
             if(valueSortButton.getText().contains("▲"))
-                valueSortButton.setText("VALUE ▼");
+                valueSortButton.setText(Dictionary.getText("tm.tag.value") + " ▼");
             else if(valueSortButton.getText().contains("▼"))
-                valueSortButton.setText("VALUE");
+                valueSortButton.setText(Dictionary.getText("tm.tag.value"));
             else
-                valueSortButton.setText("VALUE ▲");
+                valueSortButton.setText(Dictionary.getText("tm.tag.value") + " ▲");
 
             arrangeTags(nameSortButton,valueSortButton);
         });
@@ -155,14 +167,16 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         add(scrollPane);
 
         //save buttons
-        JButton saveButton = new JButton("Save");
+        saveButton = new JButton(Dictionary.getText("tm.button.save"));
+        saveButton.putClientProperty("text","tm.button.save");
         saveButton.addActionListener(e ->{
             save();
             close();
         });
 
         //cancel button
-        JButton cancelButton = new JButton("Cancel");
+        cancelButton = new JButton(Dictionary.getText("tm.button.cancel"));
+        cancelButton.putClientProperty("text","tm.button.cancel");
         cancelButton.addActionListener(e -> {
             close();
         });
@@ -174,7 +188,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
 
         add(buttonPanel,BorderLayout.SOUTH);
 
-
+        //on close
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -199,12 +213,17 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
         removeRecentAction.clearTagList();
 
         // Update the frame number label
-        frameLabel.setText("FRAME: " + (frameNo+1));
+        frameLabel.setText(Dictionary.getText("tm.frame") + (frameNo+1));
 
         originalTags = new ArrayList<>(frameHopperView.getTagsOfFrame(frameNo));
         currentTags = new ArrayList<>(originalTags);
 
-        Object[] columnNames = {" ","CODE","VALUE","ID"};
+        Object[] columnNames = {
+                " ",
+                Dictionary.getText("tm.tag.name"),
+                Dictionary.getText("tm.tag.value"),
+                "ID"
+        };
         Object[][]  data = new Object[getTableLen()][];
 
         DefaultTableModel model = new DefaultTableModel(data,columnNames);
@@ -263,7 +282,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
            if(userSettings.ShowHidden() || !t.isDeleted()){
                model.addRow(new Object[]{
                        !originalTags.isEmpty() && isTagHeld(t),
-                       t.getName() + ((userSettings.ShowHidden() && t.isDeleted())? " (hidden)" : ""),
+                       t.getName() + ((userSettings.ShowHidden() && t.isDeleted())? Dictionary.getText("tm.tag.hidden") : ""),
                        t.getValue(),
                        t.getId()
                });
@@ -281,7 +300,7 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
             if(userSettings.ShowHidden() || !t.isDeleted())
                 model.addRow(new Object[]{
                     !originalTags.isEmpty() && isTagHeld(t),
-                    t.getName() + ((userSettings.ShowHidden() && t.isDeleted())? " (hidden)" : ""),
+                    t.getName() + ((userSettings.ShowHidden() && t.isDeleted())? Dictionary.getText("tm.tag.hidden") : ""),
                     t.getValue(),
                     t.getId()
                 });
@@ -445,6 +464,22 @@ public class TagManagerView extends JFrame implements ApplicationContextAware {
     }
 
     private boolean isBlank(JButton button){
-        return (button.getText().equals("CODE") || button.getText().equals("VALUE"));
+        return (button.getText().equals(Dictionary.getText("tm.tag.name")) || button.getText().equals(Dictionary.getText("tm.tag.value")));
+    }
+
+    @Override
+    public void changeLanguage(){
+        changeButtonText(nameSortButton);
+        changeButtonText(valueSortButton);
+        changeButtonText(saveButton);
+        changeButtonText(cancelButton);
+
+        revalidate();
+        repaint();
+    }
+
+    private void changeButtonText(JButton button){
+        String newText = button.getText().replaceFirst("^\\S+", Dictionary.getText((String)button.getClientProperty("text")));
+        button.setText(newText);
     }
 }

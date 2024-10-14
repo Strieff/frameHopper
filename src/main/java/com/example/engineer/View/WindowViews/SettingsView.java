@@ -2,15 +2,18 @@ package com.example.engineer.View.WindowViews;
 
 
 import com.example.engineer.Model.Tag;
+import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Service.TagService;
-import com.example.engineer.View.Elements.MultilineTableCellRenderer;
-import com.example.engineer.View.Elements.UserSettingsManager;
+import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.Dictionary;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
-import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.languageBox.LanguageItem;
+import com.example.engineer.View.Elements.languageBox.LanguageItemRenderer;
 import com.example.engineer.View.FrameHopperView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -24,13 +27,14 @@ import java.io.Serial;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
-public class SettingsView extends JFrame implements ApplicationContextAware {
+@DependsOn("SetDictionary")
+public class SettingsView extends JFrame implements ApplicationContextAware, LanguageChangeListener {
     //needed services and components
     @Autowired
     private TagService tagService;
@@ -40,9 +44,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     PasteRecentAction pasteRecentAction;
     @Autowired
     UserSettingsManager userSettings;
+    @Autowired
+    LanguageManager languageManager;
 
     //JComponents
     private JTable tagTable;
+    private JToolBar toolBar;
+    private JLabel frameLabel;
+    private JPanel settingsPanel;
+    private JComboBox<LanguageItem> languageBox;
 
     //context
     private static ApplicationContext ctx;
@@ -52,6 +62,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     }
 
     public void setUpView(){
+        //register listener
+        languageManager.addListener(this);
+
         //KEYBINDING
         //close keybinding
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK,false),"OpenSettings");
@@ -77,13 +90,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         //BUTTONS
 
         //add new tag button
-        JButton createNewTagButton = new JButton("Add Code");
+        JButton createNewTagButton = new JButton(Dictionary.getText("settings.tag.add"));
+        createNewTagButton.putClientProperty("text","settings.tag.add");
         createNewTagButton.addActionListener(e -> {
             ctx.getBean(TagDetailsView.class).openWindow();
         });
 
         //batch add new tags
-        JButton addBatchTagsButton = new JButton("Add Codes");
+        JButton addBatchTagsButton = new JButton(Dictionary.getText("settings.tag.add.batch"));
+        addBatchTagsButton.putClientProperty("text","settings.tag.add.batch");
         addBatchTagsButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter("txt/csv files", "txt", "csv");
@@ -95,95 +110,99 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         });
 
         //batch hide tags button
-        JButton massHideButton = new JButton("Hide codes");
+        JButton massHideButton = new JButton(Dictionary.getText("settings.tag.hide"));
+        massHideButton.putClientProperty("text","settings.tag.hide");
         massHideButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, "No codes selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, Dictionary.getText("settings.tag.noneSelected"), "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"hide"))
-                return;
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),Dictionary.getText("settings.action.hide"))) {
+                List<Integer> ids = new ArrayList<>();
+                for (int selectedRow : selectedRows) {
+                    int tagId = (int) tagTable.getValueAt(selectedRow, 5);
 
-            List<Integer> ids = new ArrayList<>();
-            for (int selectedRow : selectedRows) {
-                int tagId = (int) tagTable.getValueAt(selectedRow, 5);
+                    ids.add(tagId);
 
-                ids.add(tagId);
+                    tagList.changeHideStatus(tagId, true);
+                }
 
-                tagList.changeHideStatus(tagId,true);
+                if (ctx.getBean(FrameHopperView.class).loaded)
+                    ctx.getBean(FrameHopperView.class).displayTagList();
+
+                notifyTableChange();
+
+                tagService.hideTags(ids, true);
             }
-
-            ctx.getBean(FrameHopperView.class).displayTagList();
-            notifyTableChange();
-
-            tagService.hideTags(ids,true);
         });
 
         //batch un hide tags button
-        JButton massUnhideButton = new JButton("Unhide codes");
+        JButton massUnhideButton = new JButton(Dictionary.getText("settings.tag.unhide"));
+        massUnhideButton.putClientProperty("text","settings.tag.unhide");
         massUnhideButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, "No codes selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, Dictionary.getText("settings.tag.noneSelected"), "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),"unhide"))
-                return;
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),Dictionary.getText("settings.action.unhide"))) {
+                List<Integer> ids = new ArrayList<>();
+                for (int selectedRow : selectedRows) {
+                    int tagId = (int) tagTable.getValueAt(selectedRow, 5);
 
-            List<Integer> ids = new ArrayList<>();
-            for (int selectedRow : selectedRows) {
-                int tagId = (int) tagTable.getValueAt(selectedRow, 5);
+                    ids.add(tagId);
 
-                ids.add(tagId);
+                    tagList.changeHideStatus(tagId, false);
+                }
 
-                tagList.changeHideStatus(tagId,false);
+                if (ctx.getBean(FrameHopperView.class).loaded)
+                    ctx.getBean(FrameHopperView.class).displayTagList();
+
+                notifyTableChange();
+
+                tagService.hideTags(ids, false);
             }
-
-            ctx.getBean(FrameHopperView.class).displayTagList();
-            notifyTableChange();
-
-            tagService.hideTags(ids,false);
         });
 
         //batch delete tags
-        JButton massDeleteButton = new JButton("Delete codes");
+        JButton massDeleteButton = new JButton(Dictionary.getText("settings.tag.delete"));
+        massDeleteButton.putClientProperty("text","settings.tag.delete");
         massDeleteButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, "No codes selected!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, Dictionary.getText("settings.tag.noneSelected"), Dictionary.getText("settings.error.title"), JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).toList(),"delete"))
-                return;
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).toList(),Dictionary.getText("settings.action.delete"))) {
+                List<Tag> tagsToDelete = new ArrayList<>();
+                for (int selectedRow : selectedRows) {
+                    Tag temp = Tag.builder()
+                            .id((int) tagTable.getValueAt(selectedRow, 5))
+                            .build();
 
-            List<Tag> tagsToDelete = new ArrayList<>();
-            for (int selectedRow : selectedRows) {
-                Tag temp = Tag.builder()
-                        .id((int) tagTable.getValueAt(selectedRow, 5))
-                        .build();
+                    if (ctx.getBean(FrameHopperView.class).loaded)
+                        ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(temp);
 
-                if(ctx.getBean(FrameHopperView.class).loaded)
-                    ctx.getBean(FrameHopperView.class).removeTagFromAllFrames(temp);
+                    tagsToDelete.add(temp);
+                }
 
-                tagsToDelete.add(temp);
+                tagList.removeTags(tagsToDelete);
+
+                if (ctx.getBean(FrameHopperView.class).loaded)
+                    ctx.getBean(FrameHopperView.class).displayTagList();
+
+                notifyTableChange();
+
+                tagService.deleteTag(tagsToDelete);
             }
-
-            tagList.removeTags(tagsToDelete);
-
-            if(ctx.getBean(FrameHopperView.class).loaded)
-                ctx.getBean(FrameHopperView.class).displayTagList();
-
-            notifyTableChange();
-
-            tagService.deleteTag(tagsToDelete);
         });
 
         //toolbar
-        JToolBar toolBar = new JToolBar();
+        toolBar = new JToolBar();
         toolBar.add(createNewTagButton);
         toolBar.add(addBatchTagsButton);
         toolBar.add(massHideButton);
@@ -192,7 +211,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         tablePanel.add(toolBar,BorderLayout.NORTH);
 
         //settings label
-        JLabel frameLabel = new JLabel("Code manager | Settings", SwingConstants.CENTER);
+        frameLabel = new JLabel(Dictionary.getText("settings.banner"), SwingConstants.CENTER);
         frameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         mainPanel.add(frameLabel, BorderLayout.NORTH);
 
@@ -238,7 +257,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         }
 
         //model
-        DefaultTableModel model = new DefaultTableModel(data, new String[]{"CODE", "VALUE", "DESCRIPTION", " ", " ","ID"}) {
+        DefaultTableModel model = new DefaultTableModel(
+                data,
+                new String[]{
+                        Dictionary.getText("settings.tag.name"),
+                        Dictionary.getText("settings.tag.value"),
+                        Dictionary.getText("settings.tag.description")
+                        , " ", " ","ID"
+                }
+        ) {
             public Class<?> getColumnClass(int column) {
                 if (column == 3 || column == 4) {
                     return Icon.class;
@@ -290,7 +317,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
                     ctx.getBean(TagDetailsView.class).getDetailsData(tagName, tagValue, tagDescription,tagID,hidden);
                 }
 
-                if(row>0 && column == 4){ //check if the click is on the 5th column
+                if(row>=0 && column == 4){ //check if the click is on the 5th column
                     Integer tagID = (Integer) tagTable.getValueAt(row,5);
                     showOptionsDialog(tagID);
                 }
@@ -307,8 +334,44 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
 
         //SETTINGS PANEL
 
+        //LANGUAGES
+
+        //languages
+        Map<String, String> languageMap = languageManager.getLanguageMap();
+        LanguageItem[] languages = languageMap.entrySet()
+                .stream()
+                .map(e -> new LanguageItem(
+                        e.getValue(),
+                        e.getKey(),
+                        e.getKey() + ".png"))
+                .toArray(LanguageItem[]::new);
+
+        //combo box with languages
+        languageBox = new JComboBox<>(languages);
+        languageBox.setRenderer(new LanguageItemRenderer());
+        languageBox.setSelectedItem(Arrays.stream(languages)
+                .filter(e -> userSettings.getLanguage().equals(e.getCode()))
+                .findFirst()
+                .orElse(null)
+        );
+
+        //listener
+        languageBox.addActionListener(e -> {
+            LanguageItem selected = (LanguageItem) languageBox.getSelectedItem();
+            if(selected != null)
+                ctx.getBean(UserSettingsManager.class).setLanguage(selected.getCode());
+        });
+
+        languageBox.setMaximumSize(new Dimension(
+                frameLabel.getMaximumSize().width,
+                toolBar.getHeight()
+        ));
+
+        //SETTINGS
+
         //show hidden tags checkbox
-        JCheckBox hiddenTags = new JCheckBox("Show hidden tags");
+        JCheckBox hiddenTags = new JCheckBox(Dictionary.getText("settings.options.showHidden"));
+        hiddenTags.putClientProperty("text","settings.options.showHidden");
         hiddenTags.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
                 userSettings.setShowHidden(true);
@@ -322,7 +385,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         hiddenTags.setSelected(userSettings.ShowHidden());
 
         //open recent checkbox
-        JCheckBox openRecent = new JCheckBox("Open recent");
+        JCheckBox openRecent = new JCheckBox(Dictionary.getText("settings.options.openRecent"));
+        openRecent.putClientProperty("text","settings.options.openRecent");
         openRecent.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
                 userSettings.setOpenRecent(true);
@@ -334,11 +398,16 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         openRecent.setSelected(userSettings.openRecent());
 
         //panel to hold settings
-        JPanel settingsPanel = new JPanel(new GridLayout(0,1));
-        settingsPanel.add(hiddenTags);
-        settingsPanel.add(openRecent);
+        settingsPanel = new JPanel(new BorderLayout());
+        settingsPanel.add(hiddenTags,BorderLayout.NORTH);
+        settingsPanel.add(openRecent,BorderLayout.CENTER);
 
-        mainPanel.add(settingsPanel, BorderLayout.CENTER);
+        //right panel
+        JPanel rightPanel = new JPanel(new GridLayout(2,1));
+        rightPanel.add(languageBox);
+        rightPanel.add(settingsPanel);
+
+        mainPanel.add(rightPanel, BorderLayout.CENTER);
 
         add(mainPanel);
 
@@ -363,12 +432,10 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         DefaultTableModel model = (DefaultTableModel) tagTable.getModel();
         model.setRowCount(0); // Clear the existing rows
 
-
         for (Tag tag : tagList.getTagList()) {
-            // Assuming tag has properties: id, name, value, description
             if(!tag.isDeleted() || userSettings.ShowHidden()){
                 model.addRow(new Object[]{
-                        tag.getName() + (tag.isDeleted() ? " (hidden)" : ""),
+                        tag.getName() + (tag.isDeleted() ? Dictionary.getText("settings.tag.hidden") : ""),
                         tag.getValue(),
                         tag.getDescription(),
                         new ImageIcon(getIconFromPath("/icons/edit.png")),
@@ -394,9 +461,12 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
     }
 
     private void showOptionsDialog(Integer tagId){
-        String[] options = {"Cancel","Delete"};
+        String[] options = {
+                Dictionary.getText("settings.delete.dialog.cancel"),
+                Dictionary.getText("settings.delete.dialog.delete")
+        };
 
-        int actionChoice = JOptionPane.showOptionDialog(this, "Delete tag?", "",
+        int actionChoice = JOptionPane.showOptionDialog(this, Dictionary.getText("settings.delete.dialog.confirmation"), "",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[0]);
 
@@ -451,11 +521,66 @@ public class SettingsView extends JFrame implements ApplicationContextAware {
         for(String name : names)
             toDelete.append("\n").append(name);
 
-        return JOptionPane.showConfirmDialog(
+        Object[] yesNoOptions = {
+                Dictionary.getText("settings.action.confirmation.yes"),
+                Dictionary.getText("settings.action.confirmation.no"),
+        };
+
+        return JOptionPane.showOptionDialog(
                 null,
-                 String.format("Do you want to %s these codes?%s",action,toDelete),
+                String.format(Dictionary.getText("settings.action.confirmation"),action,toDelete),
                 "Confirm action",
-                JOptionPane.YES_NO_OPTION
-        ) == JOptionPane.NO_OPTION;
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                yesNoOptions,
+                yesNoOptions[0]
+                ) == 0;
     }
+
+    @Override
+    public void changeLanguage() {
+        //update banner
+        frameLabel.setText(Dictionary.getText("settings.banner"));
+
+        //update buttons
+        for(var button : toolBar.getComponents())
+            changeButtonText(button);
+
+        //update table header
+        var columnModel = tagTable.getColumnModel();
+        columnModel.getColumn(0).setHeaderValue(Dictionary.getText("settings.tag.name"));
+        columnModel.getColumn(1).setHeaderValue(Dictionary.getText("settings.tag.value"));
+        columnModel.getColumn(2).setHeaderValue(Dictionary.getText("settings.tag.description"));
+
+        //update table
+        var tableModel = tagTable.getModel();
+        for (int i = 0; i < tagTable.getRowCount(); i++) {
+            var value = (String) tableModel.getValueAt(i, 0);
+            value = value.replaceAll(" \\(.*?\\)$",Dictionary.getText("settings.tag.hidden"));
+
+            tableModel.setValueAt(value,i,0);
+        }
+        tagTable.revalidate();
+
+        //update settings
+        for(var checkBox : settingsPanel.getComponents())
+            changeSettingsText(checkBox);
+
+        //update languages
+        var languageBoxModel = languageBox.getModel();
+        IntStream.range(0,languageBoxModel.getSize())
+                .mapToObj(languageBoxModel::getElementAt)
+                .forEach(LanguageItem::setLanguage);
+    }
+
+    private void changeButtonText(java.awt.Component component){
+        if(component instanceof JButton)
+            ((JButton)component).setText(Dictionary.getText((String) ((JButton) component).getClientProperty("text")));
+    }
+
+    private void changeSettingsText(java.awt.Component component){
+        ((JCheckBox)component).setText(Dictionary.getText((String) ((JCheckBox) component).getClientProperty("text")));
+    }
+
 }

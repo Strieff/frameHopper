@@ -507,7 +507,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         try{
             int frameToJump = Integer.parseInt(jumpTextField.getText());
             if(frameToJump < 0 || frameToJump > cache.getMaxFrameIndex()){
-                throw new Exception("Cannot display frame: " + frameToJump + ". Frame number does not exist.");
+                throw new Exception(String.format("Cannot display frame: %s. Frame number does not exist.",frameToJump));
             }else{
                 cache.jump(frameToJump-1);
                 currentFrameIndex = frameToJump-1;

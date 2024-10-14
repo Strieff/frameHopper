@@ -1,29 +1,23 @@
 package com.example.engineer.View.Elements;
 
-import com.example.engineer.DBActions.SaveSettingsAction;
 import com.example.engineer.Model.UserSettings;
-import com.example.engineer.Service.SettingsService;
-import lombok.Getter;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
+import java.io.FileWriter;
+
 @Component
-public class UserSettingsManager {
+@DependsOn("UserSettings")
+public class UserSettingsManager{
     @Autowired
-    SettingsService settingsService;
-    @Getter
+    LanguageManager languageManager;
+
     UserSettings userSettings;
 
-    public void createUserSettings(){
-        userSettings = settingsService.getUserSettings();
-        if(userSettings == null){
-            userSettings = UserSettings.builder()
-                    .showDeleted(false)
-                    .openRecent(false)
-                    .build();
-
-            settingsService.createUserSettings(userSettings);
-        }
+    public UserSettingsManager() {
+        this.userSettings = UserSettings.getInstance();
     }
 
     public void setRecentPath(String path){
@@ -58,8 +52,22 @@ public class UserSettingsManager {
         return userSettings.getRecentExportPath();
     }
 
-    public void save(){
-        new SaveSettingsAction(settingsService,userSettings).run();
+    public String getLanguage(){
+        return userSettings.getLanguage();
     }
 
+    public void setLanguage(String language){
+        userSettings.setLanguage(language);
+        languageManager.changeLanguage(language);
+        save();
+    }
+
+    public void save(){
+        //save to file
+        try(FileWriter writer = new FileWriter("settings/user settings.json")){
+            new Gson().toJson(userSettings, writer);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }

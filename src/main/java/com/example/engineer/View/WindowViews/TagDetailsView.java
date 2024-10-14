@@ -3,10 +3,15 @@ package com.example.engineer.View.WindowViews;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
+import com.example.engineer.View.Elements.Dictionary;
+import com.example.engineer.View.Elements.LanguageChangeListener;
+import com.example.engineer.View.Elements.LanguageManager;
 import com.example.engineer.View.Elements.TagListManager;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -17,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class TagDetailsView extends JFrame implements ApplicationContextAware {
+@DependsOn()
+public class TagDetailsView extends JFrame implements ApplicationContextAware, LanguageChangeListener {
     //context
     private static ApplicationContext ctx;
     @Override
@@ -32,6 +38,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     FrameService frameService;
     @Autowired
     TagListManager tagList;
+    @Autowired
+    LanguageManager languageManager;
 
     //JComponents
     private final JTextField nameTextField;
@@ -61,7 +69,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         namePanel = new JPanel();
         namePanel.setLayout(new BorderLayout());
 
-        JLabel nameLabel = new JLabel("Name:");
+        JLabel nameLabel = new JLabel(Dictionary.getText("details.name"));
+        nameLabel.putClientProperty("text","details.name");
         nameTextField = new JTextField();
         labels.add(nameLabel);
 
@@ -72,7 +81,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         valuePanel = new JPanel();
         valuePanel.setLayout(new BorderLayout());
 
-        JLabel valueLabel = new JLabel("Value:");
+        JLabel valueLabel = new JLabel(Dictionary.getText("details.value"));
+        valueLabel.putClientProperty("text","details.value");
         valueTextField = new JTextField();
         labels.add(valueLabel);
 
@@ -89,7 +99,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         add(upperPanel,BorderLayout.NORTH);
 
         //tag description panel
-        JLabel descriptionLabel = new JLabel("Description:");
+        JLabel descriptionLabel = new JLabel(Dictionary.getText("details.desc"));
+        descriptionLabel.putClientProperty("text","details.desc");
         descriptionTextArea = new JTextArea();
         descriptionTextArea.setLineWrap(true);
         labels.add(descriptionLabel);
@@ -104,18 +115,24 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         add(lowerPanel,BorderLayout.CENTER);
 
         //save button
-        addButton = new JButton("Save");
+        addButton = new JButton(Dictionary.getText("details.save"));
+        addButton.putClientProperty("text","details.save");
         addButton.addActionListener(e -> close(true));
 
         //cancel button
-        cancelButton = new JButton("Cancel");
+        cancelButton = new JButton(Dictionary.getText("details.cancel"));
+        cancelButton.putClientProperty("text","details.cancel");
         cancelButton.addActionListener(e -> close(false));
 
         //hide button
         hiddenStatusButton = new JButton();
+        hiddenStatusButton.putClientProperty("hide","details.hide");
+        hiddenStatusButton.putClientProperty("unhide","details.unhide");
         hiddenStatusButton.addActionListener(e -> {
-            changeHiddenStatus();
-            close(false);
+            if(ID!=-1){
+                changeHiddenStatus();
+                close(false);
+            }
         });
 
         //button panel
@@ -135,8 +152,13 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         });
     }
 
+    @PostConstruct
+    public void init(){
+        languageManager.addListener(this);
+    }
+
     public void getDetailsData(String name, Double value, String description, Integer id,boolean hidden){
-        nameTextField.setText(name.contains(" (hidden)") ? name.substring(0,name.length()-9) : name);
+        nameTextField.setText(name.contains(Dictionary.getText("details.hidden")) ? name.replaceAll(" \\(.*?\\)$","") : name);
         valueTextField.setText(value.toString());
         descriptionTextArea.setText(description);
         ID = id;
@@ -145,7 +167,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
     }
 
     public void openWindow(boolean hidden){
-        hiddenStatusButton.setText(hidden ? "Unhide" : "Hide");
+        hiddenStatusButton.setText(Dictionary.getText(hidden? "details.unhide" : "details.hide"));
+        hiddenStatusButton.putClientProperty("isHidden",hidden);
         hiddenStatusButton.revalidate();
 
         setComponentColor(hidden ? Color.DARK_GRAY : null);
@@ -155,6 +178,7 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
 
     public void openWindow(){
         setVisible(true);
+        hiddenStatusButton.putClientProperty("isHidden",true);
     }
 
     public void changeHiddenStatus(){
@@ -222,6 +246,8 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
         descriptionTextArea.setText("");
         ID = -1;
 
+        hiddenStatusButton.putClientProperty("isHidden",null);
+
         setComponentColor(null);
     }
 
@@ -255,5 +281,18 @@ public class TagDetailsView extends JFrame implements ApplicationContextAware {
 
         addButton.setBackground(color);
         addButton.setForeground(color == null ? Color.BLACK : Color.WHITE);
+    }
+
+    @Override
+    public void changeLanguage() {
+        for(var label : labels)
+            label.setText(Dictionary.getText((String)label.getClientProperty("text")));
+
+        addButton.setText(Dictionary.getText((String)addButton.getClientProperty("text")));
+        cancelButton.setText(Dictionary.getText((String)cancelButton.getClientProperty("text")));
+        if(hiddenStatusButton.getClientProperty("isHidden")!=null){
+            var isHidden = (Boolean)hiddenStatusButton.getClientProperty("isHidden") ? "hide" : "unhide";
+            hiddenStatusButton.setText(Dictionary.getText((String)(hiddenStatusButton.getClientProperty(isHidden))));
+        }
     }
 }

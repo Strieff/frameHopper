@@ -237,13 +237,14 @@ public class ExportView extends JFrame {
         return userSelection == JFileChooser.APPROVE_OPTION ? fileChooser.getSelectedFile().getAbsolutePath() : null;
     }
 
+    //export to recent directory
     private boolean openRecent(){
         if(userSettings.getExportPath() == null)
             return false;
 
         return JOptionPane.showConfirmDialog(
                 null,
-                "Save to: " + userSettings.getExportPath(),
+                 String.format("Save to: %s",userSettings.getExportPath()),
                 "EXPORT",
                 JOptionPane.YES_NO_OPTION
         ) == JOptionPane.YES_OPTION;
@@ -501,35 +502,6 @@ public class ExportView extends JFrame {
         DefaultTableModel model = (DefaultTableModel) videoNameTable.getModel();
         for (int i = 0; i < model.getRowCount(); i++)
             model.setValueAt(false,i,0);
-    }
-
-    //sets up keybindings
-    private void setUpKeyBinds(){
-        int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
-        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK,false),"shiftPressed");
-        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,0,true),"shiftReleased");
-
-        getRootPane().getActionMap().put("shiftPressed", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                isShiftPressed = true;
-            }
-        });
-
-        getRootPane().getActionMap().put("shiftReleased", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                isShiftPressed = false;
-            }
-        });
-
-        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E,KeyEvent.SHIFT_DOWN_MASK,false),"OpenExport");
-        getRootPane().getActionMap().put("OpenExport", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                close();
-            }
-        });
     }
 
     //gets name of the file to save to
