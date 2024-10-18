@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements;
+package com.example.engineer.View.Elements.Language;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +61,7 @@ public class Dictionary {
         dictionary = instance.dictionaries.get(language);
     }
 
-    public static String getText(String name){
+    public static String get(String name){
         return dictionary.containsKey(name)
                 ? dictionary.getProperty(name)
                 : instance.dictionaries.get("en").getProperty(name);

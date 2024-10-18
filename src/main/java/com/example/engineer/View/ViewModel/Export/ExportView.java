@@ -1,14 +1,18 @@
-package com.example.engineer.View.WindowViews;
+package com.example.engineer.View.ViewModel.Export;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.View.Elements.MultilineTableCellRenderer;
-import com.example.engineer.View.Elements.TagListManager;
-import com.example.engineer.View.Elements.UserSettingsManager;
+import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.Language.Dictionary;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.Elements.tableRenderer.MultilineTableCellRenderer;
+import jakarta.annotation.PostConstruct;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -16,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +29,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class ExportView extends JFrame {
+@DependsOn("LanguageManager")
+public class ExportView extends JFrame implements LanguageChangeListener {
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
 
     //needed services and components
@@ -36,6 +42,8 @@ public class ExportView extends JFrame {
     private TagListManager tagList;
     @Autowired
     private UserSettingsManager userSettings;
+    @Autowired
+    private LanguageManager languageManager;
 
     //needed data
     boolean isShiftPressed = false;
@@ -43,6 +51,7 @@ public class ExportView extends JFrame {
 
     //JComponents
     private final JTable videoNameTable;
+    private final List<JButton> buttonList = new ArrayList<>();
 
     public ExportView(){
         //KEYBINDINGS
@@ -141,12 +150,18 @@ public class ExportView extends JFrame {
         add(scrollPane);
 
         //export button
-        JButton exportButton = new JButton("EXPORT");
+        JButton exportButton = new JButton(Dictionary.get("export.button.export"));
+        exportButton.putClientProperty("text","export.button.export");
         exportButton.addActionListener(e -> {
             List<Integer> selected = getExportList();
 
             if(selected.isEmpty()){
-                JOptionPane.showMessageDialog(this, "No videos were selected", "No Videos Selected", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this,
+                        Dictionary.get("export.error.noVideo"),
+                        Dictionary.get("export.error.noVideo.title"),
+                        JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
 
@@ -161,14 +176,25 @@ public class ExportView extends JFrame {
             try{
                 exportData(selected, path);
 
-                JOptionPane.showMessageDialog(this, "Export complete!", "Export Status", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this,
+                        Dictionary.get("export.status.success"),
+                        Dictionary.get("export.status.title"),
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }catch (Exception ex){
-                JOptionPane.showMessageDialog(this, "Export canceled!", "Export Status", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this,
+                        Dictionary.get("export.status.cancelled"),
+                        Dictionary.get("export.status.title"),
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }
         });
 
         //cancel button
-        JButton cancelButton = new JButton("CANCEL");
+        JButton cancelButton = new JButton(Dictionary.get("export.button.cancel"));
+        cancelButton.putClientProperty("text","export.button.cancel");
         cancelButton.addActionListener(e -> close());
 
         //panel to hold export and cancel buttons
@@ -177,7 +203,8 @@ public class ExportView extends JFrame {
         buttonPanel.add(exportButton);
 
         //clear button
-        JButton clearButton = new JButton("CLEAR");
+        JButton clearButton = new JButton(Dictionary.get("export.button.clear"));
+        clearButton.putClientProperty("text","export.button.clear");
         clearButton.addActionListener(e -> clearCheckboxes());
 
         //pane to hold clear button
@@ -190,6 +217,9 @@ public class ExportView extends JFrame {
         lowerPanel.add(buttonPanel);
         add(lowerPanel,BorderLayout.SOUTH);
 
+        buttonList.add(exportButton);
+        buttonList.add(cancelButton);
+        buttonList.add(clearButton);
 
         //operation on close
         addWindowListener(new WindowAdapter() {
@@ -198,6 +228,11 @@ public class ExportView extends JFrame {
                 close();
             }
         });
+    }
+
+    @PostConstruct
+    public void init(){
+        languageManager.addListener(this);
     }
 
     //opens window
@@ -212,9 +247,6 @@ public class ExportView extends JFrame {
                         v.getName(),
                         v.getId()
                 });
-
-        videoNameTable.setModel(model);
-        videoNameTable.revalidate();
 
         setVisible(true);
     }
@@ -242,19 +274,28 @@ public class ExportView extends JFrame {
         if(userSettings.getExportPath() == null)
             return false;
 
-        return JOptionPane.showConfirmDialog(
+        Object[] yesNoOptions = {
+                Dictionary.get("settings.action.confirmation.yes"),
+                Dictionary.get("settings.action.confirmation.no"),
+        };
+
+        return JOptionPane.showOptionDialog(
                 null,
-                 String.format("Save to: %s",userSettings.getExportPath()),
+                 String.format(Dictionary.get("export.saveTo"),userSettings.getExportPath()),
                 "EXPORT",
-                JOptionPane.YES_NO_OPTION
-        ) == JOptionPane.YES_OPTION;
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                yesNoOptions,
+                yesNoOptions[1]
+        ) == 0;
     }
 
     //get format - either excel or CSV
     private boolean getFormatChoice(){
         return JOptionPane.showOptionDialog(
                 this,
-                "File format:",
+                Dictionary.get("export.format.message"),
                 "",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
@@ -318,17 +359,17 @@ public class ExportView extends JFrame {
                 FileOutputStream outputStream = new FileOutputStream(path + File.separator + fileName)
         ){
             //create general data
-            Sheet sheet = workbook.createSheet("Overview");
+            Sheet sheet = workbook.createSheet(Dictionary.get("data.overview.title"));
 
             // Create header row
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("NAME");
-            headerRow.createCell(1).setCellValue("FRAME COUNT");
-            headerRow.createCell(2).setCellValue("CODES");
-            headerRow.createCell(3).setCellValue("RUNTIME (SECONDS)");
-            headerRow.createCell(4).setCellValue("FRAMERATE");
-            headerRow.createCell(5).setCellValue("TOTAL POINTS");
-            headerRow.createCell(6).setCellValue("COMPLEXITY");
+            headerRow.createCell(0).setCellValue(Dictionary.get("data.overview.name"));
+            headerRow.createCell(1).setCellValue(Dictionary.get("data.overview.frameCount"));
+            headerRow.createCell(2).setCellValue(Dictionary.get("data.overview.codes"));
+            headerRow.createCell(3).setCellValue(Dictionary.get("data.overview.runtime"));
+            headerRow.createCell(4).setCellValue(Dictionary.get("data.overview.framerate"));
+            headerRow.createCell(5).setCellValue(Dictionary.get("data.overview.totalPoints"));
+            headerRow.createCell(6).setCellValue(Dictionary.get("data.overview.complexity"));
 
             //create data row
             for (int row = 0; row < videoTagMap.size(); row++) {
@@ -346,12 +387,12 @@ public class ExportView extends JFrame {
             }
 
             Row summaryRow = sheet.createRow(videoTagMap.size()+2);
-            summaryRow.createCell(0).setCellValue("TOTAL SHOT AMOUNT");
-            summaryRow.createCell(1).setCellValue("TOTAL FRAME COUNT");
-            summaryRow.createCell(3).setCellValue("TOTAL RUNTIME");
-            summaryRow.createCell(5).setCellValue("TOTAL POINTS");
-            summaryRow.createCell(6).setCellValue("OVERALL COMPLEXITY");
-            summaryRow.createCell(7).setCellValue("ASL");
+            summaryRow.createCell(0).setCellValue(Dictionary.get("data.overview.summary.totalShotAmount"));
+            summaryRow.createCell(1).setCellValue(Dictionary.get("data.overview.summary.totalFrameCount"));
+            summaryRow.createCell(3).setCellValue(Dictionary.get("data.overview.summary.totalRuntime"));
+            summaryRow.createCell(5).setCellValue(Dictionary.get("data.overview.summary.totalPoints"));
+            summaryRow.createCell(6).setCellValue(Dictionary.get("data.overview.summary.overallComplexity"));
+            summaryRow.createCell(7).setCellValue(Dictionary.get("data.overview.asl"));
 
             CellStyle decimalStyle = workbook.createCellStyle();
             DataFormat df = workbook.createDataFormat();
@@ -371,13 +412,13 @@ public class ExportView extends JFrame {
                 sheet.autoSizeColumn(j);
 
             //create tag data info
-            Sheet tagSheet = workbook.createSheet("Code data");
+            Sheet tagSheet = workbook.createSheet(Dictionary.get("data.tags.title"));
 
             Row tagHeaderRow = tagSheet.createRow(0);
-            tagHeaderRow.createCell(0).setCellValue("CODE");
-            tagHeaderRow.createCell(1).setCellValue("VALUE");
-            tagHeaderRow.createCell(2).setCellValue("AMOUNT");
-            tagHeaderRow.createCell(3).setCellValue("TOTAL POINTS");
+            tagHeaderRow.createCell(0).setCellValue(Dictionary.get("data.tags.name"));
+            tagHeaderRow.createCell(1).setCellValue(Dictionary.get("data.tags.value"));
+            tagHeaderRow.createCell(2).setCellValue(Dictionary.get("data.tags.amount"));
+            tagHeaderRow.createCell(3).setCellValue(Dictionary.get("data.tags.totalPoints"));
 
             //get all amount of tags on all videos
             Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
@@ -414,10 +455,18 @@ public class ExportView extends JFrame {
         new File(exportDirectory).mkdirs();
 
         //save overview
-        String overviewFileName = File.separator + "Overview.csv";
+        String overviewFileName = File.separator + Dictionary.get("data.overview.title")+".csv";
 
         List<String[]> overviewData = new ArrayList<>();
-        overviewData.add(new String[]{"NAME","FRAME COUNT","CODES","RUNTIME (SECONDS)","FRAMERATE","TOTAL POINTS","COMPLEXITY"});
+        overviewData.add(new String[]{
+                Dictionary.get("data.overview.name"),
+                Dictionary.get("data.overview.frameCount"),
+                Dictionary.get("data.overview.codes"),
+                Dictionary.get("data.overview.runtime"),
+                Dictionary.get("data.overview.framerate"),
+                Dictionary.get("data.overview.totalPoints"),
+                Dictionary.get("data.overview.complexity")
+        });
 
         for (int row = 0; row < videoTagMap.size();row++) {
             Video video = new ArrayList<>(videoTagMap.keySet()).get(row);
@@ -435,12 +484,17 @@ public class ExportView extends JFrame {
         writeToCSV(overviewData,exportDirectory+overviewFileName);
 
         //save tag data
-        String detailsFileName = File.separator + "Code Details.csv";
+        String detailsFileName = File.separator + Dictionary.get("data.tags.title") + ".csv";
 
         Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
 
         List<String[]> tagDetailsData = new ArrayList<>();
-        tagDetailsData.add(new String[]{"CODE","VALUE","AMOUNT","TOTAL POINTS"});
+        tagDetailsData.add(new String[]{
+                Dictionary.get("data.tags.name"),
+                Dictionary.get("data.tags.value"),
+                Dictionary.get("data.tags.amount"),
+                Dictionary.get("data.tags.totalPoints")
+        });
 
         for(String s : tagData.keySet()) {
             Tag tag = tagList.getTag(s);
@@ -458,7 +512,9 @@ public class ExportView extends JFrame {
 
     //writes data to CSV
     private void writeToCSV(List<String[]> data,String path){
-        try(FileWriter writer = new FileWriter(path)){
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
+            writer.write('\uFEFF');
+
             String csvText = data.stream()
                     .map(record -> String.join(";", record))
                     .collect(Collectors.joining("\n"));
@@ -506,7 +562,11 @@ public class ExportView extends JFrame {
 
     //gets name of the file to save to
     private String getFileName(String path,boolean format) throws Exception{
-        String[] options = {"Cancel","Rename","Overwrite"};
+        String[] options = {
+                Dictionary.get("export.file.cancel"),
+                Dictionary.get("export.file.rename"),
+                Dictionary.get("export.file.overwrite"),
+        };
         JTextField jTextField = new JTextField();
 
         JPanel panel = new JPanel(new BorderLayout(0,1));
@@ -514,15 +574,22 @@ public class ExportView extends JFrame {
 
         String fileName = "";
         while(fileName.isEmpty()){
-            int nameChoice = JOptionPane.showConfirmDialog(this,panel,"FILE NAME:",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+            int nameChoice = JOptionPane.showConfirmDialog(this,panel,Dictionary.get("export.file.name"),JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
 
             if(nameChoice == JOptionPane.OK_OPTION){
                 fileName = jTextField.getText();
 
                 if(new File(path + File.separator + fileName + (format ? ".xlsx" : "")).exists()){
-                    int actionChoice = JOptionPane.showOptionDialog(this, fileName+" already exists. Do you want to overwrite it?", "",
-                            JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                            null, options, options[0]);
+                    int actionChoice = JOptionPane.showOptionDialog(
+                            this,
+                            String.format(Dictionary.get("export.file.overwrite.message"),fileName),
+                            "",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.PLAIN_MESSAGE,
+                            null,
+                            options,
+                            options[0]
+                    );
 
                     switch(actionChoice){
                         case 0:
@@ -539,5 +606,11 @@ public class ExportView extends JFrame {
         }
 
         return fileName;
+    }
+
+    @Override
+    public void changeLanguage() {
+        for(var button : buttonList)
+            button.setText(Dictionary.get((String)button.getClientProperty("text")));
     }
 }

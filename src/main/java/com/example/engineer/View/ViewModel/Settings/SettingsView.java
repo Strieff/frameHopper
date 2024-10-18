@@ -1,15 +1,19 @@
-package com.example.engineer.View.WindowViews;
+package com.example.engineer.View.ViewModel.Settings;
 
 
 import com.example.engineer.Model.Tag;
-import com.example.engineer.Model.UserSettings;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.View.Elements.*;
-import com.example.engineer.View.Elements.Dictionary;
+import com.example.engineer.View.Elements.Language.Dictionary;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.languageBox.LanguageItem;
 import com.example.engineer.View.Elements.languageBox.LanguageItemRenderer;
-import com.example.engineer.View.FrameHopperView;
+import com.example.engineer.View.Elements.tableRenderer.MultilineTableCellRenderer;
+import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
+import com.example.engineer.View.ViewModel.PathReeling.PathReelingView;
+import com.example.engineer.View.ViewModel.TagDetails.TagDetailsView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -90,14 +94,14 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         //BUTTONS
 
         //add new tag button
-        JButton createNewTagButton = new JButton(Dictionary.getText("settings.tag.add"));
+        JButton createNewTagButton = new JButton(Dictionary.get("settings.tag.add"));
         createNewTagButton.putClientProperty("text","settings.tag.add");
         createNewTagButton.addActionListener(e -> {
             ctx.getBean(TagDetailsView.class).openWindow();
         });
 
         //batch add new tags
-        JButton addBatchTagsButton = new JButton(Dictionary.getText("settings.tag.add.batch"));
+        JButton addBatchTagsButton = new JButton(Dictionary.get("settings.tag.add.batch"));
         addBatchTagsButton.putClientProperty("text","settings.tag.add.batch");
         addBatchTagsButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -110,16 +114,16 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         });
 
         //batch hide tags button
-        JButton massHideButton = new JButton(Dictionary.getText("settings.tag.hide"));
+        JButton massHideButton = new JButton(Dictionary.get("settings.tag.hide"));
         massHideButton.putClientProperty("text","settings.tag.hide");
         massHideButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, Dictionary.getText("settings.tag.noneSelected"), "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, Dictionary.get("settings.tag.noneSelected"), "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),Dictionary.getText("settings.action.hide"))) {
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),Dictionary.get("settings.action.hide"))) {
                 List<Integer> ids = new ArrayList<>();
                 for (int selectedRow : selectedRows) {
                     int tagId = (int) tagTable.getValueAt(selectedRow, 5);
@@ -139,16 +143,16 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         });
 
         //batch un hide tags button
-        JButton massUnhideButton = new JButton(Dictionary.getText("settings.tag.unhide"));
+        JButton massUnhideButton = new JButton(Dictionary.get("settings.tag.unhide"));
         massUnhideButton.putClientProperty("text","settings.tag.unhide");
         massUnhideButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, Dictionary.getText("settings.tag.noneSelected"), "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, Dictionary.get("settings.tag.noneSelected"), "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),Dictionary.getText("settings.action.unhide"))) {
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).collect(Collectors.toList()),Dictionary.get("settings.action.unhide"))) {
                 List<Integer> ids = new ArrayList<>();
                 for (int selectedRow : selectedRows) {
                     int tagId = (int) tagTable.getValueAt(selectedRow, 5);
@@ -168,16 +172,16 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         });
 
         //batch delete tags
-        JButton massDeleteButton = new JButton(Dictionary.getText("settings.tag.delete"));
+        JButton massDeleteButton = new JButton(Dictionary.get("settings.tag.delete"));
         massDeleteButton.putClientProperty("text","settings.tag.delete");
         massDeleteButton.addActionListener(e -> {
             int[] selectedRows = tagTable.getSelectedRows();
             if (selectedRows.length == 0) {
-                JOptionPane.showMessageDialog(this, Dictionary.getText("settings.tag.noneSelected"), Dictionary.getText("settings.error.title"), JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, Dictionary.get("settings.tag.noneSelected"), Dictionary.get("settings.error.title"), JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).toList(),Dictionary.getText("settings.action.delete"))) {
+            if(getActionConfirmation(Arrays.stream(selectedRows).mapToObj(row -> (String)tagTable.getValueAt(row,0)).toList(),Dictionary.get("settings.action.delete"))) {
                 List<Tag> tagsToDelete = new ArrayList<>();
                 for (int selectedRow : selectedRows) {
                     Tag temp = Tag.builder()
@@ -201,6 +205,12 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
             }
         });
 
+        JButton reelPathButton = new JButton(Dictionary.get("settings.tag.reelPath"));
+        reelPathButton.putClientProperty("text","settings.tag.reelPath");
+        reelPathButton.addActionListener(e -> {
+            ctx.getBean(PathReelingView.class).open();
+        });
+
         //toolbar
         toolBar = new JToolBar();
         toolBar.add(createNewTagButton);
@@ -208,10 +218,11 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         toolBar.add(massHideButton);
         toolBar.add(massUnhideButton);
         toolBar.add(massDeleteButton);
+        toolBar.add(reelPathButton);
         tablePanel.add(toolBar,BorderLayout.NORTH);
 
         //settings label
-        frameLabel = new JLabel(Dictionary.getText("settings.banner"), SwingConstants.CENTER);
+        frameLabel = new JLabel(Dictionary.get("settings.banner"), SwingConstants.CENTER);
         frameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         mainPanel.add(frameLabel, BorderLayout.NORTH);
 
@@ -249,8 +260,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
                         t.getName(),
                         t.getValue(),
                         t.getDescription(),
-                        new ImageIcon(getIconFromPath("/icons/bin.png")),
-                        new ImageIcon(getIconFromPath("/icons/edit.png")),
+                        IconLoader.getSmallIcon("bin.png"),
+                        IconLoader.getSmallIcon("edit.png"),
                         t.getId()
                 };
             }
@@ -260,9 +271,9 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         DefaultTableModel model = new DefaultTableModel(
                 data,
                 new String[]{
-                        Dictionary.getText("settings.tag.name"),
-                        Dictionary.getText("settings.tag.value"),
-                        Dictionary.getText("settings.tag.description")
+                        Dictionary.get("settings.tag.name"),
+                        Dictionary.get("settings.tag.value"),
+                        Dictionary.get("settings.tag.description")
                         , " ", " ","ID"
                 }
         ) {
@@ -370,7 +381,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         //SETTINGS
 
         //show hidden tags checkbox
-        JCheckBox hiddenTags = new JCheckBox(Dictionary.getText("settings.options.showHidden"));
+        JCheckBox hiddenTags = new JCheckBox(Dictionary.get("settings.options.showHidden"));
         hiddenTags.putClientProperty("text","settings.options.showHidden");
         hiddenTags.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
@@ -385,7 +396,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         hiddenTags.setSelected(userSettings.ShowHidden());
 
         //open recent checkbox
-        JCheckBox openRecent = new JCheckBox(Dictionary.getText("settings.options.openRecent"));
+        JCheckBox openRecent = new JCheckBox(Dictionary.get("settings.options.openRecent"));
         openRecent.putClientProperty("text","settings.options.openRecent");
         openRecent.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
@@ -397,10 +408,24 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         });
         openRecent.setSelected(userSettings.openRecent());
 
+        //use selected language for export
+        JCheckBox useLanguage = new JCheckBox(Dictionary.get("settings.options.useChosenLanguage"));
+        useLanguage.putClientProperty("text","settings.options.useChosenLanguage");
+        useLanguage.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED)
+                userSettings.setUseDefaultLanguage(true);
+            else if(e.getStateChange() == ItemEvent.DESELECTED)
+                userSettings.setUseDefaultLanguage(false);
+
+            userSettings.save();
+        });
+        useLanguage.setSelected(userSettings.useDefaultLanguage());
+
         //panel to hold settings
         settingsPanel = new JPanel(new BorderLayout());
         settingsPanel.add(hiddenTags,BorderLayout.NORTH);
         settingsPanel.add(openRecent,BorderLayout.CENTER);
+        settingsPanel.add(useLanguage,BorderLayout.SOUTH);
 
         //right panel
         JPanel rightPanel = new JPanel(new GridLayout(2,1));
@@ -435,11 +460,11 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         for (Tag tag : tagList.getTagList()) {
             if(!tag.isDeleted() || userSettings.ShowHidden()){
                 model.addRow(new Object[]{
-                        tag.getName() + (tag.isDeleted() ? Dictionary.getText("settings.tag.hidden") : ""),
+                        tag.getName() + (tag.isDeleted() ? Dictionary.get("settings.tag.hidden") : ""),
                         tag.getValue(),
                         tag.getDescription(),
-                        new ImageIcon(getIconFromPath("/icons/edit.png")),
-                        new ImageIcon(getIconFromPath("/icons/bin.png")),
+                        IconLoader.getSmallIcon("edit.png"),
+                        IconLoader.getSmallIcon("bin.png"),
                         tag.getId(),
                 });
             }
@@ -449,24 +474,13 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         tagTable.revalidate();
     }
 
-    private Image getIconFromPath(String path){
-        URL iconURL = getClass().getResource(path);
-        Image scaledIcon = null;
-        if (iconURL != null) {
-            ImageIcon imageIcon = new ImageIcon(iconURL);
-            scaledIcon = imageIcon.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
-        }
-
-        return scaledIcon;
-    }
-
     private void showOptionsDialog(Integer tagId){
         String[] options = {
-                Dictionary.getText("settings.delete.dialog.cancel"),
-                Dictionary.getText("settings.delete.dialog.delete")
+                Dictionary.get("settings.delete.dialog.cancel"),
+                Dictionary.get("settings.delete.dialog.delete")
         };
 
-        int actionChoice = JOptionPane.showOptionDialog(this, Dictionary.getText("settings.delete.dialog.confirmation"), "",
+        int actionChoice = JOptionPane.showOptionDialog(this, Dictionary.get("settings.delete.dialog.confirmation"), "",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[0]);
 
@@ -522,13 +536,13 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
             toDelete.append("\n").append(name);
 
         Object[] yesNoOptions = {
-                Dictionary.getText("settings.action.confirmation.yes"),
-                Dictionary.getText("settings.action.confirmation.no"),
+                Dictionary.get("settings.action.confirmation.yes"),
+                Dictionary.get("settings.action.confirmation.no"),
         };
 
         return JOptionPane.showOptionDialog(
                 null,
-                String.format(Dictionary.getText("settings.action.confirmation"),action,toDelete),
+                String.format(Dictionary.get("settings.action.confirmation"),action,toDelete),
                 "Confirm action",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
@@ -541,7 +555,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
     @Override
     public void changeLanguage() {
         //update banner
-        frameLabel.setText(Dictionary.getText("settings.banner"));
+        frameLabel.setText(Dictionary.get("settings.banner"));
 
         //update buttons
         for(var button : toolBar.getComponents())
@@ -549,15 +563,15 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
 
         //update table header
         var columnModel = tagTable.getColumnModel();
-        columnModel.getColumn(0).setHeaderValue(Dictionary.getText("settings.tag.name"));
-        columnModel.getColumn(1).setHeaderValue(Dictionary.getText("settings.tag.value"));
-        columnModel.getColumn(2).setHeaderValue(Dictionary.getText("settings.tag.description"));
+        columnModel.getColumn(0).setHeaderValue(Dictionary.get("settings.tag.name"));
+        columnModel.getColumn(1).setHeaderValue(Dictionary.get("settings.tag.value"));
+        columnModel.getColumn(2).setHeaderValue(Dictionary.get("settings.tag.description"));
 
         //update table
         var tableModel = tagTable.getModel();
         for (int i = 0; i < tagTable.getRowCount(); i++) {
             var value = (String) tableModel.getValueAt(i, 0);
-            value = value.replaceAll(" \\(.*?\\)$",Dictionary.getText("settings.tag.hidden"));
+            value = value.replaceAll(" \\(.*?\\)$",Dictionary.get("settings.tag.hidden"));
 
             tableModel.setValueAt(value,i,0);
         }
@@ -576,11 +590,11 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
 
     private void changeButtonText(java.awt.Component component){
         if(component instanceof JButton)
-            ((JButton)component).setText(Dictionary.getText((String) ((JButton) component).getClientProperty("text")));
+            ((JButton)component).setText(Dictionary.get((String) ((JButton) component).getClientProperty("text")));
     }
 
     private void changeSettingsText(java.awt.Component component){
-        ((JCheckBox)component).setText(Dictionary.getText((String) ((JCheckBox) component).getClientProperty("text")));
+        ((JCheckBox)component).setText(Dictionary.get((String) ((JCheckBox) component).getClientProperty("text")));
     }
 
 }

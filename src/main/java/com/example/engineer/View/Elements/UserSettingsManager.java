@@ -1,6 +1,7 @@
 package com.example.engineer.View.Elements;
 
 import com.example.engineer.Model.UserSettings;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -36,12 +37,26 @@ public class UserSettingsManager{
         userSettings.setRecentExportPath(path);
     }
 
+    public void setUseDefaultLanguage(boolean useDefaultLanguage){
+        userSettings.setUseDefaultLanguage(useDefaultLanguage);
+    }
+
+    public void setLanguage(String language){
+        userSettings.setLanguage(language);
+        languageManager.changeLanguage(language);
+        save();
+    }
+
     public boolean openRecent(){
         return userSettings.getOpenRecent();
     }
 
     public boolean ShowHidden(){
         return userSettings.getShowDeleted();
+    }
+
+    public boolean useDefaultLanguage(){
+        return userSettings.getUseDefaultLanguage();
     }
 
     public String getRecentPath(){
@@ -54,12 +69,6 @@ public class UserSettingsManager{
 
     public String getLanguage(){
         return userSettings.getLanguage();
-    }
-
-    public void setLanguage(String language){
-        userSettings.setLanguage(language);
-        languageManager.changeLanguage(language);
-        save();
     }
 
     public void save(){

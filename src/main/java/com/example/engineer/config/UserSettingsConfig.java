@@ -1,7 +1,7 @@
 package com.example.engineer.config;
 
 import com.example.engineer.Model.UserSettings;
-import com.example.engineer.View.Elements.Dictionary;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +31,7 @@ public class UserSettingsConfig {
                             .toJson(new UserSettings(
                             false,
                             false,
+                            true,
                             null,
                             null,
                             "en"

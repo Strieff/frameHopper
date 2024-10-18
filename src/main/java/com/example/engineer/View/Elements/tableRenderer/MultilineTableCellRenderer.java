@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements;
+package com.example.engineer.View.Elements.tableRenderer;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;

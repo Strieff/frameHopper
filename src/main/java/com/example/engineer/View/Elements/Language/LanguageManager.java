@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements;
+package com.example.engineer.View.Elements.Language;
 
 import com.example.engineer.Model.UserSettings;
 import org.springframework.context.ApplicationContext;

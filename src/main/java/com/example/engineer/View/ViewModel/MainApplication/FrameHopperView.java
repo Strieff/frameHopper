@@ -1,4 +1,4 @@
-package com.example.engineer.View;
+package com.example.engineer.View.ViewModel.MainApplication;
 
 import com.example.engineer.FrameProcessor.Cache;
 import com.example.engineer.FrameProcessor.FrameProcessorRequestManager;
@@ -7,15 +7,21 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.View.Elements.MultilineTableCellRenderer;
+import com.example.engineer.View.Elements.IconLoader;
+import com.example.engineer.View.Elements.Language.Dictionary;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.Elements.tableRenderer.MultilineTableCellRenderer;
 import com.example.engineer.View.Elements.UserSettingsManager;
 import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.actions.RemoveRecentAction;
 import com.example.engineer.View.Elements.actions.UndoRedoAction;
-import com.example.engineer.View.WindowViews.ExportView;
-import com.example.engineer.View.WindowViews.SettingsView;
-import com.example.engineer.View.WindowViews.TagDetailsView;
-import com.example.engineer.View.WindowViews.TagManagerView;
+import com.example.engineer.View.ViewModel.Export.ExportView;
+import com.example.engineer.View.ViewModel.Settings.SettingsView;
+import com.example.engineer.View.ViewModel.TagDetails.TagDetailsView;
+import com.example.engineer.View.ViewModel.TagManagerView.TagManagerView;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -49,7 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class FrameHopperView extends JFrame implements ApplicationContextAware {
+public class FrameHopperView extends JFrame implements ApplicationContextAware, LanguageChangeListener {
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
 
     //needed services
@@ -71,6 +77,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private UserSettingsManager userSettings;
     @Autowired
     private FrameProcessorRequestManager requestManager;
+    @Autowired
+    LanguageManager languageManager;
 
     //other views
     @Autowired
@@ -88,11 +96,13 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     private final JLabel infoLabel;
     private final JTextField jumpTextField;
     private final JTable tagsTableList;
+    private final JButton jumpButton;
 
     //needed data
     private int currentFrameIndex;
-    public boolean loaded;
+    public Boolean loaded = false;
     private File videoFile;
+    @Getter
     private Video video;
     private Map<Integer, List<Tag>> tagsOnFramesOnVideo;
 
@@ -108,7 +118,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         setTitle("FrameHopper");
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        loaded = false;
 
         //CREATE COMPONENTS
 
@@ -117,7 +126,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         add(imageLabel, BorderLayout.CENTER);
 
         //label for displaying some metadata
-        infoLabel = new JLabel("No video currently open");
+        infoLabel = new JLabel(String.format(Dictionary.get("main.fileInfo"),0,0,0.0));
+        infoLabel.putClientProperty("text","main.fileInfo");
         infoLabel.setFont(new Font("Comic Sans",Font.BOLD,24));
         add(infoLabel,BorderLayout.SOUTH);
 
@@ -125,7 +135,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         jumpTextField = new JTextField(5);
 
         //button for jump panel
-        JButton jumpButton = new JButton("Jump to Frame");
+        jumpButton = new JButton(Dictionary.get("main.jump"));
+        jumpButton.putClientProperty("text","main.jump");
         jumpButton.addActionListener(e -> {
             jumpToSpecifiedFrame();
         });
@@ -154,7 +165,10 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                 return false;
             }
         };
-        tagsTableList.setModel(new DefaultTableModel(new String[][]{},new String[]{"NAME","VALUE"}));
+        tagsTableList.setModel(new DefaultTableModel(new String[][]{},new String[]{
+                Dictionary.get("main.tag.name"),
+                Dictionary.get("main.tag.value")
+        }));
         tagsTableList.getTableHeader().setReorderingAllowed(false);
 
         //center the value column
@@ -181,7 +195,12 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
             if(videoFile!=null)
                 tagManagerView.setUpData(videoFile.getName(),currentFrameIndex);
             else
-                JOptionPane.showMessageDialog(this, "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this,
+                        Dictionary.get("main.noFile"),
+                        Dictionary.get("main.NoFile.title"),
+                        JOptionPane.ERROR_MESSAGE
+                );
         });
 
         //settings button
@@ -272,7 +291,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
                     else
                         tagManagerView.close();
                 else
-                    JOptionPane.showMessageDialog(getRootPane(), "No file was opened!", "No File", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(getRootPane(), Dictionary.get("main.noFile"), Dictionary.get("main.NoFile.title"), JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -388,14 +407,14 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         });
     }
 
+    @PostConstruct
+    public void init(){
+        languageManager.addListener(this);
+    }
+
     //add icon to a button
     private void setButtonIcon(JButton button,String name){
-        URL iconURL = getClass().getResource("/icons/"+name);
-        if(iconURL != null){
-            ImageIcon imageIcon = new ImageIcon(iconURL);
-            Image scaledIcon = imageIcon.getImage().getScaledInstance(32,32,Image.SCALE_SMOOTH);
-            button.setIcon(new ImageIcon(scaledIcon));
-        }
+        button.setIcon(IconLoader.getLargeIcon(name));
     }
 
     //open recent video functionality
@@ -427,10 +446,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     //open video frame and load tags
     public void openVideo(){
         //set up metadata info label
-        infoLabel.setText(String.format("Current Frame: %d / %d | Frame Rate: %f fps",(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
+        infoLabel.setText(String.format(Dictionary.get("main.fileInfo"),(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
         imageLabel.requestFocus();
 
         //create local representation of tag data on video
+        tagsOnFramesOnVideo = new HashMap<>();
         tagsOnFramesOnVideo = new HashMap<>();
         List<Frame> frames = frameService.getAllByVideo(video);
         for(Frame f : frames)
@@ -490,7 +510,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
 
         //display frame and update displayed metadata
         imageLabel.setIcon(new ImageIcon(frame));
-        infoLabel.setText(String.format("Current Frame: %d / %d | Frame Rate: %f fps",(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
+        infoLabel.setText(String.format(Dictionary.get("main.fileInfo"),(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
     }
 
     //scale image to fit the application window
@@ -507,14 +527,14 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
         try{
             int frameToJump = Integer.parseInt(jumpTextField.getText());
             if(frameToJump < 0 || frameToJump > cache.getMaxFrameIndex()){
-                throw new Exception(String.format("Cannot display frame: %s. Frame number does not exist.",frameToJump));
+                throw new Exception(String.format(Dictionary.get("main.jump.error.outOfBounds"),frameToJump));
             }else{
                 cache.jump(frameToJump-1);
                 currentFrameIndex = frameToJump-1;
                 displayCurrentFrame();
             }
         }catch (NumberFormatException e){
-            JOptionPane.showMessageDialog(this, "Please enter a valid frame number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, Dictionary.get("main.jump.error.invalid"), Dictionary.get("main.jump.error.invalid.title"), JOptionPane.ERROR_MESSAGE);
         }catch (Exception e){
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -550,5 +570,22 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware {
     //set tags on given frame in local data representation
     public void setCurrentTags(List<Tag> tags,int frameNo){
         tagsOnFramesOnVideo.put(frameNo,tags);
+    }
+
+    @Override
+    public void changeLanguage() {
+        jumpButton.setText(Dictionary.get((String)jumpButton.getClientProperty("text")));
+
+
+        if(cache!=null)
+            infoLabel.setText(String.format(Dictionary.get("main.fileInfo"),(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));
+        else
+            infoLabel.setText(String.format(Dictionary.get("main.fileInfo"),0,0,0.0));
+
+        var columnModel = tagsTableList.getColumnModel();
+        columnModel.getColumn(0).setHeaderValue(Dictionary.get("main.tag.name"));
+        columnModel.getColumn(1).setHeaderValue(Dictionary.get("main.tag.value"));
+
+        repaint();
     }
 }
