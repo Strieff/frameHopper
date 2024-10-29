@@ -6,6 +6,11 @@ out/
 !**/src/main/**/target/
 !**/src/test/**/target/
 application/old.jar
+application/tęst
+cache/
+data/
+.mvn
+
 
 ### STS ###
 .apt_generated

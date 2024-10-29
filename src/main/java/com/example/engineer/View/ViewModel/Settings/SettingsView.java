@@ -532,21 +532,8 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
         for(String name : names)
             toDelete.append("\n").append(name);
 
-        Object[] yesNoOptions = {
-                Dictionary.get("settings.action.confirmation.yes"),
-                Dictionary.get("settings.action.confirmation.no"),
-        };
+        return DialogProvider.yesNoDialog(String.format(Dictionary.get("settings.action.confirmation"),action,toDelete));
 
-        return JOptionPane.showOptionDialog(
-                null,
-                String.format(Dictionary.get("settings.action.confirmation"),action,toDelete),
-                "Confirm action",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                yesNoOptions,
-                yesNoOptions[0]
-                ) == 0;
     }
 
     @Override

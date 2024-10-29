@@ -97,6 +97,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
     private final JTable tagsTableList;
     private final JButton jumpButton;
 
+    private final List<JButton> iconButtons = new ArrayList<>();
+
     //needed data
     private int currentFrameIndex;
     public Boolean loaded = false;
@@ -121,7 +123,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
         //CREATE COMPONENTS
 
         //image display
-        imageLabel = new JLabel();
+        imageLabel = new JLabel(Dictionary.get("main.dropHere"), JLabel.CENTER);
+        imageLabel.putClientProperty("text","main.dropHere");
+        imageLabel.setFont(new Font("Comic Sans",Font.BOLD,36));
         add(imageLabel, BorderLayout.CENTER);
 
         //label for displaying some metadata
@@ -189,6 +193,9 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
 
         //tag manager button
         JButton tagMangerButton = new JButton();
+        tagMangerButton.setToolTipText(Dictionary.get("tooltip.manager"));
+        tagMangerButton.putClientProperty("tooltip","tooltip.manager");
+        iconButtons.add(tagMangerButton);
         setButtonIcon(tagMangerButton,"plus.png");
         tagMangerButton.addActionListener(e -> {
             if(videoFile!=null)
@@ -204,11 +211,17 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
 
         //settings button
         JButton settingsButton = new JButton();
+        settingsButton.setToolTipText(Dictionary.get("tooltip.settings"));
+        settingsButton.putClientProperty("tooltip","tooltip.settings");
+        iconButtons.add(settingsButton);
         setButtonIcon(settingsButton,"settings.png");
         settingsButton.addActionListener(e -> settingsView.open());
 
         //export button
         JButton exportButton = new JButton();
+        exportButton.setToolTipText(Dictionary.get("tooltip.export"));
+        exportButton.putClientProperty("tooltip","tooltip.export");
+        iconButtons.add(exportButton);
         setButtonIcon(exportButton,"export.png");
         exportButton.addActionListener(e -> exportView.open());
 
@@ -376,6 +389,7 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
                     if(t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
                         List<File> fileList = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
                         if(!fileList.isEmpty()){
+                            imageLabel.setText("");
                             videoFile = fileList.get(0);
                             video = videoService.createVideoIfNotExists(videoFile);
 
@@ -492,7 +506,6 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
 
         //save recent path
         userSettings.setRecentPath(video.getPath());
-        userSettings.save();
     }
 
     //display tag list for given frame
@@ -604,6 +617,11 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
     public void changeLanguage() {
         jumpButton.setText(Dictionary.get((String)jumpButton.getClientProperty("text")));
 
+        if(video == null)
+            imageLabel.setText(Dictionary.get((String)imageLabel.getClientProperty("text")));
+
+        for(var b : iconButtons)
+            b.setToolTipText(Dictionary.get((String)b.getClientProperty("tooltip")));
 
         if(cache!=null)
             infoLabel.setText(String.format(Dictionary.get("main.fileInfo"),(currentFrameIndex+1),cache.getMaxFrameIndex(),cache.getFrameRate()));

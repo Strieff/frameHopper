@@ -23,6 +23,7 @@ public class UserSettingsManager{
 
     public void setRecentPath(String path){
         userSettings.setRecentPath(path);
+        save();
     }
 
     public void setShowHidden(boolean showHidden){

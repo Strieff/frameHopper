@@ -17,8 +17,9 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-//TODO: file path reeling
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.example.engineer.Repository")
 @EntityScan(basePackages = {"com.example.engineer.Model"})
@@ -26,6 +27,8 @@ public class EngineerApplication {
     public static void main(String[] args) {
         SpringApplicationBuilder builder = new SpringApplicationBuilder(EngineerApplication.class).headless(false);
         ConfigurableApplicationContext context = builder.run(args);
+
+        checkNecessaryFiles();
 
         context.getBean(SettingsView.class).setUpView();
         context.getBean(TagManagerView.class).setUpView(context.getBean(FrameHopperView.class));
@@ -36,6 +39,12 @@ public class EngineerApplication {
 
         if(context.getBean(UserSettingsManager.class).openRecent())
             openRecent(context);
+    }
+
+    private static void checkNecessaryFiles(){
+        if(Files.exists(Path.of("cache")))
+            new File("cache").mkdirs();
+
     }
 
     private static void openRecent(ConfigurableApplicationContext context){

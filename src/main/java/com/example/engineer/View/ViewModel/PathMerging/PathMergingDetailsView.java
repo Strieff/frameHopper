@@ -8,6 +8,7 @@ import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.ProgramResetResolver;
+import com.example.engineer.View.Elements.UserSettingsManager;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -32,6 +33,8 @@ public class PathMergingDetailsView extends JFrame implements LanguageChangeList
     LanguageManager languageManager;
     @Autowired
     FrameProcessorRequestManager requestManager;
+    @Autowired
+    UserSettingsManager userSettings;
     @Autowired
     PathMergingService viewService;
 
@@ -154,6 +157,7 @@ public class PathMergingDetailsView extends JFrame implements LanguageChangeList
                 }
 
                 DialogProvider.messageDialog(Dictionary.get("merge.message.restarting"));
+                userSettings.setRecentPath(fileFromNewPath.getAbsolutePath());
                 requestManager.closeServer();
                 ProgramResetResolver.reset();
             }catch (Exception ex){
