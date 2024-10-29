@@ -36,4 +36,8 @@ public class FrameProcessorRequestManager{
     public String getVideoData(){
         return client.send("2;0;0",true);
     }
+
+    public String getVideoData(String path){
+        return client.send("4;0;"+path,true);
+    }
 }

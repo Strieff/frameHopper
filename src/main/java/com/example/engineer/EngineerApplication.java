@@ -1,12 +1,12 @@
 package com.example.engineer;
 
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
+import com.example.engineer.Model.Video;
+import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.UserSettingsManager;
-import com.example.engineer.View.FrameHopperView;
-import com.example.engineer.View.WindowViews.ExportView;
-import com.example.engineer.View.WindowViews.SettingsView;
-import com.example.engineer.View.WindowViews.TagDetailsView;
-import com.example.engineer.View.WindowViews.TagManagerView;
+import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
+import com.example.engineer.View.ViewModel.Settings.SettingsView;
+import com.example.engineer.View.ViewModel.TagManagerView.TagManagerView;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -27,8 +27,6 @@ public class EngineerApplication {
         SpringApplicationBuilder builder = new SpringApplicationBuilder(EngineerApplication.class).headless(false);
         ConfigurableApplicationContext context = builder.run(args);
 
-        context.getBean(UserSettingsManager.class).createUserSettings();
-
         context.getBean(SettingsView.class).setUpView();
         context.getBean(TagManagerView.class).setUpView(context.getBean(FrameHopperView.class));
 
@@ -36,21 +34,19 @@ public class EngineerApplication {
 
         closeLoadingWindow();
 
-        openRecent(context);
+        if(context.getBean(UserSettingsManager.class).openRecent())
+            openRecent(context);
     }
 
     private static void openRecent(ConfigurableApplicationContext context){
         UserSettingsManager userSettings = context.getBean(UserSettingsManager.class);
-
-        if(!userSettings.openRecent())
-            return;
 
         if(userSettings.getRecentPath() == null)
             return;
 
         int response = JOptionPane.showConfirmDialog(
                 null,
-                "Recently opened: " + userSettings.getRecentPath() + "\nOpen recent?",
+                String.format("Recently opened: %s\nOpen recent?",userSettings.getRecentPath()),
                 "Open recent video",
                 JOptionPane.YES_NO_OPTION
         );
@@ -60,9 +56,25 @@ public class EngineerApplication {
             if (recentFile.exists())
                 context.getBean(FrameHopperView.class).openRecentVideo(recentFile);
             else
-                JOptionPane.showMessageDialog(null, "The file does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                if(JOptionPane.showConfirmDialog(null,String.format("No file found: %s\nSet new path?",userSettings.getRecentPath())) == JOptionPane.YES_OPTION)
+                    reelPath(context,userSettings.getRecentPath());
+                else
+                    JOptionPane.showMessageDialog(null, "No recent video found");
         }
 
+    }
+
+    private static void reelPath(ConfigurableApplicationContext context,String oldPath){
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        String newPath = chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION ? chooser.getSelectedFile().getAbsolutePath() : null;
+        if (newPath != null) {
+            VideoService videoService = context.getBean(VideoService.class);
+            Video video = videoService.getByPath(oldPath);
+            video.setPath(newPath);
+            videoService.saveVideo(video);
+        }
     }
 
     private static void closeLoadingWindow(){

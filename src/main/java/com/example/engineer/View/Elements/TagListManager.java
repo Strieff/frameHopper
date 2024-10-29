@@ -63,8 +63,6 @@ public class TagListManager {
         tagList.remove(t);
 
         new DeleteTagAction(tagService,t).run();
-
-        //TODO: notify table changed
     }
 
     public void removeTags(List<Tag> toDelete){
@@ -76,8 +74,6 @@ public class TagListManager {
     public void addTag(String name, double value, String description){
         Tag t = tagService.createTag(name,value,description);
         tagList.add(t);
-
-        //TODO: notify table changed
     }
 
     public void editTag(int id,String name, double value, String description,boolean hidden){
@@ -90,14 +86,11 @@ public class TagListManager {
                         .description(description)
                         .deleted(hidden)
                         .build());
-
-        //TODO: notify table changed
     }
 
     public void changeHideStatus(int id, boolean hide){
         tagList.get(getIndex(id)).setDeleted(hide);
 
         new HiddenStatusAction(tagService,id,hide).run();
-        //TODO: notify table changed
     }
 }

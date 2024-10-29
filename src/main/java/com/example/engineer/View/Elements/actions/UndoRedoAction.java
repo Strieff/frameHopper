@@ -3,7 +3,7 @@ package com.example.engineer.View.Elements.actions;
 import com.example.engineer.DBActions.TagManagerAction;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
-import com.example.engineer.View.FrameHopperView;
+import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
