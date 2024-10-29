@@ -18,6 +18,11 @@ public class IconLoader {
         return new ImageIcon(getIcon(iconURL,32));
     }
 
+    public static Icon getSuperLargeIcon(String name){
+        URL iconURL = IconLoader.class.getClassLoader().getResource("icons/"+name);
+        return new ImageIcon(getIcon(iconURL,64));
+    }
+
     //return 16x16 pixel icon
     public static Icon getSmallIcon(String name){
         URL iconURL = IconLoader.class.getClassLoader().getResource("icons/"+name);

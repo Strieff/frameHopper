@@ -7,6 +7,7 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.DialogProvider;
 import com.example.engineer.View.Elements.IconLoader;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
@@ -17,6 +18,8 @@ import com.example.engineer.View.Elements.actions.PasteRecentAction;
 import com.example.engineer.View.Elements.actions.RemoveRecentAction;
 import com.example.engineer.View.Elements.actions.UndoRedoAction;
 import com.example.engineer.View.ViewModel.Export.ExportView;
+import com.example.engineer.View.ViewModel.PathMerging.PathMergingDetailsView;
+import com.example.engineer.View.ViewModel.PathMerging.PathMergingListView;
 import com.example.engineer.View.ViewModel.Settings.SettingsView;
 import com.example.engineer.View.ViewModel.TagDetails.TagDetailsView;
 import com.example.engineer.View.ViewModel.TagManagerView.TagManagerView;
@@ -38,15 +41,11 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -54,7 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
+@Component(value = "FrameHopperView")
 public class FrameHopperView extends JFrame implements ApplicationContextAware, LanguageChangeListener {
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
 
@@ -295,6 +294,33 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
             }
         });
 
+        //open video  list key bind
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_L,KeyEvent.SHIFT_DOWN_MASK,false),"OpenVideoList");
+        getRootPane().getActionMap().put("OpenVideoList", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!ctx.getBean(PathMergingListView.class).isVisible())
+                    ctx.getBean(PathMergingListView.class).open();
+                else
+                    ctx.getBean(PathMergingListView.class).close();
+            }
+        });
+
+        //open video details key bind
+        getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_D,KeyEvent.SHIFT_DOWN_MASK,false),"OpenVideoDetails");
+        getRootPane().getActionMap().put("OpenVideoDetails", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(video != null)
+                    if(!ctx.getBean(PathMergingDetailsView.class).isVisible())
+                        ctx.getBean(PathMergingDetailsView.class).open(video.getId());
+                    else
+                        ctx.getBean(PathMergingDetailsView.class).close();
+                else
+                    DialogProvider.errorDialog(Dictionary.get("main.noFile"),Dictionary.get("main.NoFile.title"));
+            }
+        });
+
         //add last tags key bind
         getRootPane().getInputMap(IFW).put(KeyStroke.getKeyStroke(KeyEvent.VK_V,KeyEvent.CTRL_DOWN_MASK,false),"addLastTag");
         getRootPane().getActionMap().put("addLastTag", new AbstractAction() {
@@ -405,6 +431,8 @@ public class FrameHopperView extends JFrame implements ApplicationContextAware, 
                 ctx.getBean(TagDetailsView.class).dispose();
             }
         });
+
+        //TODO: exportButton.setToolTipText("Export");
     }
 
     @PostConstruct

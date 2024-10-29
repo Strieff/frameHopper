@@ -6,6 +6,7 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Repository.FrameRepository;
 import com.example.engineer.Repository.TagRepository;
 import com.example.engineer.Repository.VideoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,6 @@ public class FrameService {
     FrameRepository frameRepository;
     @Autowired
     TagRepository tagRepository;
-
     @Autowired
     VideoRepository videoRepository;
 
@@ -63,5 +63,19 @@ public class FrameService {
 
     public List<Frame> getAllByVideo(Video video){
         return frameRepository.findAllByVideo(video);
+    }
+
+    public void save(Frame frame){
+        frameRepository.save(frame);
+    }
+
+    public void reassignFrames(int newId,int oldId){
+        frameRepository.reassignFrames(oldId,newId);
+    }
+
+    @Transactional
+    public void removeFramesOverLimit(int videoId,int limit,List<Integer> frames){
+        frameRepository.deleteFramesAssociations(frames);
+        frameRepository.deleteFramesAboveLimit(limit,videoId);
     }
 }

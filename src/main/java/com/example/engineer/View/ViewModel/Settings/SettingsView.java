@@ -12,7 +12,7 @@ import com.example.engineer.View.Elements.languageBox.LanguageItem;
 import com.example.engineer.View.Elements.languageBox.LanguageItemRenderer;
 import com.example.engineer.View.Elements.tableRenderer.MultilineTableCellRenderer;
 import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
-import com.example.engineer.View.ViewModel.PathReeling.PathReelingView;
+import com.example.engineer.View.ViewModel.PathMerging.PathMergingListView;
 import com.example.engineer.View.ViewModel.TagDetails.TagDetailsView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,7 +28,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.Serial;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -207,9 +206,7 @@ public class SettingsView extends JFrame implements ApplicationContextAware, Lan
 
         JButton reelPathButton = new JButton(Dictionary.get("settings.tag.reelPath"));
         reelPathButton.putClientProperty("text","settings.tag.reelPath");
-        reelPathButton.addActionListener(e -> {
-            ctx.getBean(PathReelingView.class).open();
-        });
+        reelPathButton.addActionListener(e -> ctx.getBean(PathMergingListView.class).open());
 
         //toolbar
         toolBar = new JToolBar();

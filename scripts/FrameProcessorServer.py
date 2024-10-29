@@ -70,12 +70,17 @@ def handle_request(request: str):
     elif command == '2': # get video properties
         print(f'Loading video properties of: {video_path}')
 
-        return f'{get_video_properties()}\n'
+        return f'{get_video_properties(video_path)}\n'
     elif command == '3': # load given set
         print('Loading batch')
         load_batch(argument)
 
         return 'OK\n'
+    elif command == '4': # get properties of path
+        print(f'Loading video properties of: {path}')
+
+        return f'{get_video_properties(path)}\n'
+
     
 
 
@@ -147,6 +152,28 @@ def get_video_properties():
     if not cap.isOpened():
         raise ValueError(f'Could not open the video file: {video_path}')
     
+    # Get the properties
+    length_in_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    image_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    image_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_rate = cap.get(cv2.CAP_PROP_FPS)
+    duration_in_milliseconds = (length_in_frames / frame_rate) * 1000
+
+    # Release the video capture object
+    cap.release()
+
+    # Construct the result string
+    result = f"{length_in_frames};{image_height};{image_width};{frame_rate:.2f};{int(duration_in_milliseconds)}"
+
+    return result
+
+def get_video_properties(path):
+    # Open the video file
+    cap = cv2.VideoCapture(path)
+
+    if not cap.isOpened():
+        raise ValueError(f'Could not open the video file: {path}')
+
     # Get the properties
     length_in_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     image_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
