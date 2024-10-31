@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.TagDetails.TagDetailsController">
+
+    <!-- Top Section with NAME and VALUE Fields -->
+    <top>
+        <VBox alignment="CENTER" spacing="10" VBox.vgrow="ALWAYS">
+            <HBox prefHeight="44.0" prefWidth="360.0">
+                <padding>
+                    <Insets left="10.0" right="10.0"/>
+                </padding>
+                <!-- Name Field -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label prefHeight="17.0" prefWidth="103.0" text="NAME:"/>
+                    <TextField fx:id="nameField" prefHeight="25.0" prefWidth="150.0"/>
+                    <padding>
+                        <Insets left="10.0" right="10.0"/>
+                    </padding>
+                </HBox>
+
+                <!-- Value Field -->
+                <HBox alignment="CENTER_LEFT">
+                    <Label prefHeight="17.0" prefWidth="112.0" text="VALUE:"/>
+                    <TextField fx:id="valueField" prefHeight="25.0" prefWidth="150.0"/>
+                    <padding>
+                        <Insets left="10.0" right="10.0"/>
+                    </padding>
+                </HBox>
+            </HBox>
+            <VBox prefWidth="360.0" spacing="5" VBox.vgrow="ALWAYS">
+                <Label text="Description:"/>
+                <TextArea fx:id="descriptionArea" prefHeight="200" prefWidth="300.0" wrapText="true"
+                          VBox.vgrow="ALWAYS"/>
+                <padding>
+                    <Insets left="10.0" right="10.0"/>
+                </padding>
+            </VBox>
+        </VBox>
+    </top>
+
+    <!-- Bottom Section with Buttons -->
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="39.0" prefWidth="320.0" spacing="20" VBox.vgrow="NEVER">
+            <Button fx:id="cancelButton" prefHeight="25.0" prefWidth="120.0" text="Cancel" />
+            <Button fx:id="hideButton" prefHeight="25.0" prefWidth="120.0" text="Hide" />
+            <Button fx:id="saveButton" prefHeight="25.0" prefWidth="120.0" text="Save" />
+            <padding>
+                <Insets left="10.0" right="10.0" />
+            </padding>
+        </HBox>
+    </bottom>
+
+</BorderPane>

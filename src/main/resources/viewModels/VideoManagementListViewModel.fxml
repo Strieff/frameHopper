@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.VideoManagement.VideoManagementListController">
+    <!-- Main TableView Area -->
+    <center>
+        <TableView fx:id="codeTable" prefHeight="400" prefWidth="300">
+            <columns>
+                <TableColumn fx:id="pathColumn" prefWidth="150" text="PATH" />
+                <TableColumn fx:id="selectColumn" maxWidth="50.0" minWidth="20.0" prefWidth="50.0" text="" />
+                <TableColumn fx:id="deleteColumn" maxWidth="50.0" minWidth="20.0" prefWidth="50.0" text="" />
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+        </TableView>
+    </center>
+
+</BorderPane>

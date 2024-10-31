@@ -3,10 +3,16 @@ package com.example.engineer;
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.FXMLViewLoader;
 import com.example.engineer.View.Elements.UserSettingsManager;
 import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
 import com.example.engineer.View.ViewModel.Settings.SettingsView;
 import com.example.engineer.View.ViewModel.TagManagerView.TagManagerView;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -23,22 +29,40 @@ import java.nio.file.Path;
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.example.engineer.Repository")
 @EntityScan(basePackages = {"com.example.engineer.Model"})
-public class EngineerApplication {
-    public static void main(String[] args) {
+public class EngineerApplication extends Application {
+    private ConfigurableApplicationContext context;
+
+    @Override
+    public void init() {
         SpringApplicationBuilder builder = new SpringApplicationBuilder(EngineerApplication.class).headless(false);
-        ConfigurableApplicationContext context = builder.run(args);
+        context = builder.run();
+        new FXMLViewLoader(context);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLViewLoader.getView("MainViewModel").load();
+        primaryStage.setTitle("FrameHopper");
+        primaryStage.setScene(new Scene(root,1200,900));
+        primaryStage.show();
 
         checkNecessaryFiles();
-
         context.getBean(SettingsView.class).setUpView();
         context.getBean(TagManagerView.class).setUpView(context.getBean(FrameHopperView.class));
-
         context.getBean(FrameProcessorClient.class).connect();
-
         closeLoadingWindow();
 
         if(context.getBean(UserSettingsManager.class).openRecent())
             openRecent(context);
+    }
+
+    @Override
+    public void stop() {
+        context.close();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 
     private static void checkNecessaryFiles(){
