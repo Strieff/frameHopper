@@ -1,8 +1,14 @@
 package com.example.engineer.View.FXViews.MainView;
 
+import com.example.engineer.View.Elements.FXDialogProvider;
 import com.example.engineer.View.Elements.FXIconLoader;
 import com.example.engineer.View.Elements.FXMLViewLoader;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
+import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.example.engineer.View.FXViews.TagManager.TagManagerController;
+import jakarta.annotation.PostConstruct;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -15,19 +21,17 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class MainViewController{
+public class MainViewController implements LanguageChangeListener, UpdateTableListener{
     @FXML
     private TextField frameInput;
     @FXML
@@ -51,8 +55,15 @@ public class MainViewController{
 
     @Autowired
     MainViewService viewService;
+    @Autowired
+    OpenViewsInformationContainer openViews;
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        UpdateTableEventDispatcher.register(this);
+    }
 
     @FXML
     public void initialize(){
@@ -99,36 +110,78 @@ public class MainViewController{
     }
 
     @FXML
-    protected void onAdd() throws IOException {
-        var loader = FXMLViewLoader.getView("TagManagerViewModel");
-
-        //load scene
-        Parent root = loader.load();
-        var tagManagerScene = new Scene(root);
-
-        //get controller
-        TagManagerController tagManagerController = loader.getController();
-        tagManagerController.init(
-                viewService.getCurrentPath(),
-                viewService.getCurrentIndex()
-        );
-
-        //new stage
-        var secondaryStage = new Stage();
-        secondaryStage.setScene(tagManagerScene);
-        secondaryStage.setTitle("Tag manager");
-
-        //make it a modal window
-        secondaryStage.initOwner(mainView.getScene().getWindow());
-        secondaryStage.show();
-
+    protected void onAdd() {
+        openTagManager();
         System.out.println("Add button clicked");
+    }
+
+    private void onShiftMPressed() {
+        openTagManager();
+        System.out.println("Shift + M pressed! Opening tag manager");
+    }
+
+    private void openTagManager(){
+        if(viewService.isOpen()) {
+            if (!openViews.getTagManager())
+                try {
+                    var loader = FXMLViewLoader.getView("TagManagerViewModel");
+
+                    //load scene
+                    Parent root = loader.load();
+                    var tagManagerScene = new Scene(root);
+
+                    //get controller
+                    TagManagerController tagManagerController = loader.getController();
+                    tagManagerController.init(viewService.getCurrentIndex());
+
+                    //new stage
+                    var secondaryStage = new Stage();
+                    secondaryStage.setScene(tagManagerScene);
+                    secondaryStage.setTitle("Tag manager");
+
+                    //make it a modal window
+                    secondaryStage.initOwner(mainView.getScene().getWindow());
+                    secondaryStage.show();
+                    openViews.openTagManager();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+        }else
+            FXDialogProvider.showErrorDialog("Tag manager error","No file is open!");
     }
 
     @FXML
     protected void onSettings() {
-        // Handle Settings action
+        openSettings();
         System.out.println("Settings button clicked");
+    }
+
+    private void onShiftSPressed() {
+        openSettings();
+        // Your code here
+    }
+
+    private void openSettings(){
+        if(!openViews.getTagManager())
+            try{
+                var loader = FXMLViewLoader.getView("SettingsViewModel");
+
+                //load scene
+                Parent root = loader.load();
+                var settingsScene = new Scene(root);
+
+                //new stage
+                var secondaryStage = new Stage();
+                secondaryStage.setScene(settingsScene);
+                secondaryStage.setTitle("Settings");
+
+                //make it a modal window
+                secondaryStage.initOwner(mainView.getScene().getWindow());
+                secondaryStage.show();
+                openViews.openSettings();
+            }catch (Exception e){
+                throw new RuntimeException(e);
+            }
     }
 
     @FXML
@@ -226,16 +279,6 @@ public class MainViewController{
         System.out.println("Period key pressed!");
     }
 
-    private void onShiftMPressed() {
-        System.out.println("Shift + M pressed!");
-        // Your code here
-    }
-
-    private void onShiftSPressed() {
-        System.out.println("Shift + S pressed!");
-        // Your code here
-    }
-
     private void onShiftEPressed() {
         System.out.println("Shift + E pressed!");
         // Your code here
@@ -269,5 +312,17 @@ public class MainViewController{
     private void onCtrlZPressed() {
         System.out.println("Ctrl + Z pressed!");
         // Your code here
+    }
+
+    @Override
+    public void updateTable(){
+        Platform.runLater(() -> {
+            tableView.setItems(viewService.displayCurrentTags());
+        });
+    }
+
+    @Override
+    public void changeLanguage() {
+
     }
 }

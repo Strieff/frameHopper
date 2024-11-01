@@ -42,7 +42,6 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
         undid = false;
     }
 
-
     public void undoAction(){
         if(!undid){
             ctx.getBean(FrameHopperView.class).putTagsOnFrame(currentFrameIndex,originalTags);

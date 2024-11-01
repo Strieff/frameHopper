@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import lombok.Getter;
+import lombok.Setter;
 
 public class TableEntry {
     private final BooleanProperty selected;
@@ -13,6 +14,9 @@ public class TableEntry {
 
     @Getter
     private final int id;
+    @Getter
+    @Setter
+    private boolean hasListener = false;
 
     public TableEntry(int id,Boolean selected,String name, Double value) {
         this.id = id;

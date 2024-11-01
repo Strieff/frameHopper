@@ -108,8 +108,21 @@ public class MainViewService {
         return info.getVideo().getPath();
     }
 
+    //TODO: remove later, needed for existing infrastructure
+    public String getCurrentName() {
+        return info.getVideo().getName();
+    }
+
     public List<Tag> getTagsOnFrame(){
         return info.getTagsOnFrame();
+    }
+
+    public void setCurrentTags(List<Tag> currentTags) {
+        info.setCurrentTags(currentTags);
+    }
+
+    public boolean isOpen() {
+        return info!=null;
     }
 
     //scale image to fit the application window
@@ -170,6 +183,7 @@ public class MainViewService {
         );
     }
 
+
     //class to hold necessary variables
     private static class InformationContainer{
         @Getter
@@ -213,6 +227,10 @@ public class MainViewService {
 
         public List<Tag> getTagsOnFrame(){
             return tagsOnFrameOnVideo.get(currentIndex);
+        }
+
+        public void setCurrentTags(List<Tag> tags){
+            tagsOnFrameOnVideo.put(currentIndex,tags);
         }
     }
 }
