@@ -117,10 +117,17 @@ public class MainViewService {
         return info.getTagsOnFrame();
     }
 
+    public int getCurrentId() {
+        return info != null ? info.getVideo().getId() : -1;
+    }
+
+    public Video getCurrentVideo() {
+        return info != null ? info.getVideo() : null;
+    }
+
     public void setCurrentTags(List<Tag> currentTags) {
         info.setCurrentTags(currentTags);
     }
-
     public boolean isOpen() {
         return info!=null;
     }
@@ -149,6 +156,7 @@ public class MainViewService {
     }
 
     //jump method
+
     public ImageView jump(int i){
         if(i-1>=0 && i<info.getVideo().getTotalFrames()){
             info.jump(i);
@@ -181,6 +189,16 @@ public class MainViewService {
                 info.getVideo().getTotalFrames(),
                 info.getVideo().getFrameRate()
         );
+    }
+
+    public void deleteTag(Tag tag) {
+        if(isOpen())
+            info.removeTag(tag);
+    }
+
+    public void deleteTags(List<Tag> tags) {
+        if(isOpen())
+            info.removeTags(tags);
     }
 
 
@@ -231,6 +249,16 @@ public class MainViewService {
 
         public void setCurrentTags(List<Tag> tags){
             tagsOnFrameOnVideo.put(currentIndex,tags);
+        }
+
+        public void removeTag(Tag t){
+            for(var tags: tagsOnFrameOnVideo.values())
+                tags.remove(t);
+        }
+
+        public void removeTags(List<Tag> tags) {
+            for(var list : tagsOnFrameOnVideo.values())
+                list.removeAll(tags);
         }
     }
 }

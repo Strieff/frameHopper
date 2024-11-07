@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.VideoDetails.VideoManagementDetailsController">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 0 15 15;">
+            <Label text="Path:" />
+            <TextArea fx:id="filePathField" editable="false" maxHeight="35" prefWidth="300" wrapText="true" />
+            <Button fx:id="changeButton" prefHeight="37.0" prefWidth="57.0" text="Change">
+                <HBox.margin>
+                    <Insets right="10.0" />
+                </HBox.margin>
+            </Button>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="15" style="-fx-padding: 15 0 15 15;">
+            <HBox alignment="CENTER">
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Video Data" />
+            </HBox>
+            <Label fx:id="frameAmountLabel" text="Frame amount: " />
+            <Label fx:id="frameRateLabel" text="Framerate: " />
+            <Label fx:id="durationLabel" text="Duration: " />
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" spacing="10" style="-fx-padding: 15;">
+            <Button fx:id="closeButton" prefHeight="25.0" prefWidth="175.0" text="Close" />
+        </HBox>
+    </bottom>
+</BorderPane>

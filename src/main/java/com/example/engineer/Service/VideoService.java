@@ -68,6 +68,10 @@ public class VideoService {
         return videoRepository.save(video);
     }
 
+    public boolean exists(String pathOfNewPath) {
+        return getByPath(pathOfNewPath) != null;
+    }
+
     @Transactional
     public void deleteVideo(Integer id){
         var toDelete = videoRepository.findById(id).orElse(null);
@@ -96,8 +100,5 @@ public class VideoService {
 
         deleteVideo(video.getId());
     }
-
-
-
 
 }

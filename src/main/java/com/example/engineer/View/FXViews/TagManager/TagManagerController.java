@@ -63,13 +63,10 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     @Autowired
     OpenViewsInformationContainer openViews;
 
-    @PostConstruct
-    public void init() {
-        UpdateTableEventDispatcher.register(this);
-    }
-
     @FXML
     public void initialize() {
+        UpdateTableEventDispatcher.register(this);
+
         selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
         selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn((Integer index) -> {
             TableEntry entry = codeTable.getItems().get(index);

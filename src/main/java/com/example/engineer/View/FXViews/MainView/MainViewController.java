@@ -8,7 +8,7 @@ import com.example.engineer.View.Elements.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.example.engineer.View.FXViews.TagManager.TagManagerController;
-import jakarta.annotation.PostConstruct;
+import com.example.engineer.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -60,13 +60,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    @PostConstruct
-    public void init() {
-        UpdateTableEventDispatcher.register(this);
-    }
-
     @FXML
     public void initialize(){
+        UpdateTableEventDispatcher.register(this);
+
         dropLabel.setOnDragOver(this::handleDragOver);
         dropLabel.setOnDragDropped(this::handleDragDropped);
 
@@ -147,7 +144,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                     throw new RuntimeException(e);
                 }
         }else
-            FXDialogProvider.showErrorDialog("Tag manager error","No file is open!");
+            FXDialogProvider.errorDialog("Tag manager error","No file is open!");
     }
 
     @FXML
@@ -162,7 +159,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     }
 
     private void openSettings(){
-        if(!openViews.getTagManager())
+        if(!openViews.getSettings())
             try{
                 var loader = FXMLViewLoader.getView("SettingsViewModel");
 
@@ -180,7 +177,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 secondaryStage.show();
                 openViews.openSettings();
             }catch (Exception e){
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
     }
 
@@ -235,7 +232,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     }
 
     //jump frames
-    //TODO: finish
     @FXML
     protected void onJumpToFrame() {
         if(isValidNumber()){
@@ -245,9 +241,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             tableView.setItems(viewService.displayCurrentTags());
             statusLabel.setText(viewService.displayCurrentInfo());
             System.out.println("Jump to frame: " + toJump);
-        }else{
-            //TODO: Error Message
-        }
+        }else
+            FXDialogProvider.errorDialog("Invalid frame");
     }
 
     //check if number is valid
@@ -289,9 +284,37 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         // Your code here
     }
 
+    //OPEN VIDEO DETAILS
     private void onShiftDPressed() {
-        System.out.println("Shift + D pressed!");
-        // Your code here
+       if(viewService.isOpen())
+            try{
+                var loader = FXMLViewLoader.getView("VideoManagementDetailsViewModel");
+
+                //load scene
+                Parent root = loader.load();
+                var videoDetailsScene = new Scene(root);
+
+                //get controller
+                VideoManagementDetailsController videoController = loader.getController();
+                var vid = viewService.getCurrentVideo();
+                if(vid != null)
+                    videoController.init(vid);
+                else
+                    throw new Exception("No video is open");
+
+                //new stage
+                var secondaryStage = new Stage();
+                secondaryStage.setScene(videoDetailsScene);
+                secondaryStage.setTitle("Video Details");
+
+                //make it a modal window
+                secondaryStage.initOwner(mainView.getScene().getWindow());
+                secondaryStage.show();
+            }catch (Exception e){
+                FXDialogProvider.errorDialog(e.getMessage());
+            }
+       else
+           FXDialogProvider.errorDialog("No video is open");
     }
 
     private void onCtrlVPressed() {
@@ -317,7 +340,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     @Override
     public void updateTable(){
         Platform.runLater(() -> {
-            tableView.setItems(viewService.displayCurrentTags());
+            if(viewService.isOpen())
+                tableView.setItems(viewService.displayCurrentTags());
         });
     }
 
