@@ -30,6 +30,10 @@ public class TagService {
                         .build());
     }
 
+    public Tag getTag(int id){
+        return tagRepository.findById((double) id).orElse(null);
+    }
+
     public Tag editTag(Integer id,String name,Double value,String description){
         return tagRepository.save(Tag.builder()
                         .id(id)

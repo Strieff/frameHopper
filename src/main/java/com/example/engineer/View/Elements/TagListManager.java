@@ -10,6 +10,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -74,6 +75,15 @@ public class TagListManager {
     public void addTag(String name, double value, String description){
         Tag t = tagService.createTag(name,value,description);
         tagList.add(t);
+    }
+
+    public void addTags(List<Tag> toAdd){
+        var created = new ArrayList<Tag>();
+
+        for(var t : toAdd)
+            created.add(tagService.createTag(t.getName(),t.getValue(),t.getDescription()));
+
+        tagList.addAll(created);
     }
 
     public void editTag(int id,String name, double value, String description,boolean hidden){

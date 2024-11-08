@@ -35,7 +35,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     @FXML
     private TextField frameInput;
     @FXML
-    private Label dropLabel;
+    private Label dropLabel, statusLabel;
     @FXML
     private TableView<TableEntry> tableView;
     @FXML
@@ -43,13 +43,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     @FXML
     private TableColumn<TableEntry,Double> valueColumn;
     @FXML
-    private Label statusLabel;
-    @FXML
-    private ImageView addButtonIcon;
-    @FXML
-    private ImageView settingsButtonIcon;
-    @FXML
-    private ImageView exportButtonIcon;
+    private ImageView addButtonIcon, settingsButtonIcon, exportButtonIcon;
     @FXML
     private BorderPane mainView;
 
@@ -99,6 +93,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         });
     }
 
+    //HANDLE KEY BINDS
     private void handleKeyPressed(KeyEvent event){
         keyActions.keySet().stream()
                 .filter(k -> k.match(event))
@@ -106,6 +101,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 .ifPresent(k -> keyActions.get(k).run());
     }
 
+    //OPEN TAG MANAGER
     @FXML
     protected void onAdd() {
         openTagManager();
@@ -147,6 +143,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             FXDialogProvider.errorDialog("Tag manager error","No file is open!");
     }
 
+    //OPEN SETTINGS
     @FXML
     protected void onSettings() {
         openSettings();
@@ -181,10 +178,39 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             }
     }
 
+    //OPEN EXPORT
     @FXML
     protected void onExport() {
-        // Handle Export action
+        openExport();
         System.out.println("Export button clicked");
+    }
+
+    private void onShiftEPressed() {
+        openExport();
+        System.out.println("Shift + E pressed!");
+    }
+
+    private void openExport(){
+        if(!openViews.getExport())
+            try {
+                var loader = FXMLViewLoader.getView("ExportViewModel");
+
+                //load scene
+                Parent root = loader.load();
+                var exportScene = new Scene(root);
+
+                //new stage
+                var secondaryStage = new Stage();
+                secondaryStage.setScene(exportScene);
+                secondaryStage.setTitle("Export");
+
+                //make it a modal window
+                secondaryStage.initOwner(mainView.getScene().getWindow());
+                secondaryStage.show();
+                openViews.openExport();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
     }
 
     //drag event
@@ -272,11 +298,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
         System.out.println("Period key pressed!");
-    }
-
-    private void onShiftEPressed() {
-        System.out.println("Shift + E pressed!");
-        // Your code here
     }
 
     private void onShiftLPressed() {
