@@ -3,6 +3,7 @@ package com.example.engineer.View.FXViews.TagManager;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
 import javafx.application.Platform;
@@ -64,6 +65,8 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     @FXML
     public void initialize() {
+        LanguageManager.register(this);
+
         UpdateTableEventDispatcher.register(this);
 
         selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
@@ -106,10 +109,11 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         Platform.runLater(() -> {
             var stage = (Stage) tagManagerView.getScene().getWindow();
             stage.setOnCloseRequest(e -> {
+                LanguageManager.unregister(this);
+                UpdateTableEventDispatcher.unregister(this);
                 openViews.closeTagManager();
                 viewService.close();
             });
-            UpdateTableEventDispatcher.unregister(this);
             tagManagerView.requestFocus();
         });
     }
@@ -154,6 +158,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     private void handleCancel() {
         UpdateTableEventDispatcher.unregister(this);
         viewService.close();
+        LanguageManager.unregister(this);
         var stage = (Stage) tagManagerView.getScene().getWindow();
         stage.close();
         openViews.closeTagManager();
@@ -164,6 +169,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     private void handleSave() {
         viewService.save();
         viewService.close();
+        LanguageManager.unregister(this);
         var stage = (Stage) tagManagerView.getScene().getWindow();
         stage.close();
         openViews.closeTagManager();

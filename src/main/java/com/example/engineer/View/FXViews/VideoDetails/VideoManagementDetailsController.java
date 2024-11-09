@@ -1,6 +1,9 @@
 package com.example.engineer.View.FXViews.VideoDetails;
 
 import com.example.engineer.Model.Video;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -20,7 +23,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class VideoManagementDetailsController {
+public class VideoManagementDetailsController implements LanguageChangeListener {
     @FXML
     private TextArea filePathField;
     @FXML
@@ -44,6 +47,8 @@ public class VideoManagementDetailsController {
 
     @FXML
     public void initialize() {
+        LanguageManager.register(this);
+
         // Set button actions
         changeButton.setOnAction(event -> changePath());
         closeButton.setOnAction(event -> closeWindow());
@@ -52,6 +57,11 @@ public class VideoManagementDetailsController {
 
         //add key binds
         videoDetailsView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+
+        Platform.runLater(() -> {
+            var stage = (Stage) videoDetailsView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> LanguageManager.unregister(this));
+        });
     }
 
     //HANDLE KEY BINDS
@@ -80,7 +90,13 @@ public class VideoManagementDetailsController {
     }
 
     private void closeWindow() {
+        LanguageManager.unregister(this);
         Stage stage = (Stage) closeButton.getScene().getWindow();
         stage.close();
+    }
+
+    @Override
+    public void changeLanguage() {
+
     }
 }

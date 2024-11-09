@@ -7,6 +7,8 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageEntry;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.example.engineer.View.FXViews.TagDetails.TagDetailsController;
@@ -53,6 +55,8 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
     private BorderPane settingsView;
     @FXML
     private CheckBox showHiddenTagsCheckBox, openRecentCheckBox, languageExportCheckBox;
+    @FXML
+    private ComboBox<LanguageEntry> languageBox;
 
     @Autowired
     SettingsService viewService;
@@ -66,6 +70,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
 
     public void initialize() {
         UpdateTableEventDispatcher.register(this);
+        LanguageManager.register(this);
 
         //set up multiselect
         codeTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -151,16 +156,28 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         // Add data to the TableView
         codeTable.setItems(viewService.getExistingTags());
 
+        //language box
+        languageBox.getItems().addAll(viewService.getLanguages());
+        languageBox.setCellFactory(cb -> new LanguageCell());
+        languageBox.setButtonCell(new LanguageCell());
+        languageBox.getSelectionModel().select(viewService.getCurrentLanguage());
+        languageBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null) {
+                var languageCode = newValue.getCode();
+                System.out.println(languageCode);
+            }
+        });
+
         //kye binds
         keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onShiftSPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.SHIFT_DOWN), this::onShiftTPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.SHIFT_DOWN), this::onShiftAPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.O, KeyCombination.SHIFT_DOWN), this::onShiftMPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.U, KeyCombination.SHIFT_DOWN), this::onShiftUPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.H, KeyCombination.SHIFT_DOWN), this::onShiftHPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.SHIFT_DOWN), this::onShiftXPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onShiftLPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN), this::onCtrlMPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN), this::onCtrlUPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN), this::onCtrlHPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
 
         //add key binds
         settingsView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
@@ -169,6 +186,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
             var stage = (Stage) settingsView.getScene().getWindow();
             stage.setOnCloseRequest(e -> {
                 UpdateTableEventDispatcher.unregister(this);
+                LanguageManager.unregister(this);
                 openViews.closeSettings();
                 viewService.close();
             });
@@ -231,7 +249,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         loadTags();
     }
 
-    private void onShiftMPressed() {
+    private void onCtrlMPressed() {
         loadTags();
     }
 
@@ -250,7 +268,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         hideTags();
     }
 
-    private void onShiftHPressed(){
+    private void onCtrlHPressed(){
         hideTags();
     }
 
@@ -272,7 +290,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         unhideTags();
     }
 
-    private void onShiftUPressed(){
+    private void onCtrlUPressed(){
         unhideTags();
     }
 
@@ -299,7 +317,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         deleteTags();
     }
 
-    private void onShiftXPressed(){
+    private void onCtrlXPressed(){
         deleteTags();
     }
 

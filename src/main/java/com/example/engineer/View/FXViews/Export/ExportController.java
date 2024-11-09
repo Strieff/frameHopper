@@ -4,6 +4,8 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -23,7 +25,7 @@ import java.util.*;
 
 @Component
 @Scope("prototype")
-public class ExportController {
+public class ExportController implements LanguageChangeListener {
     @FXML
     private TableView<TableEntry> videoTable;
     @FXML
@@ -52,6 +54,8 @@ public class ExportController {
 
     @FXML
     public void initialize() {
+        LanguageManager.register(this);
+
         videoTable.setItems(viewService.getVideos());
 
         selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
@@ -152,6 +156,7 @@ public class ExportController {
 
     //HANDLE CLOSE
     private void handleClose(){
+        LanguageManager.unregister(this);
         var stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
         openViews.closeExport();
@@ -209,5 +214,10 @@ public class ExportController {
         }
 
         FXDialogProvider.messageDialog("EXPORT COMPLETE");
+    }
+
+    @Override
+    public void changeLanguage() {
+
     }
 }

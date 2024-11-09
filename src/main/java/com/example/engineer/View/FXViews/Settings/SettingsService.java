@@ -5,11 +5,15 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
+import com.example.engineer.View.Elements.Language.LanguageEntry;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
 import com.example.engineer.View.FXViews.MainView.MainViewService;
+import jakarta.annotation.PostConstruct;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +34,19 @@ public class SettingsService {
     MainViewService mainViewService;
     @Autowired
     private VideoService videoService;
+    @Autowired
+    LanguageManager languageManager;
+
+    @Getter
+    private List<LanguageEntry> languages = new ArrayList<>();
+
+    @PostConstruct
+    public void init() {
+        var languageMap = languageManager.getLanguageMap();
+        for(var e : languageMap.keySet())
+            languages.add(new LanguageEntry(e, languageMap.get(e)));
+        System.out.println(languages);
+    }
 
     public void close() {
 
@@ -133,5 +150,12 @@ public class SettingsService {
     public void changeShowHidden(boolean checked){
         userSettings.setShowHidden(checked);
         UpdateTableEventDispatcher.fireEvent();
+    }
+
+    public LanguageEntry getCurrentLanguage() {
+        return languages.stream()
+                .filter(e -> e.getCode().equals(userSettings.getLanguage()))
+                .findFirst()
+                .orElse(null);
     }
 }

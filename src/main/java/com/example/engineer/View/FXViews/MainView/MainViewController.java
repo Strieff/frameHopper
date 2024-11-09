@@ -5,6 +5,7 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.example.engineer.View.FXViews.TagManager.TagManagerController;
@@ -58,6 +59,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     @FXML
     public void initialize(){
         UpdateTableEventDispatcher.register(this);
+        LanguageManager.register(this);
 
         dropLabel.setOnDragOver(this::handleDragOver);
         dropLabel.setOnDragDropped(this::handleDragDropped);

@@ -3,7 +3,10 @@ package com.example.engineer.View.FXViews.TagDetails;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -17,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class TagDetailsController {
+public class TagDetailsController implements LanguageChangeListener {
     @FXML
     private TextField nameField;
     @FXML
@@ -40,6 +43,7 @@ public class TagDetailsController {
 
     @FXML
     public void initialize() {
+        LanguageManager.register(this);
         // Button actions
         cancelButton.setOnAction(event -> closeWindow());
         hideButton.setOnAction(event -> toggleHide());
@@ -50,6 +54,11 @@ public class TagDetailsController {
                 FXDialogProvider.errorDialog(e.getMessage());
             }
 
+        });
+
+        Platform.runLater(() -> {
+            var stage = (Stage) saveButton.getScene().getWindow();
+            stage.setOnCloseRequest(e -> LanguageManager.unregister(this));
         });
     }
 
@@ -84,8 +93,14 @@ public class TagDetailsController {
     }
 
     private void closeWindow() {
+        LanguageManager.unregister(this);
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
+    }
+
+    @Override
+    public void changeLanguage() {
+
     }
 
     private static class InformationContainer{

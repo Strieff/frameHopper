@@ -6,6 +6,8 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXRestartResolver;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.FXViews.MainView.MainViewService;
 import com.example.engineer.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
@@ -37,7 +39,7 @@ import java.util.stream.IntStream;
 
 @Component
 @Scope("prototype")
-public class VideoManagementListController {
+public class VideoManagementListController implements LanguageChangeListener {
     @FXML
     private TableView<TableEntry> codeTable;
     @FXML
@@ -61,6 +63,8 @@ public class VideoManagementListController {
     private VideoService videoService;
 
     public void initialize() {
+        LanguageManager.register(this);
+
         // Set up columns
         pathColumn.setCellValueFactory(new PropertyValueFactory<>("path"));
 
@@ -141,7 +145,10 @@ public class VideoManagementListController {
 
         Platform.runLater(() -> {
             var stage = (Stage) codeTable.getScene().getWindow();
-            stage.setOnCloseRequest(e -> openViews.closeVideoList());
+            stage.setOnCloseRequest(e -> {
+                LanguageManager.unregister(this);
+                openViews.closeVideoList();
+            });
         });
     }
 
@@ -224,6 +231,11 @@ public class VideoManagementListController {
 
         if(id == mainViewService.getCurrentId())
             FXRestartResolver.reset();
+    }
+
+    @Override
+    public void changeLanguage() {
+
     }
 }
 

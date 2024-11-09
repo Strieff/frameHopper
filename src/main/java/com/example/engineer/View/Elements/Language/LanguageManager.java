@@ -19,21 +19,26 @@ public class LanguageManager implements ApplicationContextAware {
         ctx = applicationContext;
     }
 
-    private final List<LanguageChangeListener> listeners = new ArrayList<>();
+    private static final List<LanguageChangeListener> listeners = new ArrayList<>();
 
     //register event listeners
-    public void addListener(LanguageChangeListener listener) {
+    public static void register(LanguageChangeListener listener) {
         listeners.add(listener);
     }
 
+    //unregister event listener
+    public static void unregister(LanguageChangeListener listener) {
+        listeners.remove(listener);
+    }
+
     //method to fire event
-    private void fireLanguageChangeEvent(){
+    private static void fireLanguageChangeEvent(){
         for(LanguageChangeListener listener : listeners)
             listener.changeLanguage();
     }
 
     //changes language
-    public void changeLanguage(String code) {
+    public static void changeLanguage(String code) {
         try {
             Dictionary.setDictionary(code);
             fireLanguageChangeEvent();

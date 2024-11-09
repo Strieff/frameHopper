@@ -39,7 +39,7 @@
         <VBox alignment="TOP_CENTER" prefWidth="147.0" spacing="10" BorderPane.alignment="CENTER">
             <!-- Language ComboBox at the top -->
             <VBox alignment="CENTER" spacing="5">
-                <ComboBox fx:id="languageBox" prefHeight="22.0" prefWidth="100" promptText="English" />
+                <ComboBox fx:id="languageBox" prefHeight="25.0" prefWidth="130.0" promptText="English" />
             <padding>
                <Insets bottom="10.0" top="10.0" />
             </padding>

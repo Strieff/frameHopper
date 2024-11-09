@@ -1,6 +1,8 @@
 package com.example.engineer.View.FXViews.CreateTag;
 
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.Language.LanguageChangeListener;
+import com.example.engineer.View.Elements.Language.LanguageManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class CreateTagController {
+public class CreateTagController implements LanguageChangeListener {
 
     @FXML
     private TextField nameField;
@@ -34,13 +36,18 @@ public class CreateTagController {
 
     @FXML
     public void initialize() {
+        LanguageManager.register(this);
+
         // Button actions
         cancelButton.setOnAction(event -> closeWindow());
         saveButton.setOnAction(event -> saveTag());
 
         Platform.runLater(() -> {
             var stage = (Stage) nameField.getScene().getWindow();
-            stage.setOnCloseRequest(e -> openViews.closeCreateTag());
+            stage.setOnCloseRequest(e -> {
+                LanguageManager.unregister(this);
+                openViews.closeCreateTag();
+            });
         });
     }
 
@@ -58,5 +65,10 @@ public class CreateTagController {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
         openViews.closeCreateTag();
+    }
+
+    @Override
+    public void changeLanguage() {
+
     }
 }
