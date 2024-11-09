@@ -5,7 +5,7 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.DBActions.TagManagerAction;
 import com.example.engineer.View.Elements.TagListManager;
-import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
+import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -38,7 +38,7 @@ public class RemoveRecentAction extends ActionHandler implements ApplicationCont
             List<Tag> temp = new ArrayList<>(existingTags);
             existingTags.removeAll(removeTags);
             ctx.getBean(UndoRedoAction.class).setUp(temp,existingTags,currentFrameIndex, video.getName());
-            ctx.getBean(FrameHopperView.class).displayTagList();
+            UpdateTableEventDispatcher.fireEvent();
             new TagManagerAction(frameService,existingTags,currentFrameIndex,video.getName()).run();
         }
     }

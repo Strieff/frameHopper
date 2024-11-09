@@ -3,8 +3,9 @@ package com.example.engineer.View.Elements.actions;
 import com.example.engineer.DBActions.TagManagerAction;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.FrameService;
-import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
+import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -21,11 +22,13 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
     }
 
     boolean undid;
-
-    int currentFrameIndex;
     String videoName;
 
+    @Getter
+    int currentFrameIndex;
+    @Getter
     List<Tag> originalTags;
+    @Getter
     List<Tag> currentTags;
 
     @PostConstruct
@@ -44,8 +47,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
 
     public void undoAction(){
         if(!undid){
-            ctx.getBean(FrameHopperView.class).putTagsOnFrame(currentFrameIndex,originalTags);
-            ctx.getBean(FrameHopperView.class).displayTagList();
+            UpdateTableEventDispatcher.fireEvent();
             new TagManagerAction(frameService,originalTags,currentFrameIndex,videoName).run();
 
             flipState();
@@ -54,8 +56,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
 
      public void redoAction(){
          if(undid){
-             ctx.getBean(FrameHopperView.class).putTagsOnFrame(currentFrameIndex,currentTags);
-             ctx.getBean(FrameHopperView.class).displayTagList();
+             UpdateTableEventDispatcher.fireEvent();
              new TagManagerAction(frameService,currentTags,currentFrameIndex,videoName).run();
 
              flipState();

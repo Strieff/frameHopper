@@ -8,6 +8,9 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.Language.Dictionary;
+import com.example.engineer.View.Elements.actions.PasteRecentAction;
+import com.example.engineer.View.Elements.actions.RemoveRecentAction;
+import com.example.engineer.View.Elements.actions.UndoRedoAction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -22,6 +25,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +33,17 @@ import java.util.Map;
 @Component
 public class MainViewService {
     @Autowired
-    VideoService videoService;
+    private VideoService videoService;
     @Autowired
-    FrameService frameService;
+    private FrameService frameService;
     @Autowired
-    FrameProcessorRequestManager requestManager;
+    private FrameProcessorRequestManager requestManager;
+    @Autowired
+    private PasteRecentAction pasteRecentAction;
+    @Autowired
+    private RemoveRecentAction removeRecentAction;
+    @Autowired
+    private UndoRedoAction undoRedoAction;
 
     private InformationContainer info;
 
@@ -202,6 +212,36 @@ public class MainViewService {
             info.removeTags(tags);
     }
 
+    //HANDLE ACTIONS
+    public void pasteRecent(){
+        if (info.getTagsOnFrame() == null)
+            info.setCurrentTags(new ArrayList<>());
+
+        pasteRecentAction.performAction(
+                info.getTagsOnFrame(),
+                info.getCurrentIndex(),
+                info.getVideo()
+        );
+    }
+
+    public void removeRecent(){
+        removeRecentAction.performAction(
+                info.getTagsOnFrame() == null ? new ArrayList<>() : info.getTagsOnFrame(),
+                info.getCurrentIndex(),
+                info.getVideo()
+        );
+    }
+
+    public void undo(){
+        undoRedoAction.undoAction();
+        info.setTagsOnFrameOnVideo(undoRedoAction.getOriginalTags(), undoRedoAction.getCurrentFrameIndex());
+    }
+
+    public void redo(){
+        undoRedoAction.redoAction();
+        info.setTagsOnFrameOnVideo(undoRedoAction.getCurrentTags(),undoRedoAction.getCurrentFrameIndex());
+    }
+
     //class to hold necessary variables
     private static class InformationContainer{
         @Getter
@@ -249,6 +289,10 @@ public class MainViewService {
 
         public void setCurrentTags(List<Tag> tags){
             tagsOnFrameOnVideo.put(currentIndex,tags);
+        }
+
+        public void setTagsOnFrameOnVideo(List<Tag> tags,int index){
+            tagsOnFrameOnVideo.put(index,tags);
         }
 
         public void removeTag(Tag t){

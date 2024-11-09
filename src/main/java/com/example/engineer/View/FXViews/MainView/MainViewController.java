@@ -349,28 +349,32 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
            FXDialogProvider.errorDialog("No video is open");
     }
 
-    //TODO
+    //PASTE RECENT
     private void onCtrlVPressed() {
+        if(viewService.isOpen())
+            viewService.pasteRecent();
         System.out.println("Ctrl + V pressed!");
-        // Your code here
     }
 
-    //TODO
+    //REMOVE RECENT
     private void onCtrlXPressed() {
+        if(viewService.isOpen())
+            viewService.removeRecent();
         System.out.println("Ctrl + X pressed!");
-        // Your code here
     }
 
-    //TODO
+    //REDO ACTION
     private void onCtrlYPressed() {
+        if(viewService.isOpen())
+            viewService.redo();
         System.out.println("Ctrl + Y pressed!");
-        // Your code here
     }
 
-    //TODO
+    //UNDO ACTION
     private void onCtrlZPressed() {
+        if(viewService.isOpen())
+            viewService.undo();
         System.out.println("Ctrl + Z pressed!");
-        // Your code here
     }
 
     @Override
