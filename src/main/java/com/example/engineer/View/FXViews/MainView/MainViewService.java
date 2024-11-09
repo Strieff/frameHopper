@@ -58,7 +58,8 @@ public class MainViewService {
         info = new InformationContainer(cache,label,video,videoFile,frameService);
     }
 
-    //get current frame
+
+    //GETTERS
     public ImageView displayCurrentFrame(){
         var cache = info.getCache();
         var imageLabel = info.getLabel();
@@ -87,7 +88,6 @@ public class MainViewService {
         return imageView;
     }
 
-    //get current tags
     public ObservableList<TableEntry> displayCurrentTags(){
         var tagsDTOList = info.getTagsOnFrame();
 
@@ -99,7 +99,6 @@ public class MainViewService {
         return data;
     }
 
-    //get current index
     public int getCurrentIndex(){
         return info.getCurrentIndex();
     }
@@ -128,6 +127,7 @@ public class MainViewService {
     public void setCurrentTags(List<Tag> currentTags) {
         info.setCurrentTags(currentTags);
     }
+
     public boolean isOpen() {
         return info!=null;
     }
@@ -156,7 +156,6 @@ public class MainViewService {
     }
 
     //jump method
-
     public ImageView jump(int i){
         if(i-1>=0 && i<info.getVideo().getTotalFrames()){
             info.jump(i);
@@ -182,6 +181,7 @@ public class MainViewService {
         }
     }
 
+    //GET CURRENT INFORMATION
     public String displayCurrentInfo() {
         return String.format(
                 Dictionary.get("main.fileInfo"),
@@ -191,6 +191,7 @@ public class MainViewService {
         );
     }
 
+    //DELETE TAGS FROM FRAME
     public void deleteTag(Tag tag) {
         if(isOpen())
             info.removeTag(tag);
@@ -200,7 +201,6 @@ public class MainViewService {
         if(isOpen())
             info.removeTags(tags);
     }
-
 
     //class to hold necessary variables
     private static class InformationContainer{

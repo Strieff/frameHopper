@@ -32,6 +32,7 @@ public class UserSettingsManager{
 
     public void setOpenRecent(boolean openRecent){
         userSettings.setOpenRecent(openRecent);
+        save();
     }
 
     public void setExportRecent(String path){
@@ -40,6 +41,7 @@ public class UserSettingsManager{
 
     public void setUseDefaultLanguage(boolean useDefaultLanguage){
         userSettings.setUseDefaultLanguage(useDefaultLanguage);
+        save();
     }
 
     public void setLanguage(String language){

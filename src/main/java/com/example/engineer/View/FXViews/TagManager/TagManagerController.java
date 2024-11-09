@@ -133,6 +133,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
                 .ifPresent(k -> keyActions.get(k).run());
     }
 
+    //CLOSE TAG MANAGER
     private void onShiftMPressed() {
         var stage = (Stage) tagManagerView.getScene().getWindow();
         stage.close();
@@ -140,14 +141,17 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         System.out.println("Shift + M pressed! Closing tag manager");
     }
 
+    //TODO
     private void handleNameSort(){
         System.out.println("sort by name");
     }
 
+    //TODO
     private void handleValueSort(){
         System.out.println("Sort by value");
     }
 
+    //HANDLE CANCEL
     private void handleCancel() {
         UpdateTableEventDispatcher.unregister(this);
         viewService.close();
@@ -157,6 +161,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         System.out.println("Cancel button clicked");
     }
 
+    //HANDLE SAVE
     private void handleSave() {
         viewService.save();
         viewService.close();
@@ -166,6 +171,8 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         System.out.println("Save button clicked");
     }
 
+    //HANDLE SEARCH
+    //TODO
     private void handleSearch() {
         String searchText = searchField.getText();
         System.out.println("Searching for: " + searchText);

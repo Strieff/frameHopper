@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UpdateTableEventDispatcher {
-    private static final List<UpdateTableListener> listeners = new ArrayList<UpdateTableListener>();
+    private static final List<UpdateTableListener> listeners = new ArrayList<>();
 
     public static void register(UpdateTableListener listener) {
         listeners.add(listener);
@@ -18,5 +18,4 @@ public class UpdateTableEventDispatcher {
         for(UpdateTableListener listener : listeners)
             listener.updateTable();
     }
-
 }

@@ -1,7 +1,6 @@
 package com.example.engineer.View.Elements;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.IOException;
@@ -9,7 +8,7 @@ import java.io.IOException;
 public class FXMLViewLoader {
     private static FXMLViewLoader instance;
 
-    private ConfigurableApplicationContext context;
+    private final ConfigurableApplicationContext context;
 
     public FXMLViewLoader(ConfigurableApplicationContext context) {
         this.context = context;

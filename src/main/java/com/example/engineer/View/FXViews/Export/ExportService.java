@@ -37,7 +37,6 @@ public class ExportService {
         return data;
     }
 
-
     public ObservableList<TableEntry> getFiltered(ObservableList<TableEntry> items, String text) {
         return items.filtered(item -> item.getName().toLowerCase().contains(text.toLowerCase()));
     }

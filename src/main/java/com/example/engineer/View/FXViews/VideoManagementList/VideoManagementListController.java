@@ -1,9 +1,7 @@
 package com.example.engineer.View.FXViews.VideoManagementList;
 
-import com.example.engineer.View.Elements.FXDialogProvider;
-import com.example.engineer.View.Elements.FXIconLoader;
-import com.example.engineer.View.Elements.FXMLViewLoader;
-import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.*;
 import com.example.engineer.View.FXViews.MainView.MainViewService;
 import com.example.engineer.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
@@ -31,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 @Component
 @Scope("prototype")
@@ -54,6 +53,8 @@ public class VideoManagementListController {
     OpenViewsInformationContainer openViews;
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
+    @Autowired
+    private VideoService videoService;
 
     public void initialize() {
         // Set up columns
@@ -128,8 +129,8 @@ public class VideoManagementListController {
 
         //kye binds
         keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onShiftLPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.SHIFT_DOWN), this::onShiftXPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
 
         //add key binds
         listView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
@@ -197,8 +198,13 @@ public class VideoManagementListController {
     }
 
     //DELETE VIDEO
-    private void onShiftXPressed() {
+    private void onCtrlXPressed() {
+        var selected = codeTable.getSelectionModel().getSelectedItem();
 
+        if(selected!=null){
+            deleteVideo(selected.getId());
+        }else
+            FXDialogProvider.errorDialog("No video selected");
     }
 
     private void onDelete(int id){
@@ -206,7 +212,14 @@ public class VideoManagementListController {
     }
 
     private void deleteVideo(int id){
+        if(FXDialogProvider.YesNoDialog("Do you want to delete: "+ videoService.getById(id).getName()+"?")) {
+            videoService.deleteVideo(id);
+            codeTable.getItems().remove(IntStream.range(0, codeTable.getItems().size()).filter(i -> codeTable.getItems().get(i).getId() == id).findFirst().orElse(-1));
+        }else
+            return;
 
+        if(id == mainViewService.getCurrentId())
+            FXRestartResolver.reset();
     }
 }
 

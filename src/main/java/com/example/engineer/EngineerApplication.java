@@ -3,13 +3,15 @@ package com.example.engineer;
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.FXDialogProvider;
 import com.example.engineer.View.Elements.FXMLViewLoader;
+import com.example.engineer.View.Elements.FileChooserProvider;
 import com.example.engineer.View.Elements.UserSettingsManager;
+import com.example.engineer.View.FXViews.MainView.MainViewController;
 import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
 import com.example.engineer.View.ViewModel.Settings.SettingsView;
 import com.example.engineer.View.ViewModel.TagManagerView.TagManagerView;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -19,7 +21,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
@@ -41,7 +42,8 @@ public class EngineerApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLViewLoader.getView("MainViewModel").load();
+        var loader =  FXMLViewLoader.getView("MainViewModel");
+        Parent root = loader.load();
         primaryStage.setTitle("FrameHopper");
         primaryStage.setScene(new Scene(root,1200,900));
         primaryStage.show();
@@ -53,7 +55,10 @@ public class EngineerApplication extends Application {
         closeLoadingWindow();
 
         if(context.getBean(UserSettingsManager.class).openRecent())
-            openRecent(context);
+            if(openRecent(context,primaryStage)){
+                MainViewController controller = loader.getController();
+                controller.openRecent(context.getBean(UserSettingsManager.class).getRecentPath());
+            }
     }
 
     @Override
@@ -71,42 +76,46 @@ public class EngineerApplication extends Application {
 
     }
 
-    private static void openRecent(ConfigurableApplicationContext context){
+    private static boolean openRecent(ConfigurableApplicationContext context,Stage stage){
         UserSettingsManager userSettings = context.getBean(UserSettingsManager.class);
 
         if(userSettings.getRecentPath() == null)
-            return;
+            return false;
 
-        int response = JOptionPane.showConfirmDialog(
-                null,
+        var openRecent = FXDialogProvider.YesNoDialog(
                 String.format("Recently opened: %s\nOpen recent?",userSettings.getRecentPath()),
-                "Open recent video",
-                JOptionPane.YES_NO_OPTION
+                "Open recent video"
         );
 
-        if (response == JOptionPane.YES_OPTION) {
-            File recentFile = new File(userSettings.getRecentPath());
-            if (recentFile.exists())
-                context.getBean(FrameHopperView.class).openRecentVideo(recentFile);
-            else
-                if(JOptionPane.showConfirmDialog(null,String.format("No file found: %s\nSet new path?",userSettings.getRecentPath())) == JOptionPane.YES_OPTION)
-                    reelPath(context,userSettings.getRecentPath());
+        if(openRecent){
+            var recentFile = new File(userSettings.getRecentPath());
+            if(!recentFile.exists()) {
+                if (FXDialogProvider.YesNoDialog(String.format("No file found: %s\nSet new path?", userSettings.getRecentPath())))
+                    reelPath(context, userSettings.getRecentPath(), stage);
                 else
-                    JOptionPane.showMessageDialog(null, "No recent video found");
+                    return false;
+            }
+
+            return true;
         }
 
+        return false;
     }
 
-    private static void reelPath(ConfigurableApplicationContext context,String oldPath){
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    private static void reelPath(ConfigurableApplicationContext context,String oldPath,Stage stage){
+        try {
+            var newPath = FileChooserProvider.videoFileChooser(stage);
+            if(newPath.isBlank())
+                throw new RuntimeException("No file selected");
 
-        String newPath = chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION ? chooser.getSelectedFile().getAbsolutePath() : null;
-        if (newPath != null) {
             VideoService videoService = context.getBean(VideoService.class);
             Video video = videoService.getByPath(oldPath);
             video.setPath(newPath);
-            videoService.saveVideo(video);
+            video = videoService.saveVideo(video);
+            UserSettingsManager userSettings = context.getBean(UserSettingsManager.class);
+            userSettings.setRecentPath(video.getPath());
+        } catch (Exception e) {
+            FXDialogProvider.errorDialog(e.getMessage());
         }
     }
 

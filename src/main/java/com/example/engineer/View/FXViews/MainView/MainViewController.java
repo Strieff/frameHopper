@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -229,32 +230,41 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             success = true;
             //get file
             var file = db.getFiles().get(0);
-            //get cache
-            var cache = viewService.setCache(file);
-            //get DB video
-            var video = viewService.getVideo(file);
 
-            //prepare necessary items
-            viewService.prepareVideo(
-                    cache,
-                    video,
-                    file,
-                    dropLabel
-            );
-
-            //display first frame and hide text
-            dropLabel.setGraphic(viewService.displayCurrentFrame());
-            dropLabel.setText("");
-
-            //display tags
-            tableView.setItems(viewService.displayCurrentTags());
-
-            //display data
-            statusLabel.setText(viewService.displayCurrentInfo());
+            prepareVideo(file);
         }
 
         event.setDropCompleted(success);
         event.consume();
+    }
+
+    public void openRecent(String path){
+        prepareVideo(new File(path));
+    }
+
+    public void prepareVideo(File file){
+        //get cache
+        var cache = viewService.setCache(file);
+        //get DB video
+        var video = viewService.getVideo(file);
+
+        //prepare necessary items
+        viewService.prepareVideo(
+                cache,
+                video,
+                file,
+                dropLabel
+        );
+
+        //display first frame and hide text
+        dropLabel.setGraphic(viewService.displayCurrentFrame());
+        dropLabel.setText("");
+
+        //display tags
+        tableView.setItems(viewService.displayCurrentTags());
+
+        //display data
+        statusLabel.setText(viewService.displayCurrentInfo());
     }
 
     //jump frames
@@ -300,6 +310,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         System.out.println("Period key pressed!");
     }
 
+    //TODO
     private void onShiftLPressed() {
         System.out.println("Shift + L pressed!");
         // Your code here
@@ -338,21 +349,25 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
            FXDialogProvider.errorDialog("No video is open");
     }
 
+    //TODO
     private void onCtrlVPressed() {
         System.out.println("Ctrl + V pressed!");
         // Your code here
     }
 
+    //TODO
     private void onCtrlXPressed() {
         System.out.println("Ctrl + X pressed!");
         // Your code here
     }
 
+    //TODO
     private void onCtrlYPressed() {
         System.out.println("Ctrl + Y pressed!");
         // Your code here
     }
 
+    //TODO
     private void onCtrlZPressed() {
         System.out.println("Ctrl + Z pressed!");
         // Your code here

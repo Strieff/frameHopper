@@ -1,6 +1,9 @@
 package com.example.engineer.View.FXViews.TagDetails;
 
 import com.example.engineer.Model.Tag;
+import com.example.engineer.View.Elements.FXDialogProvider;
+import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -30,6 +33,8 @@ public class TagDetailsController {
 
     @Autowired
     TagDetailsService viewService;
+    @Autowired
+    TagListManager tagList;
 
     private InformationContainer info;
 
@@ -38,7 +43,14 @@ public class TagDetailsController {
         // Button actions
         cancelButton.setOnAction(event -> closeWindow());
         hideButton.setOnAction(event -> toggleHide());
-        saveButton.setOnAction(event -> saveDetails());
+        saveButton.setOnAction(event -> {
+            try{
+                saveDetails();
+            }catch (Exception e){
+                FXDialogProvider.errorDialog(e.getMessage());
+            }
+
+        });
     }
 
     public void init(int id){
@@ -49,26 +61,27 @@ public class TagDetailsController {
         hideButton.setText(info.getTag().isDeleted() ? "Unhide" : "Hide");
     }
 
-    //TODO: change in DB
     private void toggleHide() {
         info.getTag().setDeleted(!info.getTag().isDeleted());
         hideButton.setText(info.getTag().isDeleted() ? "Unhide" : "Hide");
-        //TODO: fire event
+        tagList.changeHideStatus(info.getTag().getId(),info.getTag().isDeleted());
+        UpdateTableEventDispatcher.fireEvent();
     }
 
-    private void saveDetails() {
+    private void saveDetails() throws Exception{
         String name = nameField.getText();
         String value = valueField.getText();
-        String description = descriptionArea.getText();
+        String description = descriptionArea.getText().isBlank() ? "" : descriptionArea.getText();
 
-        //TODO: Handle save logic, e.g., updating database or data source
+        viewService.updateTag(
+                info.getTag(),
+                name,
+                value,
+                description
+        );
+
         closeWindow();
-
-        //TODO: fire event if there is any difference
-        System.out.println(info.getTag().toString());
     }
-
-
 
     private void closeWindow() {
         Stage stage = (Stage) cancelButton.getScene().getWindow();

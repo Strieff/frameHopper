@@ -1,0 +1,137 @@
+package com.example.engineer.View.FXViews.Settings;
+
+import com.example.engineer.Model.Tag;
+import com.example.engineer.Model.Video;
+import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
+import com.example.engineer.View.Elements.UserSettingsManager;
+import com.example.engineer.View.FXViews.MainView.MainViewService;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class SettingsService {
+    @Autowired
+    OpenViewsInformationContainer openViews;
+    @Autowired
+    TagListManager tagList;
+    @Autowired
+    UserSettingsManager userSettings;
+    @Autowired
+    MainViewService mainViewService;
+    @Autowired
+    private VideoService videoService;
+
+    public void close() {
+
+    }
+
+    public ObservableList<TableEntry> getExistingTags(){
+        ObservableList<TableEntry> data = FXCollections.observableArrayList();
+
+        for(var t : tagList.getTagList())
+            if(userSettings.ShowHidden() || !t.isDeleted())
+                data.add(new TableEntry(
+                        t.getId(),
+                        t.isDeleted() ? t.getName() + " (hidden)" : t.getName(),
+                        t.getValue(),
+                        t.getDescription()
+                ));
+
+        return data;
+    }
+
+    public void removeTag(int id){
+        var tag = tagList.getTag(id);
+        mainViewService.deleteTag(tag);
+        tagList.removeTag(id);
+        UpdateTableEventDispatcher.fireEvent();
+    }
+
+    public void removeTags(List<Integer> ids){
+        var tags = new ArrayList<Tag>();
+        for(var id : ids)
+            tags.add(tagList.getTag(id));
+
+        mainViewService.deleteTags(tags);
+        tagList.removeTags(tags);
+        UpdateTableEventDispatcher.fireEvent();
+    }
+
+    public void loadBatchTags(String path) {
+        try {
+            var list = new ArrayList<Tag>();
+            var lines = Files.readAllLines(Path.of(path));
+
+            for(var line : lines){
+                var data = line.split(";");
+
+                //check if tag is correct length
+                if(data.length<2 || data.length>3)
+                    throw new Exception("Invalid code format: "+line);
+
+                //check if name is not empty
+                if(data[0].isBlank())
+                    throw new Exception("Name of code cannot be empty");
+
+                //check if tag name exists
+                if(tagList.getTag(data[0]) != null)
+                    throw new Exception("Tag: " + data[0] + " already exists");
+
+                //check if value is an integer
+                try{
+                    Double.parseDouble(data[1]);
+                }catch(NumberFormatException e){
+                    throw new Exception("Value must be a proper number");
+                }
+
+                //check if value is a positive number
+                if(Double.parseDouble(data[1])<0)
+                    throw new Exception("Value must be a positive number or zero");
+
+                list.add(Tag.builder()
+                        .name(data[0])
+                        .value(Double.parseDouble(data[1]))
+                        .description(data.length == 3 ? data[2] : "")
+                        .build());
+            }
+
+            tagList.addTags(list);
+            UpdateTableEventDispatcher.fireEvent();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void hideTags(List<Integer> ids){
+        changeHiddenStatus(ids,true);
+    }
+
+    public void unhideTags(List<Integer> ids){
+        changeHiddenStatus(ids,false);
+    }
+
+    private void changeHiddenStatus(List<Integer> ids, boolean hide){
+        for(var id : ids)
+            tagList.changeHideStatus(id,hide);
+        UpdateTableEventDispatcher.fireEvent();
+    }
+
+    public Video getCurrentVideo() {
+        return videoService.getById(mainViewService.getCurrentId());
+    }
+
+    public void changeShowHidden(boolean checked){
+        userSettings.setShowHidden(checked);
+        UpdateTableEventDispatcher.fireEvent();
+    }
+}
