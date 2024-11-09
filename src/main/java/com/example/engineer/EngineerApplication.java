@@ -3,14 +3,11 @@ package com.example.engineer;
 import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.View.Elements.FXDialogProvider;
-import com.example.engineer.View.Elements.FXMLViewLoader;
-import com.example.engineer.View.Elements.FileChooserProvider;
-import com.example.engineer.View.Elements.UserSettingsManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
+import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
 import com.example.engineer.View.FXViews.MainView.MainViewController;
-import com.example.engineer.View.ViewModel.MainApplication.FrameHopperView;
-import com.example.engineer.View.ViewModel.Settings.SettingsView;
-import com.example.engineer.View.ViewModel.TagManagerView.TagManagerView;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -49,8 +46,6 @@ public class EngineerApplication extends Application {
         primaryStage.show();
 
         checkNecessaryFiles();
-        context.getBean(SettingsView.class).setUpView();
-        context.getBean(TagManagerView.class).setUpView(context.getBean(FrameHopperView.class));
         context.getBean(FrameProcessorClient.class).connect();
         closeLoadingWindow();
 

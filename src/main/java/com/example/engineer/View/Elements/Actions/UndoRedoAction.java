@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements.actions;
+package com.example.engineer.View.Elements.Actions;
 
 import com.example.engineer.DBActions.TagManagerAction;
 import com.example.engineer.Model.Tag;

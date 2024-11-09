@@ -1,10 +1,10 @@
-package com.example.engineer.View.Elements.actions;
+package com.example.engineer.View.Elements.Actions;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.DBActions.TagManagerAction;
-import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.ApplicationContext;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class PasteRecentAction extends ActionHandler implements ApplicationContextAware{
+public class RemoveRecentAction extends ActionHandler implements ApplicationContextAware {
     private static ApplicationContext ctx;
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
@@ -30,14 +30,13 @@ public class PasteRecentAction extends ActionHandler implements ApplicationConte
     }
 
     @Override
-    public void performAction(List<Tag> existingTags,int currentFrameIndex, Video video) {
+    public void performAction(List<Tag> existingTags, int currentFrameIndex, Video video) {
         // Filter tags that are not held in existingTags
-        List<Tag> newTags = filterTagList(existingTags);
+        List<Tag> removeTags = filterTagList(existingTags);
 
-        // Add filtered tags if there are any new ones
-        if (!newTags.isEmpty()) {
+        if(!removeTags.isEmpty()) {
             List<Tag> temp = new ArrayList<>(existingTags);
-            existingTags.addAll(newTags);
+            existingTags.removeAll(removeTags);
             ctx.getBean(UndoRedoAction.class).setUp(temp,existingTags,currentFrameIndex, video.getName());
             UpdateTableEventDispatcher.fireEvent();
             new TagManagerAction(frameService,existingTags,currentFrameIndex,video.getName()).run();
@@ -46,8 +45,8 @@ public class PasteRecentAction extends ActionHandler implements ApplicationConte
 
     @Override
     protected List<Tag> filterTagList(List<Tag> existingTags) {
-        return getTagList().stream()
-                .filter(tag -> existingTags.stream().noneMatch(existingTag -> existingTag.equals(tag)))
+                return getTagList().stream()
+                .filter(existingTags::contains)
                 .toList();
     }
 }

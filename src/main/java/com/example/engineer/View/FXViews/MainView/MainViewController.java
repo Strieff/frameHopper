@@ -1,10 +1,10 @@
 package com.example.engineer.View.FXViews.MainView;
 
-import com.example.engineer.View.Elements.FXDialogProvider;
-import com.example.engineer.View.Elements.FXIconLoader;
-import com.example.engineer.View.Elements.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
-import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.example.engineer.View.FXViews.TagManager.TagManagerController;
@@ -310,10 +310,29 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         System.out.println("Period key pressed!");
     }
 
-    //TODO
+    //OPEN VIDEO LIST
     private void onShiftLPressed() {
+        if(!openViews.getVideoList())
+            try{
+                var loader = FXMLViewLoader.getView("VideoManagementListViewModel");
+
+                //load scene
+                Parent root = loader.load();
+                var videoListScene = new Scene(root);
+
+                //new stage
+                var secondaryStage = new Stage();
+                secondaryStage.setScene(videoListScene);
+                secondaryStage.setTitle("Video Management");
+
+                //make window modal
+                secondaryStage.initOwner(mainView.getScene().getWindow());
+                secondaryStage.show();
+                openViews.openVideoList();
+            }catch(Exception e){
+                FXDialogProvider.errorDialog(e.getMessage());
+            }
         System.out.println("Shift + L pressed!");
-        // Your code here
     }
 
     //OPEN VIDEO DETAILS

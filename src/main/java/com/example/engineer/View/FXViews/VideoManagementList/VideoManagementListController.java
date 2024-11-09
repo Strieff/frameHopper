@@ -1,7 +1,11 @@
 package com.example.engineer.View.FXViews.VideoManagementList;
 
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FXRestartResolver;
 import com.example.engineer.View.FXViews.MainView.MainViewService;
 import com.example.engineer.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;

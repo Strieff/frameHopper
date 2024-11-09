@@ -1,6 +1,11 @@
 package com.example.engineer.View.FXViews.Settings;
 
-import com.example.engineer.View.Elements.*;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;

@@ -2,10 +2,9 @@ package com.example.engineer.View.FXViews.TagManager;
 
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
-import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableListener;
-import jakarta.annotation.PostConstruct;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

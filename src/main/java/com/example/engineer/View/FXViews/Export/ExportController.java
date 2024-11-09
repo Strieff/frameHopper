@@ -1,9 +1,9 @@
 package com.example.engineer.View.FXViews.Export;
 
-import com.example.engineer.View.Elements.FXDialogProvider;
-import com.example.engineer.View.Elements.FileChooserProvider;
-import com.example.engineer.View.Elements.OpenViewsInformationContainer;
-import com.example.engineer.View.Elements.UserSettingsManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

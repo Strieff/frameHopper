@@ -1,8 +1,8 @@
 package com.example.engineer.View.FXViews.TagDetails;
 
 import com.example.engineer.Model.Tag;
-import com.example.engineer.View.Elements.FXDialogProvider;
-import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

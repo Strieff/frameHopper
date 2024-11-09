@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements;
+package com.example.engineer.View.Elements.DataManagers;
 
 import lombok.Getter;
 import org.springframework.stereotype.Component;

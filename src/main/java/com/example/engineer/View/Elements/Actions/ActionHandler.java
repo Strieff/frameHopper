@@ -1,9 +1,9 @@
-package com.example.engineer.View.Elements.actions;
+package com.example.engineer.View.Elements.Actions;
 
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
-import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.DataManagers.TagListManager;
 
 import java.util.List;
 

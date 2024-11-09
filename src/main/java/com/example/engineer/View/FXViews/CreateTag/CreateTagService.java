@@ -1,7 +1,7 @@
 package com.example.engineer.View.FXViews.CreateTag;
 
-import com.example.engineer.View.Elements.FXDialogProvider;
-import com.example.engineer.View.Elements.TagListManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

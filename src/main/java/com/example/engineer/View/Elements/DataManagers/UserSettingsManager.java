@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements;
+package com.example.engineer.View.Elements.DataManagers;
 
 import com.example.engineer.Model.UserSettings;
 import com.example.engineer.View.Elements.Language.LanguageManager;
@@ -67,7 +67,7 @@ public class UserSettingsManager{
     }
 
     public String getExportPath(){
-        return userSettings.getRecentExportPath();
+        return userSettings.getRecentExportPath().isBlank() ? "" : userSettings.getRecentExportPath();
     }
 
     public String getLanguage(){

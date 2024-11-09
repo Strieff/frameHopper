@@ -1,4 +1,4 @@
-package com.example.engineer.View.Elements;
+package com.example.engineer.View.Elements.FXElementsProviders;
 
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.ConfigurableApplicationContext;

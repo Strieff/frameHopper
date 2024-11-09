@@ -1,6 +1,6 @@
 package com.example.engineer.View.FXViews.CreateTag;
 
-import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
