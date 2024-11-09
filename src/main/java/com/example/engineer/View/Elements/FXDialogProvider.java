@@ -1,8 +1,8 @@
 package com.example.engineer.View.Elements;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,5 +85,27 @@ public class FXDialogProvider {
 
     public static void messageDialog(String message) {
         messageDialog("",message);
+    }
+
+    //GET PATH DIALOG
+    public static String inputDialog(){
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Input File name");
+
+        var okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        var cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().setAll(okButton, cancelButton);
+
+        var textField = new TextField();
+        textField.setPromptText("File Name");
+
+        var content = new VBox();
+        content.getChildren().add(textField);
+        content.setSpacing(10);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(db -> db == cancelButton ? textField.getText() : null);
+
+        return dialog.showAndWait().orElse(null);
     }
 }

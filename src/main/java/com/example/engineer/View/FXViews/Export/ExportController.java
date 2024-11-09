@@ -1,6 +1,9 @@
 package com.example.engineer.View.FXViews.Export;
 
+import com.example.engineer.View.Elements.FXDialogProvider;
+import com.example.engineer.View.Elements.FileChooserProvider;
 import com.example.engineer.View.Elements.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.UserSettingsManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.*;
 
 @Component
@@ -43,6 +47,8 @@ public class ExportController {
     private boolean isSearching = false;
     private final Set<Integer> selectedIds = new HashSet<>();
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
+    @Autowired
+    private UserSettingsManager userSettings;
 
     @FXML
     public void initialize() {
@@ -168,6 +174,40 @@ public class ExportController {
 
     //HANDLE EXPORT
     private void handleExport(){
+        try {
+            if(selectedIds.isEmpty()) throw new Exception("No video selected");
 
+            var path = FileChooserProvider.locationFileChooser((Stage)videoTable.getScene().getWindow(), userSettings.getExportPath());
+
+            var format = FXDialogProvider.customDialog("Choose file format:",-1,"EXCEL","CSV");
+            if (format == -1) throw new RuntimeException();
+
+            var name = FXDialogProvider.inputDialog();
+            if(name.isBlank()) throw new Exception("Name cannot be empty");
+
+            while(new File(path+File.separator+name).exists()) {
+                var res = FXDialogProvider.customDialog("File already exists. Choose another name?", 0, "CANCEL", "RENAME", "OVERWRITE");
+
+                switch (res) {
+                    case 0:
+                        throw new RuntimeException();
+                    case 1:
+                        name = FXDialogProvider.inputDialog();
+                        if(name.isBlank()) throw new Exception("Name cannot be empty");
+                        break;
+                }
+
+                if(res == 2) break;
+            }
+
+            viewService.exportData(path+File.separator+name,selectedIds,format);
+            userSettings.setExportRecent(path);
+        }catch (RuntimeException e){
+            FXDialogProvider.messageDialog("CANCELLED");
+        }catch (Exception e) {
+            FXDialogProvider.errorDialog(e.getMessage());
+        }
+
+        FXDialogProvider.messageDialog("EXPORT COMPLETE");
     }
 }

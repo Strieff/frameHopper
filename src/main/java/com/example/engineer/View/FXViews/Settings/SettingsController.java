@@ -134,7 +134,6 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
             }
         });
 
-        //TODO: set up checkboxes
         showHiddenTagsCheckBox.setSelected(userSettings.ShowHidden());
         showHiddenTagsCheckBox.setOnMouseClicked(event -> handleShowHiddenTags());
 

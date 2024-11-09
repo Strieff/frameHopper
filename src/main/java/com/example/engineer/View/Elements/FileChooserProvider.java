@@ -1,5 +1,6 @@
 package com.example.engineer.View.Elements;
 
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -40,5 +41,17 @@ public class FileChooserProvider {
             return file.getAbsolutePath();
         else
             throw new Exception("File not selected");
+    }
+
+    public static String locationFileChooser(Stage stage,String path) throws RuntimeException{
+        var directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Get location");
+        if(!path.isBlank()) directoryChooser.setInitialDirectory(new File(path));
+
+        var selectedLocation = directoryChooser.showDialog(stage);
+        if(selectedLocation != null)
+            return selectedLocation.getAbsolutePath();
+        else
+            throw new RuntimeException("Location not selected");
     }
 }
