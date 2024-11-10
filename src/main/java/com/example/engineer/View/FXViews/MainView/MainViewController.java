@@ -3,6 +3,7 @@ package com.example.engineer.View.FXViews.MainView;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.Language.LanguageManager;
@@ -14,10 +15,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -48,6 +46,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     private ImageView addButtonIcon, settingsButtonIcon, exportButtonIcon;
     @FXML
     private BorderPane mainView;
+    @FXML
+    private Button jumpButton;
 
     @Autowired
     MainViewService viewService;
@@ -63,6 +63,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
         dropLabel.setOnDragOver(this::handleDragOver);
         dropLabel.setOnDragDropped(this::handleDragDropped);
+        dropLabel.setText(Dictionary.get("main.dropHere"));
 
         // Map each KeyCombination to an action
         keyActions.put(new KeyCodeCombination(KeyCode.COMMA), this::onCommaPressed);
@@ -77,12 +78,24 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::onCtrlYPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::onCtrlZPressed);
 
+        //jump section
+        jumpButton.setText(Dictionary.get("main.jump.button"));
+        frameInput.setPromptText(Dictionary.get("main.jump.hint"));
+
+        //info label
+        statusLabel.setText(viewService.displayCurrentInfo());
+
+        //table placeholder
+        tableView.setPlaceholder(new Label(Dictionary.get("main.table.placeholder")));
+
         //add key binds
         mainView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         //set cell factories for the table
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameColumn.setText(Dictionary.get("name"));
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        valueColumn.setText(Dictionary.get("value"));
 
         //set up button icons
         addButtonIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
@@ -408,6 +421,13 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
     @Override
     public void changeLanguage() {
-
+        jumpButton.setText(Dictionary.get("main.jump.button"));
+        frameInput.setPromptText(Dictionary.get("main.jump.hint"));
+        statusLabel.setText(viewService.displayCurrentInfo());
+        if(!viewService.isOpen())
+            dropLabel.setText(Dictionary.get("main.dropHere"));
+        nameColumn.setText(Dictionary.get("name"));
+        valueColumn.setText(Dictionary.get("value"));
+        tableView.setPlaceholder(new Label(Dictionary.get("main.table.placeholder")));
     }
 }

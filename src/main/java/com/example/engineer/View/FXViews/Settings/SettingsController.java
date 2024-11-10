@@ -164,7 +164,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         languageBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != null) {
                 var languageCode = newValue.getCode();
-                System.out.println(languageCode);
+                userSettings.setLanguage(languageCode);
             }
         });
 
@@ -459,7 +459,9 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
 
     @Override
     public void changeLanguage() {
-
+        //change language box
+        for(var e : languageBox.getItems())
+            e.setLanguage();
     }
 }
 

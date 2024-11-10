@@ -34,10 +34,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     @FXML
     private Button searchButton;
     @FXML
-    private Button nameSortButton;
-    @FXML
-    private Button valueSortButton;
-    @FXML
     private TableView<TableEntry> codeTable;
     @FXML
     private TableColumn<TableEntry, Boolean> selectColumn;
@@ -90,14 +86,19 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
             return entry.selectedProperty();
         }));
 
+        searchField.setPromptText(Dictionary.get("tm.search"));
+        codeTable.setPlaceholder(new Label(Dictionary.get("tm.placeholder")));
+
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        codeColumn.setText(Dictionary.get("name"));
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        valueColumn.setText(Dictionary.get("value"));
 
         // Set up button actions
-        nameSortButton.setOnAction(event -> handleNameSort());
-        valueSortButton.setOnAction(event -> handleValueSort());
         cancelButton.setOnAction(event -> handleCancel());
+        saveButton.setText(Dictionary.get("save"));
         saveButton.setOnAction(event -> handleSave());
+        cancelButton.setText(Dictionary.get("cancel"));
         searchButton.setOnAction(event -> handleSearch());
 
         //kye bind
@@ -144,16 +145,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         System.out.println("Shift + M pressed! Closing tag manager");
     }
 
-    //TODO
-    private void handleNameSort(){
-        System.out.println("sort by name");
-    }
-
-    //TODO
-    private void handleValueSort(){
-        System.out.println("Sort by value");
-    }
-
     //HANDLE CANCEL
     private void handleCancel() {
         UpdateTableEventDispatcher.unregister(this);
@@ -186,6 +177,14 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     @Override
     public void changeLanguage() {
+        var frameNo=Integer.parseInt(frameLabel.getText().split(" ")[1]);
+        frameLabel.setText(String.format(Dictionary.get("tm.frame"), frameNo));
+        saveButton.setText(Dictionary.get("save"));
+        cancelButton.setText(Dictionary.get("cancel"));
+        codeColumn.setText(Dictionary.get("name"));
+        valueColumn.setText(Dictionary.get("value"));
+        searchField.setPromptText(Dictionary.get("tm.search"));
+        codeTable.setPlaceholder(new Label(Dictionary.get("tm.placeholder")));
 
     }
 

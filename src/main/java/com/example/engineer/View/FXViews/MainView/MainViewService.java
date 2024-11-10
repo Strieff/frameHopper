@@ -195,9 +195,9 @@ public class MainViewService {
     public String displayCurrentInfo() {
         return String.format(
                 Dictionary.get("main.fileInfo"),
-                info.getCurrentIndex() + 1,
-                info.getVideo().getTotalFrames(),
-                info.getVideo().getFrameRate()
+                isOpen() ?  info.getCurrentIndex() + 1 : 0,
+                isOpen() ? info.getVideo().getTotalFrames() : 0,
+                isOpen() ? info.getVideo().getFrameRate() : 0f
         );
     }
 

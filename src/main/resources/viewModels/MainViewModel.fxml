@@ -12,7 +12,7 @@
    <top>
       <HBox alignment="TOP_CENTER" prefHeight="25.0" prefWidth="243.0" spacing="10" BorderPane.alignment="CENTER">
          <TextField fx:id="frameInput" promptText="Enter frame number" />
-         <Button onAction="#onJumpToFrame" text="Jump to Frame" />
+         <Button fx:id="jumpButton" onAction="#onJumpToFrame" text="Jump to Frame" />
          <padding>
             <Insets right="200.0" />
          </padding>
