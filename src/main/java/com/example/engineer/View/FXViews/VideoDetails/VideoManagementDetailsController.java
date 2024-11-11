@@ -1,6 +1,7 @@
 package com.example.engineer.View.FXViews.VideoDetails;
 
 import com.example.engineer.Model.Video;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import javafx.application.Platform;
@@ -27,15 +28,9 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
     @FXML
     private TextArea filePathField;
     @FXML
-    private Label frameAmountLabel;
+    private Label pathLabel,dataLabel,frameAmountLabel,frameRateLabel,durationLabel;
     @FXML
-    private Label frameRateLabel;
-    @FXML
-    private Label durationLabel;
-    @FXML
-    private Button changeButton;
-    @FXML
-    private Button closeButton;
+    private Button changeButton,closeButton;
     @FXML
     private BorderPane videoDetailsView;
 
@@ -49,9 +44,14 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
     public void initialize() {
         LanguageManager.register(this);
 
+        pathLabel.setText(Dictionary.get("vd.path"));
+        dataLabel.setText(Dictionary.get("vd.data"));
+
         // Set button actions
         changeButton.setOnAction(event -> changePath());
+        changeButton.setText(Dictionary.get("vd.change"));
         closeButton.setOnAction(event -> closeWindow());
+        closeButton.setText(Dictionary.get("close"));
 
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
 
@@ -74,9 +74,9 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
 
     public void init(Video video){
         id = video.getId();
-        frameAmountLabel.setText("Frame amount: "+video.getTotalFrames());
-        frameRateLabel.setText("Framerate: "+video.getFrameRate());
-        durationLabel.setText("Duration: "+video.getDuration());
+        frameAmountLabel.setText(Dictionary.get("vd.frameAmount")+video.getTotalFrames());
+        frameRateLabel.setText(Dictionary.get("vd.framerate")+video.getFrameRate());
+        durationLabel.setText(Dictionary.get("vd.duration")+video.getDuration());
         filePathField.setText(video.getPath());
     }
 
@@ -97,6 +97,14 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
 
     @Override
     public void changeLanguage() {
+        pathLabel.setText(Dictionary.get("vd.path"));
+        dataLabel.setText(Dictionary.get("vd.data"));
+        changeButton.setText(Dictionary.get("vd.change"));
+        closeButton.setText(Dictionary.get("close"));
 
+        var video = viewService.getVideo(id);
+        frameAmountLabel.setText(Dictionary.get("vd.frameAmount")+video.getTotalFrames());
+        frameRateLabel.setText(Dictionary.get("vd.framerate")+video.getFrameRate());
+        durationLabel.setText(Dictionary.get("vd.duration")+video.getDuration());
     }
 }

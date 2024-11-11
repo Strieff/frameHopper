@@ -86,7 +86,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
         valueColumn.setText(Dictionary.get("value"));
 
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
 
         // Set up edit column
         editColumn.setCellFactory(new Callback<>() {
@@ -487,7 +487,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         descriptionColumn.setText(Dictionary.get("description"));
 
         //table placeholder
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
 
         //settings
         showHiddenTagsCheckBox.setText(Dictionary.get("settings.user.hidden"));

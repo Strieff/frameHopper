@@ -86,7 +86,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         statusLabel.setText(viewService.displayCurrentInfo());
 
         //table placeholder
-        tableView.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        tableView.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
 
         //add key binds
         mainView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
@@ -428,6 +428,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             dropLabel.setText(Dictionary.get("main.dropHere"));
         nameColumn.setText(Dictionary.get("name"));
         valueColumn.setText(Dictionary.get("value"));
-        tableView.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        tableView.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
     }
 }

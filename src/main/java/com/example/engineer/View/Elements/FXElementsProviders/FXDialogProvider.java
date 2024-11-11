@@ -1,5 +1,6 @@
 package com.example.engineer.View.Elements.FXElementsProviders;
 
+import com.example.engineer.View.Elements.Language.Dictionary;
 import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -13,7 +14,7 @@ public class FXDialogProvider {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle(title);
-            alert.setHeaderText("Error");
+            alert.setHeaderText(Dictionary.get("error"));
             alert.setContentText(message);
             alert.showAndWait();
         });
@@ -30,13 +31,13 @@ public class FXDialogProvider {
         alert.setContentText(message);
         alert.setHeaderText(null);
 
-        var yesButton = new ButtonType("YES");
-        var noButton = new ButtonType("NO");
+        var yesButton = new ButtonType(Dictionary.get("yes"));
+        var noButton = new ButtonType(Dictionary.get("no"));
 
         alert.getButtonTypes().setAll(yesButton, noButton);
 
         try{
-            return alert.showAndWait().get().getText().equals("YES");
+            return alert.showAndWait().get().getText().equals(Dictionary.get("yes"));
         }catch(Exception e){
             return false;
         }
@@ -90,14 +91,13 @@ public class FXDialogProvider {
     //GET PATH DIALOG
     public static String inputDialog(){
         Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Input File name");
 
-        var okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        var cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        var okButton = new ButtonType(Dictionary.get("ok"), ButtonBar.ButtonData.OK_DONE);
+        var cancelButton = new ButtonType(Dictionary.get("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().setAll(okButton, cancelButton);
 
         var textField = new TextField();
-        textField.setPromptText("File Name");
+        textField.setPromptText(Dictionary.get("dialog.input.fileName"));
 
         var content = new VBox();
         content.getChildren().add(textField);

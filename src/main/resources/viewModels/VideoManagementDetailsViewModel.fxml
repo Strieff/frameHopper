@@ -7,9 +7,9 @@
 <BorderPane fx:id="videoDetailsView" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.VideoDetails.VideoManagementDetailsController">
     <top>
         <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 0 15 15;">
-            <Label text="Path:" />
+            <Label fx:id="pathLabel" text="Path:" />
             <TextArea fx:id="filePathField" editable="false" maxHeight="35" prefWidth="300" wrapText="true" />
-            <Button fx:id="changeButton" prefHeight="37.0" prefWidth="57.0" text="Change">
+            <Button fx:id="changeButton" prefHeight="37.0" prefWidth="72.0" text="Change">
                 <HBox.margin>
                     <Insets right="10.0" />
                 </HBox.margin>
@@ -20,7 +20,7 @@
     <center>
         <VBox spacing="15" style="-fx-padding: 15 0 15 15;">
             <HBox alignment="CENTER">
-                <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Video Data" />
+                <Label fx:id="dataLabel" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Video Data" />
             </HBox>
             <Label fx:id="frameAmountLabel" text="Frame amount: " />
             <Label fx:id="frameRateLabel" text="Framerate: " />

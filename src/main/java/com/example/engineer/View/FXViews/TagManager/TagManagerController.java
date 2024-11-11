@@ -52,6 +52,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     private final ObservableList<TableEntry> items = FXCollections.observableArrayList();
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
+    private boolean isSearching = false;
 
 
     @Autowired
@@ -86,8 +87,8 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
             return entry.selectedProperty();
         }));
 
-        searchField.setPromptText(Dictionary.get("tm.search"));
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        searchField.setPromptText(Dictionary.get("search"));
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
 
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         codeColumn.setText(Dictionary.get("name"));
@@ -168,11 +169,19 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     }
 
     //HANDLE SEARCH
-    //TODO
     private void handleSearch() {
-        String searchText = searchField.getText();
-        System.out.println("Searching for: " + searchText);
-        // Handle search functionality
+        if(!searchField.getText().isEmpty()) {
+            if (!isSearching) {
+                codeTable.setItems(viewService.getFiltered(codeTable.getItems(),searchField.getText()));
+                searchButton.setText("X");
+            } else {
+                codeTable.setItems(items);
+                searchButton.setText("\uD83D\uDD0D");
+                searchField.clear();
+            }
+
+            isSearching = !isSearching;
+        }
     }
 
     @Override
@@ -183,8 +192,8 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         cancelButton.setText(Dictionary.get("cancel"));
         codeColumn.setText(Dictionary.get("name"));
         valueColumn.setText(Dictionary.get("value"));
-        searchField.setPromptText(Dictionary.get("tm.search"));
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        searchField.setPromptText(Dictionary.get("search"));
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
         codeTable.setItems(viewService.getTags());
     }
 

@@ -278,4 +278,8 @@ public class VideoManagementDetailsService {
 
         return mergedVideo;
     }
+
+    public Video getVideo(int id) {
+        return videoService.getById(id);
+    }
 }

@@ -6,6 +6,7 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXRestartResolver;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.FXViews.MainView.MainViewService;
@@ -15,10 +16,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -65,8 +63,11 @@ public class VideoManagementListController implements LanguageChangeListener {
     public void initialize() {
         LanguageManager.register(this);
 
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
+
         // Set up columns
         pathColumn.setCellValueFactory(new PropertyValueFactory<>("path"));
+        pathColumn.setText(Dictionary.get("vl.path"));
 
         // Set up edit column
         editColumn.setCellFactory(new Callback<>() {
@@ -235,7 +236,8 @@ public class VideoManagementListController implements LanguageChangeListener {
 
     @Override
     public void changeLanguage() {
-
+        pathColumn.setText(Dictionary.get("vl.path"));
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
     }
 }
 

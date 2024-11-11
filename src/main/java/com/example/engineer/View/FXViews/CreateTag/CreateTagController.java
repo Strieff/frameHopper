@@ -1,11 +1,13 @@
 package com.example.engineer.View.FXViews.CreateTag;
 
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -18,15 +20,13 @@ import org.springframework.stereotype.Component;
 public class CreateTagController implements LanguageChangeListener {
 
     @FXML
-    private TextField nameField;
-    @FXML
-    private TextField valueField;
+    private TextField nameField,valueField;
     @FXML
     private TextArea descriptionArea;
     @FXML
-    private Button cancelButton;
+    private Button cancelButton,saveButton;
     @FXML
-    private Button saveButton;
+    private Label nameLabel,valueLabel,descriptionLabel;
 
     @Autowired
     CreateTagService viewService;
@@ -38,9 +38,16 @@ public class CreateTagController implements LanguageChangeListener {
     public void initialize() {
         LanguageManager.register(this);
 
+        //labels
+        nameLabel.setText(Dictionary.get("name")+":");
+        valueLabel.setText(Dictionary.get("value")+":");
+        descriptionLabel.setText(Dictionary.get("description")+":");
+
         // Button actions
         cancelButton.setOnAction(event -> closeWindow());
+        cancelButton.setText(Dictionary.get("cancel"));
         saveButton.setOnAction(event -> saveTag());
+        saveButton.setText(Dictionary.get("save"));
 
         Platform.runLater(() -> {
             var stage = (Stage) nameField.getScene().getWindow();
@@ -69,6 +76,10 @@ public class CreateTagController implements LanguageChangeListener {
 
     @Override
     public void changeLanguage() {
-
+        nameLabel.setText(Dictionary.get("name")+":");
+        valueLabel.setText(Dictionary.get("value")+":");
+        descriptionLabel.setText(Dictionary.get("description")+":");
+        cancelButton.setText(Dictionary.get("cancel"));
+        saveButton.setText(Dictionary.get("save"));
     }
 }

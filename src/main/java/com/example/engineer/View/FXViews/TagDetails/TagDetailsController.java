@@ -3,12 +3,14 @@ package com.example.engineer.View.FXViews.TagDetails;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -22,17 +24,13 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class TagDetailsController implements LanguageChangeListener {
     @FXML
-    private TextField nameField;
-    @FXML
-    private TextField valueField;
+    private TextField nameField,valueField;
     @FXML
     private TextArea descriptionArea;
     @FXML
-    private Button cancelButton;
+    private Button cancelButton,hideButton,saveButton;
     @FXML
-    private Button hideButton;
-    @FXML
-    private Button saveButton;
+    private Label nameLabel,valueLabel,descriptionLabel;
 
     @Autowired
     TagDetailsService viewService;
@@ -44,8 +42,14 @@ public class TagDetailsController implements LanguageChangeListener {
     @FXML
     public void initialize() {
         LanguageManager.register(this);
+        //labels
+        nameLabel.setText(Dictionary.get("name")+":");
+        valueLabel.setText(Dictionary.get("value")+":");
+        descriptionLabel.setText(Dictionary.get("description")+":");
+
         // Button actions
         cancelButton.setOnAction(event -> closeWindow());
+        cancelButton.setText(Dictionary.get("cancel"));
         hideButton.setOnAction(event -> toggleHide());
         saveButton.setOnAction(event -> {
             try{
@@ -55,6 +59,7 @@ public class TagDetailsController implements LanguageChangeListener {
             }
 
         });
+        saveButton.setText(Dictionary.get("save"));
 
         Platform.runLater(() -> {
             var stage = (Stage) saveButton.getScene().getWindow();
@@ -67,7 +72,7 @@ public class TagDetailsController implements LanguageChangeListener {
         nameField.setText(info.getTag().getName());
         valueField.setText(String.valueOf(info.getTag().getValue()));
         descriptionArea.setText(info.getTag().getDescription());
-        hideButton.setText(info.getTag().isDeleted() ? "Unhide" : "Hide");
+        hideButton.setText(Dictionary.get(info.getTag().isDeleted() ? "td.unhide" : "td.hide"));
     }
 
     private void toggleHide() {
@@ -100,7 +105,12 @@ public class TagDetailsController implements LanguageChangeListener {
 
     @Override
     public void changeLanguage() {
-
+        nameLabel.setText(Dictionary.get("name")+":");
+        valueLabel.setText(Dictionary.get("value")+":");
+        descriptionLabel.setText(Dictionary.get("description")+":");
+        cancelButton.setText(Dictionary.get("cancel"));
+        hideButton.setText(Dictionary.get(info.getTag().isDeleted() ? "td.unhide" : "td.hide"));
+        saveButton.setText(Dictionary.get("save"));
     }
 
     private static class InformationContainer{

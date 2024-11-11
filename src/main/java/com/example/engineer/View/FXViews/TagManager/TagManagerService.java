@@ -121,6 +121,10 @@ public class TagManagerService {
                 .orElse(null);
     }
 
+    public ObservableList<TableEntry> getFiltered(ObservableList<TableEntry> items, String text) {
+        return items.filtered(item -> item.getName().toLowerCase().contains(text.toLowerCase()));
+    }
+
     //class to hold necessary variables
     private static class InformationContainer{
         @Getter

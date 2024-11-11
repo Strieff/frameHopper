@@ -15,7 +15,7 @@
                 </padding>
                 <!-- Name Field -->
                 <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Label prefHeight="17.0" prefWidth="103.0" text="NAME:" />
+                    <Label fx:id="nameLabel" prefHeight="17.0" prefWidth="103.0" text="NAME:" />
                     <TextField fx:id="nameField" prefHeight="25.0" prefWidth="150.0" />
                     <padding>
                         <Insets left="10.0" right="10.0" />
@@ -24,7 +24,7 @@
 
                 <!-- Value Field -->
                 <HBox alignment="CENTER_LEFT">
-                    <Label prefHeight="17.0" prefWidth="112.0" text="VALUE:" />
+                    <Label fx:id="valueLabel" prefHeight="17.0" prefWidth="112.0" text="VALUE:" />
                     <TextField fx:id="valueField" prefHeight="25.0" prefWidth="150.0" />
                     <padding>
                         <Insets left="10.0" right="10.0" />
@@ -32,7 +32,7 @@
                 </HBox>
             </HBox>
             <VBox prefWidth="360.0" spacing="5" VBox.vgrow="ALWAYS">
-                <Label text="Description:" />
+                <Label fx:id="descriptionLabel" text="Description:" />
                 <TextArea fx:id="descriptionArea" prefHeight="200" prefWidth="300.0" wrapText="true" VBox.vgrow="ALWAYS" />
                 <padding>
                     <Insets left="10.0" right="10.0" />

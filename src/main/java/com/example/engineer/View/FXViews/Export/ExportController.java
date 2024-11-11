@@ -4,6 +4,7 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import javafx.application.Platform;
@@ -99,18 +100,23 @@ public class ExportController implements LanguageChangeListener {
         });
 
         videoNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        videoNameColumn.setText(Dictionary.get("export.name"));
 
         //clear button
         clearButton.setOnAction(event -> deselectAll());
+        clearButton.setText(Dictionary.get("export.clear"));
 
         //cancel button
         cancelButton.setOnAction(event -> handleClose());
+        cancelButton.setText(Dictionary.get("cancel"));
 
         //search button
         searchButton.setOnAction(event -> handleSearch());
+        searchField.setPromptText(Dictionary.get("search"));
 
         //export button
         exportButton.setOnAction(event -> handleExport());
+        exportButton.setText(Dictionary.get("export.export"));
 
         keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN), this::onCtrlAPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::onCtrlEPressed);
@@ -164,17 +170,18 @@ public class ExportController implements LanguageChangeListener {
 
     //HANDLE SEARCH
     private void handleSearch() {
-        if(!searchField.getText().isEmpty())
-            if(!isSearching) {
-                    videoTable.setItems(viewService.getFiltered(videoTable.getItems(), searchField.getText()));
-                    searchButton.setText("X");
-                    isSearching = true;
-            }else{
+        if(!searchField.getText().isEmpty()) {
+            if (!isSearching) {
+                videoTable.setItems(viewService.getFiltered(videoTable.getItems(), searchField.getText()));
+                searchButton.setText("X");
+            } else {
                 videoTable.setItems(viewService.getVideos(selectedIds));
                 searchButton.setText("\uD83D\uDD0D");
                 searchField.clear();
-                isSearching = false;
             }
+
+            isSearching = !isSearching;
+        }
     }
 
     //HANDLE EXPORT
@@ -207,17 +214,22 @@ public class ExportController implements LanguageChangeListener {
 
             viewService.exportData(path+File.separator+name,selectedIds,format);
             userSettings.setExportRecent(path);
+            FXDialogProvider.messageDialog("EXPORT COMPLETE");
         }catch (RuntimeException e){
             FXDialogProvider.messageDialog("CANCELLED");
         }catch (Exception e) {
             FXDialogProvider.errorDialog(e.getMessage());
         }
 
-        FXDialogProvider.messageDialog("EXPORT COMPLETE");
+
     }
 
     @Override
     public void changeLanguage() {
-
+        videoNameColumn.setText(Dictionary.get("export.name"));
+        searchField.setPromptText(Dictionary.get("search"));
+        cancelButton.setText(Dictionary.get("cancel"));
+        clearButton.setText(Dictionary.get("export.clear"));
+        exportButton.setText(Dictionary.get("export.export"));
     }
 }
