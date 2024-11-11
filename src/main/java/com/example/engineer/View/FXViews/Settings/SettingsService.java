@@ -5,6 +5,7 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageEntry;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
@@ -59,7 +60,7 @@ public class SettingsService {
             if(userSettings.ShowHidden() || !t.isDeleted())
                 data.add(new TableEntry(
                         t.getId(),
-                        t.isDeleted() ? t.getName() + " (hidden)" : t.getName(),
+                        t.isDeleted() ? t.getName() + Dictionary.get("hidden") : t.getName(),
                         t.getValue(),
                         t.getDescription()
                 ));

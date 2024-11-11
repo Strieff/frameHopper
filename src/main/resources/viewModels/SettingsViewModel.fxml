@@ -9,12 +9,12 @@
     <!-- Top toolbar with buttons -->
     <top>
         <ToolBar>
-            <Button onAction="#onAdd" text="Add Code" />
-            <Button onAction="#onMultiAdd" text="Add Codes" />
-            <Button onAction="#onHide" text="Hide Codes" />
-            <Button onAction="#onUnhide" text="Unhide Codes" />
-            <Button onAction="#onDelete" text="Delete Codes" />
-            <Button onAction="#onManage" text="Manage files" />
+            <Button fx:id="addCodeButton" onAction="#onAdd" text="Add Code" />
+            <Button fx:id="addCodesButton" onAction="#onMultiAdd" text="Add Codes" />
+            <Button fx:id="hideCodesButton" onAction="#onHide" text="Hide Codes" />
+            <Button fx:id="unhideCodesButton" onAction="#onUnhide" text="Unhide Codes" />
+            <Button fx:id="deleteCodesButton" onAction="#onDelete" text="Delete Codes" />
+            <Button fx:id="manageButton" onAction="#onManage" text="Manage files" />
         </ToolBar>
     </top>
 

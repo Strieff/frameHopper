@@ -61,7 +61,7 @@ public class TagManagerService {
             for(var t : allTagsDTOList){
                 if(userSettings.ShowHidden() || !t.isDeleted()){
                     var selected = heldTagsDTOList.stream().filter(tag -> tag.equals(t)).findFirst().orElse(null);
-                    var name = t.isDeleted() ? t.getName() + Dictionary.get("tm.tag.hidden") : t.getName();
+                    var name = t.isDeleted() ? t.getName() + Dictionary.get("hidden") : t.getName();
 
                     data.add(new TableEntry(
                             t.getId(),

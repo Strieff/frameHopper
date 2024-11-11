@@ -87,7 +87,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         }));
 
         searchField.setPromptText(Dictionary.get("tm.search"));
-        codeTable.setPlaceholder(new Label(Dictionary.get("tm.placeholder")));
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
 
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         codeColumn.setText(Dictionary.get("name"));
@@ -184,8 +184,8 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         codeColumn.setText(Dictionary.get("name"));
         valueColumn.setText(Dictionary.get("value"));
         searchField.setPromptText(Dictionary.get("tm.search"));
-        codeTable.setPlaceholder(new Label(Dictionary.get("tm.placeholder")));
-
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
+        codeTable.setItems(viewService.getTags());
     }
 
     @Override

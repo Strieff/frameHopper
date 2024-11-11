@@ -6,6 +6,7 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageEntry;
 import com.example.engineer.View.Elements.Language.LanguageManager;
@@ -57,6 +58,8 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
     private CheckBox showHiddenTagsCheckBox, openRecentCheckBox, languageExportCheckBox;
     @FXML
     private ComboBox<LanguageEntry> languageBox;
+    @FXML
+    private Button addCodeButton,addCodesButton,hideCodesButton,unhideCodesButton,deleteCodesButton,manageButton;
 
     @Autowired
     SettingsService viewService;
@@ -77,8 +80,13 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
 
         // Set up columns
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("code"));
+        codeColumn.setText(Dictionary.get("name"));
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        descriptionColumn.setText(Dictionary.get("description"));
         descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
+        valueColumn.setText(Dictionary.get("value"));
+
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
 
         // Set up edit column
         editColumn.setCellFactory(new Callback<>() {
@@ -145,12 +153,15 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         });
 
         showHiddenTagsCheckBox.setSelected(userSettings.ShowHidden());
+        showHiddenTagsCheckBox.setText(Dictionary.get("settings.user.hidden"));
         showHiddenTagsCheckBox.setOnMouseClicked(event -> handleShowHiddenTags());
 
         openRecentCheckBox.setSelected(userSettings.openRecent());
+        openRecentCheckBox.setText(Dictionary.get("settings.user.recent"));
         openRecentCheckBox.setOnMouseClicked(event -> handleOpenRecent());
 
         languageExportCheckBox.setSelected(userSettings.useDefaultLanguage());
+        languageExportCheckBox.setText(Dictionary.get("settings.user.export"));
         languageExportCheckBox.setOnMouseClicked(event -> handleChosenLanguage());
 
         // Add data to the TableView
@@ -167,6 +178,13 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
                 userSettings.setLanguage(languageCode);
             }
         });
+
+        addCodeButton.setText(Dictionary.get("settings.button.add"));
+        addCodesButton.setText(Dictionary.get("settings.button.add.multi"));
+        hideCodesButton.setText(Dictionary.get("settings.button.hide"));
+        unhideCodesButton.setText(Dictionary.get("settings.button.unhide"));
+        deleteCodesButton.setText(Dictionary.get("settings.button.delete"));
+        manageButton.setText(Dictionary.get("settings.button.list"));
 
         //kye binds
         keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onShiftSPressed);
@@ -462,6 +480,27 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         //change language box
         for(var e : languageBox.getItems())
             e.setLanguage();
+
+        //table header
+        codeColumn.setText(Dictionary.get("name"));
+        valueColumn.setText(Dictionary.get("value"));
+        descriptionColumn.setText(Dictionary.get("description"));
+
+        //table placeholder
+        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder")));
+
+        //settings
+        showHiddenTagsCheckBox.setText(Dictionary.get("settings.user.hidden"));
+        openRecentCheckBox.setText(Dictionary.get("settings.user.recent"));
+        languageExportCheckBox.setText(Dictionary.get("settings.user.export"));
+
+        //buttons
+        addCodeButton.setText(Dictionary.get("settings.button.add"));
+        addCodesButton.setText(Dictionary.get("settings.button.add.multi"));
+        hideCodesButton.setText(Dictionary.get("settings.button.hide"));
+        unhideCodesButton.setText(Dictionary.get("settings.button.unhide"));
+        deleteCodesButton.setText(Dictionary.get("settings.button.delete"));
+        manageButton.setText(Dictionary.get("settings.button.list"));
     }
 }
 
