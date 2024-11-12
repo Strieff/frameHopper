@@ -46,7 +46,6 @@ public class SettingsService {
         var languageMap = languageManager.getLanguageMap();
         for(var e : languageMap.keySet())
             languages.add(new LanguageEntry(e, languageMap.get(e)));
-        System.out.println(languages);
     }
 
     public void close() {
@@ -95,26 +94,30 @@ public class SettingsService {
 
                 //check if tag is correct length
                 if(data.length<2 || data.length>3)
-                    throw new Exception("Invalid code format: "+line);
+                    throw new Exception(String.format(Dictionary.get("tag.invalid"),line));
 
                 //check if name is not empty
                 if(data[0].isBlank())
-                    throw new Exception("Name of code cannot be empty");
+                    throw new Exception(Dictionary.get("tag.name.empty"));
 
                 //check if tag name exists
                 if(tagList.getTag(data[0]) != null)
-                    throw new Exception("Tag: " + data[0] + " already exists");
+                    throw new Exception(String.format(Dictionary.get("tag.name.exists"),data[0]));
+
+                //check if value is not empty
+                if(data[1].isBlank())
+                    throw new Exception(Dictionary.get("tag.value.empty"));
 
                 //check if value is an integer
                 try{
                     Double.parseDouble(data[1]);
                 }catch(NumberFormatException e){
-                    throw new Exception("Value must be a proper number");
+                    throw new Exception(Dictionary.get("tag.value.nan"));
                 }
 
                 //check if value is a positive number
                 if(Double.parseDouble(data[1])<0)
-                    throw new Exception("Value must be a positive number or zero");
+                    throw new Exception(Dictionary.get("tag.value.non-positive"));
 
                 list.add(Tag.builder()
                         .name(data[0])

@@ -69,6 +69,7 @@ public class CreateTagController implements LanguageChangeListener {
     }
 
     private void closeWindow() {
+        LanguageManager.unregister(this);
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
         openViews.closeCreateTag();

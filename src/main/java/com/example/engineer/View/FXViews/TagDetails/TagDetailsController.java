@@ -77,7 +77,7 @@ public class TagDetailsController implements LanguageChangeListener {
 
     private void toggleHide() {
         info.getTag().setDeleted(!info.getTag().isDeleted());
-        hideButton.setText(info.getTag().isDeleted() ? "Unhide" : "Hide");
+        hideButton.setText(Dictionary.get(info.getTag().isDeleted() ? "td.unhide" : "td.hide"));
         tagList.changeHideStatus(info.getTag().getId(),info.getTag().isDeleted());
         UpdateTableEventDispatcher.fireEvent();
     }

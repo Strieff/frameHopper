@@ -21,6 +21,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -155,8 +156,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+            else
+                FXDialogProvider.errorDialog(Dictionary.get("open.tm"));
         }else
-            FXDialogProvider.errorDialog("Tag manager error","No file is open!");
+            FXDialogProvider.errorDialog(Dictionary.get("error.tm.not-open"));
     }
 
     //OPEN SETTINGS
@@ -192,6 +195,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             }catch (Exception e){
                 e.printStackTrace();
             }
+        else
+            FXDialogProvider.errorDialog(Dictionary.get("open.settings"));
     }
 
     //OPEN EXPORT
@@ -227,6 +232,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             }catch (Exception e){
                 e.printStackTrace();
             }
+        else
+            FXDialogProvider.errorDialog(Dictionary.get("open.export"));
     }
 
     //drag event
@@ -246,11 +253,22 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             //get file
             var file = db.getFiles().get(0);
 
-            prepareVideo(file);
+            try {
+                if(isValidFile(file))
+                    prepareVideo(file);
+                else
+                    throw new Exception();
+            }catch (Exception e){
+                FXDialogProvider.errorDialog(Dictionary.get("error.drag"));
+            }
         }
 
         event.setDropCompleted(success);
         event.consume();
+    }
+
+    private boolean isValidFile(File file) throws Exception{
+        return file.getName().endsWith(".gif") || new Tika().detect(file).equals("video/");
     }
 
     public void openRecent(String path){
@@ -293,7 +311,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             statusLabel.setText(viewService.displayCurrentInfo());
             System.out.println("Jump to frame: " + toJump);
         }else
-            FXDialogProvider.errorDialog("Invalid frame");
+            FXDialogProvider.errorDialog(Dictionary.get("error.main.frame.invalid"));
     }
 
     //check if number is valid
@@ -366,7 +384,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 if(vid != null)
                     videoController.init(vid);
                 else
-                    throw new Exception("No video is open");
+                    throw new Exception(Dictionary.get("error.main.not-open"));
 
                 //new stage
                 var secondaryStage = new Stage();
@@ -380,7 +398,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 FXDialogProvider.errorDialog(e.getMessage());
             }
        else
-           FXDialogProvider.errorDialog("No video is open");
+           FXDialogProvider.errorDialog(Dictionary.get("error.main.not-open"));
     }
 
     //PASTE RECENT

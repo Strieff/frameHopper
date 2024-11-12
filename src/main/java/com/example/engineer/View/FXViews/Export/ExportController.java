@@ -187,25 +187,25 @@ public class ExportController implements LanguageChangeListener {
     //HANDLE EXPORT
     private void handleExport(){
         try {
-            if(selectedIds.isEmpty()) throw new Exception("No video selected");
+            if(selectedIds.isEmpty()) throw new Exception(Dictionary.get("error.export.no-video"));
 
             var path = FileChooserProvider.locationFileChooser((Stage)videoTable.getScene().getWindow(), userSettings.getExportPath());
 
-            var format = FXDialogProvider.customDialog("Choose file format:",-1,"EXCEL","CSV");
+            var format = FXDialogProvider.customDialog(Dictionary.get("dialog.export.format"),-1,"EXCEL","CSV");
             if (format == -1) throw new RuntimeException();
 
             var name = FXDialogProvider.inputDialog();
-            if(name.isBlank()) throw new Exception("Name cannot be empty");
+            if(name.isBlank()) throw new Exception(Dictionary.get("error.export.no-name"));
 
             while(new File(path+File.separator+name).exists()) {
-                var res = FXDialogProvider.customDialog("File already exists. Choose another name?", 0, "CANCEL", "RENAME", "OVERWRITE");
+                var res = FXDialogProvider.customDialog(Dictionary.get("dialog.export.exists"), 0, "CANCEL", "RENAME", "OVERWRITE");
 
                 switch (res) {
                     case 0:
                         throw new RuntimeException();
                     case 1:
                         name = FXDialogProvider.inputDialog();
-                        if(name.isBlank()) throw new Exception("Name cannot be empty");
+                        if(name.isBlank()) throw new Exception(Dictionary.get("error.export.no-name"));
                         break;
                 }
 
@@ -214,9 +214,9 @@ public class ExportController implements LanguageChangeListener {
 
             viewService.exportData(path+File.separator+name,selectedIds,format);
             userSettings.setExportRecent(path);
-            FXDialogProvider.messageDialog("EXPORT COMPLETE");
+            FXDialogProvider.messageDialog(Dictionary.get("message.export.complete"));
         }catch (RuntimeException e){
-            FXDialogProvider.messageDialog("CANCELLED");
+            FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
         }catch (Exception e) {
             FXDialogProvider.errorDialog(e.getMessage());
         }

@@ -9,6 +9,7 @@ import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXRestartResolver;
 import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
+import com.example.engineer.View.Elements.Language.Dictionary;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class VideoManagementDetailsService {
 
             //check if both have same amount of frames
             if(hasSameAmountOfFrames(pathOfNewFile, oldVideo))
-                if(!FXDialogProvider.YesNoDialog("VIDEOS HAVE DIFFERENT AMOUNT OF FRAMES"))
+                if(!FXDialogProvider.YesNoDialog(Dictionary.get("message.vd.frames.different")))
                     return;
 
 
@@ -49,18 +50,18 @@ public class VideoManagementDetailsService {
 
                 if(!frameService.getAllByVideo(existitngVideo).isEmpty()){//if existing video has data
                     switch(FXDialogProvider.customDialog(
-                            "Action required",
+                            Dictionary.get("dialog.vd.action.required"),
                             0,
-                            "Cancel",
-                            "Discard old",
-                            "Merge",
-                            "discard new"
+                            Dictionary.get("cancel"),
+                            Dictionary.get("dialog.vd.action.discard-old"),
+                            Dictionary.get("dialog.vd.action.merge"),
+                            Dictionary.get("dialog.vd.action.discard-new")
                     )){
                         case 0:
-                            FXDialogProvider.messageDialog("CANCELLED");
+                            FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
                             return;
                         case 1:
-                            if(FXDialogProvider.YesNoDialog("DISCARD OLD?")) {
+                            if(FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.discard-old"))) {
                                 videoService.deleteVideo(oldVideo.getId());
 
                                 var updated = updateVideo(existitngVideo,oldVideo);
@@ -73,20 +74,20 @@ public class VideoManagementDetailsService {
                                 }
 
                             }else{
-                                FXDialogProvider.messageDialog("CANCELLED");
+                                FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
                                 return;
                             }
                             break;
                         case 2:
-                            if(FXDialogProvider.YesNoDialog("MERGE??")) {
+                            if(FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.merge"))) {
                                 mergeVideo(oldVideo,existitngVideo);
                             }else{
-                                FXDialogProvider.messageDialog("CANCELLED");
+                                FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
                                 return;
                             }
                             break;
                         case 3:
-                            if(FXDialogProvider.YesNoDialog("DISCARD NEW?")) {
+                            if(FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.discard-new"))) {
                                 videoService.deleteVideo(existitngVideo.getId());
 
                                 var updated = updateVideo(oldVideo,existitngVideo);
@@ -99,7 +100,7 @@ public class VideoManagementDetailsService {
                                 }
 
                             }else{
-                                FXDialogProvider.messageDialog("CANCELLED");
+                                FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
                                 return;
                             }
                             break;
@@ -112,12 +113,12 @@ public class VideoManagementDetailsService {
                     }
 
                     if(hasMoreFrames(existitngVideo, oldVideo)){//new has more frames
-                        if(!FXDialogProvider.YesNoDialog("New has more frames. Continue?"))
+                        if(!FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.frames-more")))
                             return;
 
                         reassignFrames(existitngVideo,oldVideo,false);
                     }else{//new has fewer frames
-                        if(!FXDialogProvider.YesNoDialog("New has fewer frames. Continue?"))
+                        if(!FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.frames-less")))
                             return;
 
                         reassignFrames(existitngVideo,oldVideo,true);

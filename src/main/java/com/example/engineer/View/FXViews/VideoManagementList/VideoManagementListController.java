@@ -162,6 +162,7 @@ public class VideoManagementListController implements LanguageChangeListener {
 
     //CLOSE VIDEO LIST
     private void onShiftLPressed() {
+        LanguageManager.unregister(this);
         var stage = (Stage) listView.getScene().getWindow();
         stage.close();
         openViews.closeVideoList();
@@ -176,7 +177,7 @@ public class VideoManagementListController implements LanguageChangeListener {
             if (selected.getSelectedItem() != null)
                 openDetails(selected.getSelectedItem().getId());
             else
-                FXDialogProvider.errorDialog("No video to open");
+                FXDialogProvider.errorDialog(Dictionary.get("error.vl.current"));
         }
     }
 
@@ -216,7 +217,7 @@ public class VideoManagementListController implements LanguageChangeListener {
         if(selected!=null){
             deleteVideo(selected.getId());
         }else
-            FXDialogProvider.errorDialog("No video selected");
+            FXDialogProvider.errorDialog(Dictionary.get("error.vl.selected"));
     }
 
     private void onDelete(int id){
@@ -224,7 +225,7 @@ public class VideoManagementListController implements LanguageChangeListener {
     }
 
     private void deleteVideo(int id){
-        if(FXDialogProvider.YesNoDialog("Do you want to delete: "+ videoService.getById(id).getName()+"?")) {
+        if(FXDialogProvider.YesNoDialog(String.format(Dictionary.get("message.vl.delete"),videoService.getById(id).getName()))) {
             videoService.deleteVideo(id);
             codeTable.getItems().remove(IntStream.range(0, codeTable.getItems().size()).filter(i -> codeTable.getItems().get(i).getId() == id).findFirst().orElse(-1));
         }else

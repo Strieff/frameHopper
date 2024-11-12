@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+//TODO warnings
 @Component
 @Scope("prototype")
 public class SettingsController implements UpdateTableListener, LanguageChangeListener {
@@ -220,6 +221,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
 
     //CLOSE WINDOW
     private void onShiftSPressed() {
+        LanguageManager.unregister(this);
         var stage = (Stage) settingsView.getScene().getWindow();
         stage.close();
         viewService.close();
@@ -258,7 +260,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
                 FXDialogProvider.errorDialog(e.getMessage());
             }
         else
-            FXDialogProvider.errorDialog("Tag creation already open");
+            FXDialogProvider.errorDialog(Dictionary.get("open.tag-creation"));
     }
 
     //ADD MULTIPLE TAGS FROM FILE
@@ -299,7 +301,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
                     .toList();
             viewService.hideTags(ids);
         }else
-            FXDialogProvider.errorDialog("No tags selected");
+            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
     }
 
     //UNHIDE TAGS
@@ -321,7 +323,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
                     .toList();
             viewService.unhideTags(ids);
         }else
-            FXDialogProvider.errorDialog("No tags selected");
+            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
     }
 
     //DELETE TAGS
@@ -348,7 +350,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
                     .toList();
             viewService.removeTags(ids);
         }else
-            FXDialogProvider.errorDialog("No tags selected");
+            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
     }
 
     //OPEN VIDEO MANAGEMENT LIST
@@ -382,6 +384,8 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
             }catch(Exception e){
                 FXDialogProvider.errorDialog(e.getMessage());
             }
+        else
+            FXDialogProvider.errorDialog(Dictionary.get("open.video-list"));
     }
 
     //OPEN CURRENT VIDEO DETAILS
@@ -426,7 +430,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
             for(var s : selected.getSelectedItems())
                 openTagDetails(s.getId());
         else
-            FXDialogProvider.errorDialog("No tags selected");
+            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
     }
 
     private void openTagDetails(int id){
@@ -451,7 +455,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
             secondaryStage.show();
             System.out.println("Opening Tag details");
         }catch (Exception e){
-            e.printStackTrace();
+            FXDialogProvider.errorDialog(e.getMessage());
         }
     }
 
