@@ -4,6 +4,7 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.Language.Dictionary;
+import com.example.engineer.View.Elements.Language.DictionaryCreator;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.Language.LanguageManager;
@@ -78,6 +79,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::onCtrlYPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::onCtrlZPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN), this::onAltQPressed);
 
         //jump section
         jumpButton.setText(Dictionary.get("main.jump.button"));
@@ -108,6 +110,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             stage.setOnCloseRequest(e -> viewService.close());
             mainView.requestFocus();
         });
+    }
+
+    private void onAltQPressed() {
+        DictionaryCreator.create();
     }
 
     //HANDLE KEY BINDS
