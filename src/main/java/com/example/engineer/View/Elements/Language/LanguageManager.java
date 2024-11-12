@@ -32,7 +32,7 @@ public class LanguageManager implements ApplicationContextAware {
     }
 
     //method to fire event
-    private static void fireLanguageChangeEvent(){
+    public static void fireLanguageChangeEvent(){
         for(LanguageChangeListener listener : listeners)
             listener.changeLanguage();
     }

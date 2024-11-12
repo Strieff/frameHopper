@@ -1,5 +1,6 @@
 package com.example.engineer.View.Elements.Language;
 
+import com.example.engineer.Model.UserSettings;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 
 import java.io.*;
@@ -8,7 +9,7 @@ public class DictionaryCreator {
     public static void create(){
         var languageCode = FXDialogProvider.inputDialog();
 
-        if(languageCode == null){
+        if(languageCode.isBlank()){
             FXDialogProvider.errorDialog("Name cannot be empty");
             return;
         }
@@ -44,5 +45,10 @@ public class DictionaryCreator {
             FXDialogProvider.errorDialog(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public static void reload(){
+        new Dictionary(UserSettings.getInstance().getLanguage());
+        LanguageManager.fireLanguageChangeEvent();
     }
 }

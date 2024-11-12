@@ -14,7 +14,7 @@ public class Dictionary {
 
     private static Dictionary instance;
 
-    private Map<String,Properties> dictionaries = new HashMap<>();
+    private final Map<String,Properties> dictionaries = new HashMap<>();
     private static Properties dictionary = new Properties();
 
     public Dictionary(String langCode) {

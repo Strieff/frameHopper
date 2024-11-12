@@ -79,7 +79,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::onCtrlYPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::onCtrlZPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN), this::onAltQPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), this::onAltShiftQPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), this::onAltShiftRPressed);
 
         //jump section
         jumpButton.setText(Dictionary.get("main.jump.button"));
@@ -107,13 +108,12 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> viewService.close());
+            stage.setOnCloseRequest(e -> {
+                viewService.close();
+                System.exit(0);
+            });
             mainView.requestFocus();
         });
-    }
-
-    private void onAltQPressed() {
-        DictionaryCreator.create();
     }
 
     //HANDLE KEY BINDS
@@ -122,6 +122,15 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 .filter(k -> k.match(event))
                 .findFirst()
                 .ifPresent(k -> keyActions.get(k).run());
+    }
+
+    //DICTIONARY UPDATES
+    private void onAltShiftRPressed() {
+        DictionaryCreator.reload();
+    }
+
+    private void onAltShiftQPressed() {
+        DictionaryCreator.create();
     }
 
     //OPEN TAG MANAGER
