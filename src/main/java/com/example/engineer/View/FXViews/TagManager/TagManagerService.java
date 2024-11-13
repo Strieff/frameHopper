@@ -51,15 +51,18 @@ public class TagManagerService {
         );
     }
 
-    public ObservableList<TableEntry> getTags(){
+    public ObservableList<TableEntry> getTags() {
         var heldTagsDTOList = mainViewService.getTagsOnFrame();
+        if (heldTagsDTOList == null)
+            heldTagsDTOList = new ArrayList<>();
         info = new InformationContainer(heldTagsDTOList);
+
         ObservableList<TableEntry> data = FXCollections.observableArrayList();
 
-        if(heldTagsDTOList != null){
-            var allTagsDTOList = tagList.getTagList();
-            for(var t : allTagsDTOList){
-                if(userSettings.ShowHidden() || !t.isDeleted()){
+        var allTagsDTOList = tagList != null ? tagList.getTagList() : new ArrayList<Tag>();
+        if (!allTagsDTOList.isEmpty()) {
+            for (var t : allTagsDTOList) {
+                if (userSettings.ShowHidden() || !t.isDeleted()) {
                     var selected = heldTagsDTOList.stream().filter(tag -> tag.equals(t)).findFirst().orElse(null);
                     var name = t.isDeleted() ? t.getName() + Dictionary.get("hidden") : t.getName();
 
@@ -71,7 +74,6 @@ public class TagManagerService {
                     ));
                 }
             }
-
         }
 
         return data;

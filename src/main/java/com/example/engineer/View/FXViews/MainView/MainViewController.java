@@ -174,7 +174,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             else
                 FXDialogProvider.errorDialog(Dictionary.get("open.tm"));
         }else
-            FXDialogProvider.errorDialog(Dictionary.get("error.tm.not-open"));
+            FXDialogProvider.errorDialog(Dictionary.get("error.main.not-open"));
     }
 
     //OPEN SETTINGS

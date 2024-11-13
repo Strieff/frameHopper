@@ -38,22 +38,26 @@ public class EngineerApplication extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        var loader =  FXMLViewLoader.getView("MainViewModel");
-        Parent root = loader.load();
-        primaryStage.setTitle("FrameHopper");
-        primaryStage.setScene(new Scene(root,1200,900));
-        primaryStage.show();
+    public void start(Stage primaryStage) {
+        try{
+            var loader = FXMLViewLoader.getView("MainViewModel");
+            Parent root = loader.load();
+            primaryStage.setTitle("FrameHopper");
+            primaryStage.setScene(new Scene(root, 1200, 900));
+            primaryStage.show();
 
-        checkNecessaryFiles();
-        context.getBean(FrameProcessorClient.class).connect();
-        closeLoadingWindow();
+            checkNecessaryFiles();
+            context.getBean(FrameProcessorClient.class).connect();
+            closeLoadingWindow();
 
-        if(context.getBean(UserSettingsManager.class).openRecent())
-            if(openRecent(context,primaryStage)){
-                MainViewController controller = loader.getController();
-                controller.openRecent(context.getBean(UserSettingsManager.class).getRecentPath());
-            }
+            if (context.getBean(UserSettingsManager.class).openRecent())
+                if (openRecent(context, primaryStage)) {
+                    MainViewController controller = loader.getController();
+                    controller.openRecent(context.getBean(UserSettingsManager.class).getRecentPath());
+                }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
