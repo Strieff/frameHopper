@@ -25,7 +25,7 @@ public class FXDialogProvider {
     }
 
     //YES/NO DIALOG
-    public static boolean YesNoDialog(String title, String message) {
+    public static boolean yesNoDialog(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setContentText(message);
@@ -43,8 +43,8 @@ public class FXDialogProvider {
         }
     }
 
-    public static boolean YesNoDialog(String message) {
-        return YesNoDialog("",message);
+    public static boolean yesNoDialog(String message) {
+        return yesNoDialog("",message);
     }
 
     //CUSTOM DIALOG

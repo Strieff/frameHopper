@@ -13,6 +13,7 @@ public class UserSettings {
     private Boolean showDeleted;
     private Boolean openRecent;
     private Boolean useDefaultLanguage;
+    private Boolean settingsWarnings;
     private String recentPath;
     private String recentExportPath;
     private String language;

@@ -50,6 +50,7 @@
                 <CheckBox fx:id="showHiddenTagsCheckBox" text="Show hidden tags" wrapText="true" />
                 <CheckBox fx:id="openRecentCheckBox" text="Open recent" wrapText="true" />
                 <CheckBox fx:id="languageExportCheckBox" text="Use chosen language for export" wrapText="true" />
+                <CheckBox fx:id="settingsWarningCheckbox" text="Show warning for code management" wrapText="true" />
             <opaqueInsets>
                <Insets left="10.0" right="10.0" />
             </opaqueInsets>

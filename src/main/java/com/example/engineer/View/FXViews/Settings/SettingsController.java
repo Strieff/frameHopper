@@ -56,7 +56,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
     @FXML
     private BorderPane settingsView;
     @FXML
-    private CheckBox showHiddenTagsCheckBox, openRecentCheckBox, languageExportCheckBox;
+    private CheckBox showHiddenTagsCheckBox,openRecentCheckBox,languageExportCheckBox,settingsWarningCheckbox;
     @FXML
     private ComboBox<LanguageEntry> languageBox;
     @FXML
@@ -164,6 +164,10 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         languageExportCheckBox.setSelected(userSettings.useDefaultLanguage());
         languageExportCheckBox.setText(Dictionary.get("settings.user.export"));
         languageExportCheckBox.setOnMouseClicked(event -> handleChosenLanguage());
+
+        settingsWarningCheckbox.setSelected(userSettings.showSettingsWarning());
+        settingsWarningCheckbox.setText(Dictionary.get("settings.user.warning"));
+        settingsWarningCheckbox.setOnMouseClicked(event -> handleSettingsWarnings());
 
         // Add data to the TableView
         codeTable.setItems(viewService.getExistingTags());
@@ -295,13 +299,15 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
     private void hideTags(){
         var selected = codeTable.getSelectionModel();
 
-        if(selected.getSelectedItem() != null) {
-            var ids = selected.getSelectedItems().stream()
-                    .map(TableEntry::getId)
-                    .toList();
-            viewService.hideTags(ids);
-        }else
-            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
+        if(!userSettings.showSettingsWarning() || FXDialogProvider.yesNoDialog(String.format(Dictionary.get("warning.settings.hide"),getSelectedList()))) {
+            if (selected.getSelectedItem() != null) {
+                var ids = selected.getSelectedItems().stream()
+                        .map(TableEntry::getId)
+                        .toList();
+                viewService.hideTags(ids);
+            } else
+                FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
+        }
     }
 
     //UNHIDE TAGS
@@ -317,13 +323,15 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
     private void unhideTags(){
         var selected = codeTable.getSelectionModel();
 
-        if(selected.getSelectedItem() != null) {
-            var ids = selected.getSelectedItems().stream()
-                    .map(TableEntry::getId)
-                    .toList();
-            viewService.unhideTags(ids);
-        }else
-            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
+        if(!userSettings.showSettingsWarning() || FXDialogProvider.yesNoDialog(String.format(Dictionary.get("warning.settings.unhide"),getSelectedList()))) {
+            if (selected.getSelectedItem() != null) {
+                var ids = selected.getSelectedItems().stream()
+                        .map(TableEntry::getId)
+                        .toList();
+                viewService.unhideTags(ids);
+            } else
+                FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
+        }
     }
 
     //DELETE TAGS
@@ -344,13 +352,15 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
     private void deleteTags(){
         var selected = codeTable.getSelectionModel();
 
-        if(selected.getSelectedItem() != null) {
-            var ids = selected.getSelectedItems().stream()
-                    .map(TableEntry::getId)
-                    .toList();
-            viewService.removeTags(ids);
-        }else
-            FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
+        if(!userSettings.showSettingsWarning() || FXDialogProvider.yesNoDialog(String.format(Dictionary.get("warning.settings.delete"),getSelectedList()))) {
+            if (selected.getSelectedItem() != null) {
+                var ids = selected.getSelectedItems().stream()
+                        .map(TableEntry::getId)
+                        .toList();
+                viewService.removeTags(ids);
+            } else
+                FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
+        }
     }
 
     //OPEN VIDEO MANAGEMENT LIST
@@ -474,6 +484,19 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         userSettings.setUseDefaultLanguage(languageExportCheckBox.isSelected());
     }
 
+    //HANDLE SETTINGS WARNINGS
+    private void handleSettingsWarnings(){
+        userSettings.setSettingsWarnings(settingsWarningCheckbox.isSelected());
+    }
+
+    //get selected as string
+    private String getSelectedList(){
+        var list = new StringBuilder();
+        for(var s : codeTable.getSelectionModel().getSelectedItems())
+            list.append("\n").append(s.getCode());
+        return list.toString();
+    }
+
     @Override
     public void updateTable() {
         codeTable.setItems(viewService.getExistingTags());
@@ -497,6 +520,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         showHiddenTagsCheckBox.setText(Dictionary.get("settings.user.hidden"));
         openRecentCheckBox.setText(Dictionary.get("settings.user.recent"));
         languageExportCheckBox.setText(Dictionary.get("settings.user.export"));
+        settingsWarningCheckbox.setText(Dictionary.get("settings.user.warning"));
 
         //buttons
         addCodeButton.setText(Dictionary.get("settings.button.add"));

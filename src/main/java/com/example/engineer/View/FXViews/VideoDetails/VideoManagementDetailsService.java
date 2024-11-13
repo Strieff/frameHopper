@@ -41,7 +41,7 @@ public class VideoManagementDetailsService {
 
             //check if both have same amount of frames
             if(hasSameAmountOfFrames(pathOfNewFile, oldVideo))
-                if(!FXDialogProvider.YesNoDialog(Dictionary.get("message.vd.frames.different")))
+                if(!FXDialogProvider.yesNoDialog(Dictionary.get("message.vd.frames.different")))
                     return;
 
 
@@ -61,7 +61,7 @@ public class VideoManagementDetailsService {
                             FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
                             return;
                         case 1:
-                            if(FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.discard-old"))) {
+                            if(FXDialogProvider.yesNoDialog(Dictionary.get("warning.vd.discard-old"))) {
                                 videoService.deleteVideo(oldVideo.getId());
 
                                 var updated = updateVideo(existitngVideo,oldVideo);
@@ -79,7 +79,7 @@ public class VideoManagementDetailsService {
                             }
                             break;
                         case 2:
-                            if(FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.merge"))) {
+                            if(FXDialogProvider.yesNoDialog(Dictionary.get("warning.vd.merge"))) {
                                 mergeVideo(oldVideo,existitngVideo);
                             }else{
                                 FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
@@ -87,7 +87,7 @@ public class VideoManagementDetailsService {
                             }
                             break;
                         case 3:
-                            if(FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.discard-new"))) {
+                            if(FXDialogProvider.yesNoDialog(Dictionary.get("warning.vd.discard-new"))) {
                                 videoService.deleteVideo(existitngVideo.getId());
 
                                 var updated = updateVideo(oldVideo,existitngVideo);
@@ -113,12 +113,12 @@ public class VideoManagementDetailsService {
                     }
 
                     if(hasMoreFrames(existitngVideo, oldVideo)){//new has more frames
-                        if(!FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.frames-more")))
+                        if(!FXDialogProvider.yesNoDialog(Dictionary.get("warning.vd.frames-more")))
                             return;
 
                         reassignFrames(existitngVideo,oldVideo,false);
                     }else{//new has fewer frames
-                        if(!FXDialogProvider.YesNoDialog(Dictionary.get("warning.vd.frames-less")))
+                        if(!FXDialogProvider.yesNoDialog(Dictionary.get("warning.vd.frames-less")))
                             return;
 
                         reassignFrames(existitngVideo,oldVideo,true);

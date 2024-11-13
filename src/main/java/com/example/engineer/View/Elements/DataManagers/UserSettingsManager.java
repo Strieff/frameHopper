@@ -3,7 +3,6 @@ package com.example.engineer.View.Elements.DataManagers;
 import com.example.engineer.Model.UserSettings;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +11,6 @@ import java.io.FileWriter;
 @Component
 @DependsOn("UserSettings")
 public class UserSettingsManager{
-    @Autowired
-    LanguageManager languageManager;
 
     UserSettings userSettings;
 
@@ -46,7 +43,12 @@ public class UserSettingsManager{
 
     public void setLanguage(String language){
         userSettings.setLanguage(language);
-        languageManager.changeLanguage(language);
+        LanguageManager.changeLanguage(language);
+        save();
+    }
+
+    public void setSettingsWarnings(boolean settingsWarnings){
+        userSettings.setSettingsWarnings(settingsWarnings);
         save();
     }
 
@@ -72,6 +74,10 @@ public class UserSettingsManager{
 
     public String getLanguage(){
         return userSettings.getLanguage();
+    }
+
+    public boolean showSettingsWarning() {
+        return userSettings.getSettingsWarnings();
     }
 
     public void save(){

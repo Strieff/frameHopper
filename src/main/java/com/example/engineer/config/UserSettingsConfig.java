@@ -32,6 +32,7 @@ public class UserSettingsConfig {
                             false,
                             false,
                             true,
+                            true,
                             null,
                             null,
                             "en"

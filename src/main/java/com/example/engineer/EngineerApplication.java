@@ -77,7 +77,7 @@ public class EngineerApplication extends Application {
         if(userSettings.getRecentPath() == null)
             return false;
 
-        var openRecent = FXDialogProvider.YesNoDialog(
+        var openRecent = FXDialogProvider.yesNoDialog(
                 String.format("Recently opened: %s\nOpen recent?",userSettings.getRecentPath()),
                 "Open recent video"
         );
@@ -85,7 +85,7 @@ public class EngineerApplication extends Application {
         if(openRecent){
             var recentFile = new File(userSettings.getRecentPath());
             if(!recentFile.exists()) {
-                if (FXDialogProvider.YesNoDialog(String.format("No file found: %s\nSet new path?", userSettings.getRecentPath())))
+                if (FXDialogProvider.yesNoDialog(String.format("No file found: %s\nSet new path?", userSettings.getRecentPath())))
                     reelPath(context, userSettings.getRecentPath(), stage);
                 else
                     return false;

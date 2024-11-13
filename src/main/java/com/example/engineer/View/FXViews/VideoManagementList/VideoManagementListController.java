@@ -225,7 +225,7 @@ public class VideoManagementListController implements LanguageChangeListener {
     }
 
     private void deleteVideo(int id){
-        if(FXDialogProvider.YesNoDialog(String.format(Dictionary.get("message.vl.delete"),videoService.getById(id).getName()))) {
+        if(FXDialogProvider.yesNoDialog(String.format(Dictionary.get("message.vl.delete"),videoService.getById(id).getName()))) {
             videoService.deleteVideo(id);
             codeTable.getItems().remove(IntStream.range(0, codeTable.getItems().size()).filter(i -> codeTable.getItems().get(i).getId() == id).findFirst().orElse(-1));
         }else
