@@ -74,6 +74,10 @@ public class LanguageManager implements ApplicationContextAware {
         return langMap;
     }
 
+    public static Map<String,String> getLanguages() {
+        return ctx.getBean(LanguageManager.class).getLanguageMap();
+    }
+
     //returns a language name in given language
     public static String getLanguageName(String code) {
         return ctx.getBean(LanguageManager.class).getLanguageMap().get(code);

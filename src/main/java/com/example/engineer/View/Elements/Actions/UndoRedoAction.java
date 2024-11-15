@@ -22,7 +22,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
     }
 
     boolean undid;
-    String videoName;
+    String videoPath;
 
     @Getter
     int currentFrameIndex;
@@ -37,10 +37,10 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
         frameService = ctx.getBean(FrameService.class);
     }
 
-    public void setUp(List<Tag> originalTags, List<Tag> currentTags, int currentFrameIndex, String videoName){
+    public void setUp(List<Tag> originalTags, List<Tag> currentTags, int currentFrameIndex, String videoPath){
         this.originalTags = originalTags;
         this.currentFrameIndex = currentFrameIndex;
-        this.videoName = videoName;
+        this.videoPath = videoPath;
         this.currentTags = currentTags;
         undid = false;
     }
@@ -48,7 +48,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
     public void undoAction(){
         if(!undid){
             UpdateTableEventDispatcher.fireEvent();
-            new TagManagerAction(frameService,originalTags,currentFrameIndex,videoName).run();
+            new TagManagerAction(frameService,originalTags,currentFrameIndex, videoPath).run();
 
             flipState();
         }
@@ -57,7 +57,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
      public void redoAction(){
          if(undid){
              UpdateTableEventDispatcher.fireEvent();
-             new TagManagerAction(frameService,currentTags,currentFrameIndex,videoName).run();
+             new TagManagerAction(frameService,currentTags,currentFrameIndex, videoPath).run();
 
              flipState();
          }

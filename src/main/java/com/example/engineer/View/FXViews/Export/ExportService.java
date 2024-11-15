@@ -4,6 +4,7 @@ import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
@@ -30,6 +31,8 @@ public class ExportService {
     private TagService tagService;
     @Autowired
     private TagListManager tagList;
+    @Autowired
+    private UserSettingsManager userSettings;
 
     public ObservableList<TableEntry> getVideos(){
         var videoDTOList = videoService.getAll();
@@ -68,11 +71,19 @@ public class ExportService {
                     .computeIfAbsent((Video)o[0],v -> new HashMap<>())
                     .put((String)o[1],(Long)o[2]);
 
-        if(format == 0) exportExcel(path,tagAmountOnVideos);
-        else exportCSV(path,tagAmountOnVideos);
+        if(videos.size() != tagAmountOnVideos.keySet().size())
+            getAbsent(
+                    videos.stream().toList(),
+                    tagAmountOnVideos.keySet().stream().map(Video::getId).toList()
+            ).forEach(e -> tagAmountOnVideos.put(e,new HashMap<>()));
+
+        var code = userSettings.useDefaultLanguage() ? userSettings.getLanguage() : FXDialogProvider.languageDialog();
+
+        if(format == 0) exportExcel(path,tagAmountOnVideos,code);
+        else exportCSV(path,tagAmountOnVideos,code);
     }
 
-    private void exportExcel(String path,Map<Video, Map<String,Long>> videoTagMap){
+    private void exportExcel(String path,Map<Video, Map<String,Long>> videoTagMap,String language){
         var uniqueTagsOnVideos = getAmountOfUniqueVideos(videoTagMap.keySet().stream().toList());
 
         String filePath = path+".xlsx";
@@ -82,17 +93,17 @@ public class ExportService {
                 FileOutputStream outputStream = new FileOutputStream(filePath)
         ){
             //create general data
-            Sheet sheet = workbook.createSheet(Dictionary.get("data.overview.title"));
+            Sheet sheet = workbook.createSheet(Dictionary.get(language,"data.overview.title"));
 
             // Create header row
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue(Dictionary.get("data.overview.name"));
-            headerRow.createCell(1).setCellValue(Dictionary.get("data.overview.frameCount"));
-            headerRow.createCell(2).setCellValue(Dictionary.get("data.overview.codes"));
-            headerRow.createCell(3).setCellValue(Dictionary.get("data.overview.runtime"));
-            headerRow.createCell(4).setCellValue(Dictionary.get("data.overview.framerate"));
-            headerRow.createCell(5).setCellValue(Dictionary.get("data.overview.totalPoints"));
-            headerRow.createCell(6).setCellValue(Dictionary.get("data.overview.complexity"));
+            headerRow.createCell(0).setCellValue(Dictionary.get(language,"data.overview.name"));
+            headerRow.createCell(1).setCellValue(Dictionary.get(language,"data.overview.frameCount"));
+            headerRow.createCell(2).setCellValue(Dictionary.get(language,"data.overview.codes"));
+            headerRow.createCell(3).setCellValue(Dictionary.get(language,"data.overview.runtime"));
+            headerRow.createCell(4).setCellValue(Dictionary.get(language,"data.overview.framerate"));
+            headerRow.createCell(5).setCellValue(Dictionary.get(language,"data.overview.totalPoints"));
+            headerRow.createCell(6).setCellValue(Dictionary.get(language,"data.overview.complexity"));
 
             //create data row
             for (int row = 0; row < videoTagMap.size(); row++) {
@@ -102,7 +113,11 @@ public class ExportService {
 
                 dataRow.createCell(0).setCellValue(video.getName());
                 dataRow.createCell(1).setCellValue(video.getTotalFrames());
-                dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(uniqueTagsOnVideos.keySet().stream().filter(v -> v.getId() == video.getId()).findFirst().get()));
+                try{
+                    dataRow.createCell(2).setCellValue(uniqueTagsOnVideos.get(uniqueTagsOnVideos.keySet().stream().filter(v -> v.getId() == video.getId()).findFirst().get()));
+                }catch (Exception ex){
+                    dataRow.createCell(2).setCellValue(0);
+                }
                 dataRow.createCell(3).setCellValue(video.getDuration());
                 dataRow.createCell(4).setCellValue(video.getFrameRate());
                 dataRow.createCell(5).setCellValue(getTotalPoints(videoTagMap.get(video)));
@@ -110,12 +125,12 @@ public class ExportService {
             }
 
             Row summaryRow = sheet.createRow(videoTagMap.size()+2);
-            summaryRow.createCell(0).setCellValue(Dictionary.get("data.overview.summary.totalShotAmount"));
-            summaryRow.createCell(1).setCellValue(Dictionary.get("data.overview.summary.totalFrameCount"));
-            summaryRow.createCell(3).setCellValue(Dictionary.get("data.overview.summary.totalRuntime"));
-            summaryRow.createCell(5).setCellValue(Dictionary.get("data.overview.summary.totalPoints"));
-            summaryRow.createCell(6).setCellValue(Dictionary.get("data.overview.summary.overallComplexity"));
-            summaryRow.createCell(7).setCellValue(Dictionary.get("data.overview.asl"));
+            summaryRow.createCell(0).setCellValue(Dictionary.get(language,"data.overview.summary.totalShotAmount"));
+            summaryRow.createCell(1).setCellValue(Dictionary.get(language,"data.overview.summary.totalFrameCount"));
+            summaryRow.createCell(3).setCellValue(Dictionary.get(language,"data.overview.summary.totalRuntime"));
+            summaryRow.createCell(5).setCellValue(Dictionary.get(language,"data.overview.summary.totalPoints"));
+            summaryRow.createCell(6).setCellValue(Dictionary.get(language,"data.overview.summary.overallComplexity"));
+            summaryRow.createCell(7).setCellValue(Dictionary.get(language,"data.overview.asl"));
 
             CellStyle decimalStyle = workbook.createCellStyle();
             DataFormat df = workbook.createDataFormat();
@@ -135,13 +150,13 @@ public class ExportService {
                 sheet.autoSizeColumn(j);
 
             //create tag data info
-            Sheet tagSheet = workbook.createSheet(Dictionary.get("data.tags.title"));
+            Sheet tagSheet = workbook.createSheet(Dictionary.get(language,"data.tags.title"));
 
             Row tagHeaderRow = tagSheet.createRow(0);
-            tagHeaderRow.createCell(0).setCellValue(Dictionary.get("data.tags.name"));
-            tagHeaderRow.createCell(1).setCellValue(Dictionary.get("data.tags.value"));
-            tagHeaderRow.createCell(2).setCellValue(Dictionary.get("data.tags.amount"));
-            tagHeaderRow.createCell(3).setCellValue(Dictionary.get("data.tags.totalPoints"));
+            tagHeaderRow.createCell(0).setCellValue(Dictionary.get(language,"data.tags.name"));
+            tagHeaderRow.createCell(1).setCellValue(Dictionary.get(language,"data.tags.value"));
+            tagHeaderRow.createCell(2).setCellValue(Dictionary.get(language,"data.tags.amount"));
+            tagHeaderRow.createCell(3).setCellValue(Dictionary.get(language,"data.tags.totalPoints"));
 
             //get all amount of tags on all videos
             Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
@@ -167,26 +182,27 @@ public class ExportService {
 
         }catch (Exception e) {
             FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private void exportCSV(String path,Map<Video, Map<String,Long>> videoTagMap){
+    private void exportCSV(String path,Map<Video, Map<String,Long>> videoTagMap,String language){
         var uniqueTagsOnVideos = getAmountOfUniqueVideos(videoTagMap.keySet().stream().toList());
 
         new File(path).mkdirs();
 
         //save overview
-        String overviewFileName = File.separator + Dictionary.get("data.overview.title")+".csv";
+        String overviewFileName = File.separator + Dictionary.get(language,"data.overview.title")+".csv";
 
         List<String[]> overviewData = new ArrayList<>();
         overviewData.add(new String[]{
-                Dictionary.get("data.overview.name"),
-                Dictionary.get("data.overview.frameCount"),
-                Dictionary.get("data.overview.codes"),
-                Dictionary.get("data.overview.runtime"),
-                Dictionary.get("data.overview.framerate"),
-                Dictionary.get("data.overview.totalPoints"),
-                Dictionary.get("data.overview.complexity")
+                Dictionary.get(language,"data.overview.name"),
+                Dictionary.get(language,"data.overview.frameCount"),
+                Dictionary.get(language,"data.overview.codes"),
+                Dictionary.get(language,"data.overview.runtime"),
+                Dictionary.get(language,"data.overview.framerate"),
+                Dictionary.get(language,"data.overview.totalPoints"),
+                Dictionary.get(language,"data.overview.complexity")
         });
 
         for (int row = 0; row < videoTagMap.size();row++) {
@@ -195,7 +211,10 @@ public class ExportService {
             overviewData.add(new String[]{
                     video.getName(),
                     String.valueOf(video.getTotalFrames()),
-                    String.valueOf(uniqueTagsOnVideos.get(uniqueTagsOnVideos.keySet().stream().filter(v -> v.getId() == video.getId()).findFirst().get())),
+                    String.valueOf(uniqueTagsOnVideos.containsKey(video) ?
+                            uniqueTagsOnVideos.get(uniqueTagsOnVideos.keySet().stream().filter(v -> v.getId() == video.getId()).findFirst().get()) :
+                            0
+                    ),
                     String.valueOf(video.getDuration()),
                     String.valueOf(video.getFrameRate()),
                     String.valueOf(getTotalPoints(videoTagMap.get(video))),
@@ -205,16 +224,16 @@ public class ExportService {
         writeToCSV(overviewData,path+overviewFileName);
 
         //save tag data
-        String detailsFileName = File.separator + Dictionary.get("data.tags.title") + ".csv";
+        String detailsFileName = File.separator + Dictionary.get(language,"data.tags.title") + ".csv";
 
         Map<String,Long> tagData = getTotalAmountOfTags(videoTagMap);
 
         List<String[]> tagDetailsData = new ArrayList<>();
         tagDetailsData.add(new String[]{
-                Dictionary.get("data.tags.name"),
-                Dictionary.get("data.tags.value"),
-                Dictionary.get("data.tags.amount"),
-                Dictionary.get("data.tags.totalPoints")
+                Dictionary.get(language,"data.tags.name"),
+                Dictionary.get(language,"data.tags.value"),
+                Dictionary.get(language,"data.tags.amount"),
+                Dictionary.get(language,"data.tags.totalPoints")
         });
 
         for(String s : tagData.keySet()) {
@@ -276,5 +295,12 @@ public class ExportService {
                 .forEach(entry -> tagData.merge(entry.getKey(), entry.getValue(), Long::sum));
 
         return tagData;
+    }
+
+    private List<Video> getAbsent(List<Integer> all,List<Integer> existing){
+        var newAll = new ArrayList<>(all);
+        newAll.removeAll(existing);
+
+        return videoService.getById(newAll);
     }
 }

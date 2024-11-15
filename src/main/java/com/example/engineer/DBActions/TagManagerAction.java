@@ -12,23 +12,23 @@ public class TagManagerAction extends DBAction{
     List<Tag> currentTags;
     List<Tag> originalTags;
     int frameNo;
-    String videoName;
+    String videoPath;
 
-    public TagManagerAction(FrameService frameService, List<Tag> currentTags, List<Tag> originalTags, int frameNo, String videoName) {
+    public TagManagerAction(FrameService frameService, List<Tag> currentTags, List<Tag> originalTags, int frameNo, String videoPath) {
         super();
         this.frameService = frameService;
         this.currentTags = currentTags;
         this.originalTags = originalTags;
         this.frameNo = frameNo;
-        this.videoName = videoName;
+        this.videoPath = videoPath;
     }
 
-    public TagManagerAction(FrameService frameService, List<Tag> currentTags, int frameNo, String videoName) {
+    public TagManagerAction(FrameService frameService, List<Tag> currentTags, int frameNo, String videoPath) {
         super();
         this.frameService = frameService;
         this.currentTags = currentTags;
         this.frameNo = frameNo;
-        this.videoName = videoName;
+        this.videoPath = videoPath;
     }
 
     @Override
@@ -36,15 +36,15 @@ public class TagManagerAction extends DBAction{
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             if(originalTags!=null){
                 if (currentTags.isEmpty() && !originalTags.isEmpty())
-                    frameService.modifyTagsOfFrame(new ArrayList<>(), frameNo, videoName);
+                    frameService.modifyTagsOfFrame(new ArrayList<>(), frameNo, videoPath);
 
                 if ((!currentTags.isEmpty() && originalTags.isEmpty()) || (!currentTags.isEmpty() && currentTags.size() != originalTags.size()))
-                    frameService.modifyTagsOfFrame(currentTags, frameNo, videoName);
+                    frameService.modifyTagsOfFrame(currentTags, frameNo, videoPath);
 
                 if (compareTagListsWhenEqualLen())
-                    frameService.modifyTagsOfFrame(currentTags, frameNo, videoName);
+                    frameService.modifyTagsOfFrame(currentTags, frameNo, videoPath);
             }else
-                frameService.modifyTagsOfFrame(currentTags,frameNo,videoName);
+                frameService.modifyTagsOfFrame(currentTags,frameNo, videoPath);
         },executor);
 
         future.join();

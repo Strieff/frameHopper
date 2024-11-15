@@ -23,8 +23,8 @@ public class FrameService {
     @Autowired
     VideoRepository videoRepository;
 
-    public void modifyTagsOfFrame(List<Tag> tags, int frameNumber, String videoName){
-        Video video = videoRepository.findByName(videoName).orElse(null);
+    public void modifyTagsOfFrame(List<Tag> tags, int frameNumber, String videoPath){
+        Video video = videoRepository.findByPath(videoPath).orElse(null);
 
         if(tags.isEmpty()){
             Optional<Frame> frame = frameRepository.findFrameByFrameNumberAndVideo(frameNumber,video);

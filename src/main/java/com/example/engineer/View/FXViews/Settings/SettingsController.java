@@ -28,6 +28,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-//TODO warnings
 @Component
 @Scope("prototype")
 public class SettingsController implements UpdateTableListener, LanguageChangeListener {
@@ -82,9 +82,55 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
         // Set up columns
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("code"));
         codeColumn.setText(Dictionary.get("name"));
+        codeColumn.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell<TableEntry, String> call(TableColumn<TableEntry, String> param) {
+                return new TableCell<>() {
+                    private final Text text = new Text();
+
+                    {
+                        text.wrappingWidthProperty().bind(codeColumn.widthProperty());
+                        setGraphic(text);
+                    }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            text.setText(null);
+                        }else{
+                            text.setText(item);
+                        }
+                    }
+                };
+            }
+        });
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
         descriptionColumn.setText(Dictionary.get("description"));
         descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
+        descriptionColumn.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell<TableEntry, String> call(TableColumn<TableEntry, String> param) {
+                return new TableCell<>() {
+                    private final Text text = new Text();
+
+                    {
+                        text.wrappingWidthProperty().bind(descriptionColumn.widthProperty());
+                        setGraphic(text);
+                    }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            text.setText(null);
+                        }else{
+                            text.setText(item);
+                        }
+                    }
+                };
+            }
+        });
         valueColumn.setText(Dictionary.get("value"));
 
         codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));

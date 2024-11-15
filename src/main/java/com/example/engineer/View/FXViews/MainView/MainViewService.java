@@ -117,11 +117,6 @@ public class MainViewService {
         return info.getVideo().getPath();
     }
 
-    //TODO: remove later, needed for existing infrastructure
-    public String getCurrentName() {
-        return info.getVideo().getName();
-    }
-
     public List<Tag> getTagsOnFrame(){
         return info.getTagsOnFrame();
     }

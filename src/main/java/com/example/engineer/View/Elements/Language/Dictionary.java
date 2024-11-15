@@ -67,6 +67,12 @@ public class Dictionary {
                 : instance.dictionaries.get("en").getProperty(name);
     }
 
+    public static String get(String language, String name){
+        return instance.dictionaries.get(language).containsKey(name)
+                ? instance.dictionaries.get(language).getProperty(name)
+                : instance.dictionaries.get("en").getProperty(name);
+    }
+
     public static Set<String> getAvailableLanguages(){
         return instance.dictionaries.keySet();
     }

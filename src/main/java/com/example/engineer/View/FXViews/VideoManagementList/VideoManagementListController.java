@@ -25,6 +25,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,29 @@ public class VideoManagementListController implements LanguageChangeListener {
         // Set up columns
         pathColumn.setCellValueFactory(new PropertyValueFactory<>("path"));
         pathColumn.setText(Dictionary.get("vl.path"));
+        pathColumn.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell<TableEntry, String> call(TableColumn<TableEntry, String> param) {
+                return new TableCell<>() {
+                    private final Text text = new Text();
+
+                    {
+                        text.wrappingWidthProperty().bind(pathColumn.widthProperty());
+                        setGraphic(text);
+                    }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            text.setText(null);
+                        }else{
+                            text.setText(item);
+                        }
+                    }
+                };
+            }
+        });
 
         // Set up edit column
         editColumn.setCellFactory(new Callback<>() {

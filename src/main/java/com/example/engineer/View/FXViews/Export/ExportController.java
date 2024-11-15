@@ -16,7 +16,9 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -100,6 +102,29 @@ public class ExportController implements LanguageChangeListener {
         });
 
         videoNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        videoNameColumn.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell<TableEntry, String> call(TableColumn<TableEntry, String> param) {
+                return new TableCell<>() {
+                    private final Text text = new Text();
+
+                    {
+                        text.wrappingWidthProperty().bind(videoNameColumn.widthProperty());
+                        setGraphic(text);
+                    }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            text.setText(null);
+                        }else{
+                            text.setText(item);
+                        }
+                    }
+                };
+            }
+        });
         videoNameColumn.setText(Dictionary.get("export.name"));
 
         //clear button
@@ -197,7 +222,10 @@ public class ExportController implements LanguageChangeListener {
             var name = FXDialogProvider.inputDialog();
             if(name.isBlank()) throw new Exception(Dictionary.get("error.export.no-name"));
 
-            while(new File(path+File.separator+name).exists()) {
+            while(
+                    (format == 1 && new File(path+File.separator+name).exists()) ||
+                    (format == 0 && new File(path+File.separator+name+".xlsx").exists())
+            ) {
                 var res = FXDialogProvider.customDialog(Dictionary.get("dialog.export.exists"), 0, "CANCEL", "RENAME", "OVERWRITE");
 
                 switch (res) {

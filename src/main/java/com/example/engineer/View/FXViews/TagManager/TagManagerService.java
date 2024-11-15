@@ -80,7 +80,6 @@ public class TagManagerService {
     }
 
     public void save(){
-        //TODO: change setup to accept path
         actions.setUp(
                 info.getOriginalTags(),
                 info.getCurrentTags(),
@@ -88,13 +87,12 @@ public class TagManagerService {
                 mainViewService.getCurrentPath()
         );
 
-        //TODO: change action to accept path
         new TagManagerAction(
                 frameService,
                 info.getCurrentTags(),
                 info.getOriginalTags(),
                 mainViewService.getCurrentIndex(),
-                mainViewService.getCurrentName()
+                mainViewService.getCurrentPath()
         ).run();
 
         mainViewService.setCurrentTags(info.getCurrentTags());
@@ -179,12 +177,12 @@ public class TagManagerService {
             pasteRecentAction.addTag(i);
         }
 
-        public void setUp(List<Tag> originalTags,List<Tag> currentTags,int currentFrameIndex,String videoName){
+        public void setUp(List<Tag> originalTags,List<Tag> currentTags,int currentFrameIndex,String videoPath){
             undoRedoAction.setUp(
                     originalTags,
                     currentTags,
                     currentFrameIndex,
-                    videoName
+                    videoPath
             );
         }
     }

@@ -1,12 +1,17 @@
 package com.example.engineer.View.Elements.FXElementsProviders;
 
 import com.example.engineer.View.Elements.Language.Dictionary;
+import com.example.engineer.View.Elements.Language.LanguageEntry;
+import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.FXViews.Settings.LanguageCell;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class FXDialogProvider {
     //ERROR MESSAGES
@@ -104,7 +109,35 @@ public class FXDialogProvider {
         content.setSpacing(10);
         dialog.getDialogPane().setContent(content);
 
-        dialog.setResultConverter(db -> db == cancelButton ? textField.getText() : null);
+        dialog.setResultConverter(db -> db == okButton ? textField.getText() : null);
+
+        return dialog.showAndWait().orElse(null);
+    }
+
+    //GET LANGUAGE DIALOG
+    public static String languageDialog(){
+        Dialog<String> dialog = new Dialog<>();
+
+        var okButton = new ButtonType(Dictionary.get("ok"), ButtonBar.ButtonData.OK_DONE);
+        var cancelButton = new ButtonType(Dictionary.get("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().setAll(okButton, cancelButton);
+
+        List<LanguageEntry> languages = new ArrayList<>();
+        LanguageManager.getLanguages().forEach((key,value) -> languages.add(new LanguageEntry(key,value)));
+
+        ComboBox<LanguageEntry> languageBox = new ComboBox<>();
+        languageBox.getItems().addAll(languages);
+        languageBox.setCellFactory(cb -> new LanguageCell());
+        languageBox.setButtonCell(new LanguageCell());
+        languageBox.getSelectionModel().select(languages.stream().filter(i -> i.getCode().equals("en")).findFirst().get());
+
+        var content = new VBox();
+        content.setAlignment(Pos.CENTER);
+        content.getChildren().add(languageBox);
+        content.setSpacing(10);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(db -> db == okButton ? languageBox.getSelectionModel().getSelectedItem().getCode() : "en");
 
         return dialog.showAndWait().orElse(null);
     }

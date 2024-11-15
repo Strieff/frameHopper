@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +61,10 @@ public class VideoService {
         return videoRepository.findById(id).orElse(null);
     }
 
+    public List<Video> getById(ArrayList<Integer> ids){
+        return videoRepository.findById(ids);
+    }
+
     public List<Video> getAll(){
         return videoRepository.findAll();
     }
@@ -92,13 +97,4 @@ public class VideoService {
     public void deleteVideo(Video video){
        videoRepository.delete(video);
     }
-
-    @Transactional
-    public void deleteVideo(String path){
-        var video = getByPath(path);
-        if(video == null) return;
-
-        deleteVideo(video.getId());
-    }
-
 }
