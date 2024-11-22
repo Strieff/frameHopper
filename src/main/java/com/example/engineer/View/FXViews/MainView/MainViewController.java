@@ -45,7 +45,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     @FXML
     private TableColumn<TableEntry,Double> valueColumn;
     @FXML
-    private ImageView addButtonIcon, settingsButtonIcon, exportButtonIcon;
+    private ImageView addButtonIcon, settingsButtonIcon, exportButtonIcon,chartButtonIcon;
     @FXML
     private BorderPane mainView;
     @FXML
@@ -104,6 +104,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         //set up button icons
         addButtonIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
         settingsButtonIcon.setImage(FXIconLoader.getLargeIcon("settings.png"));
+        chartButtonIcon.setImage(FXIconLoader.getLargeIcon("chart.png"));
         exportButtonIcon.setImage(FXIconLoader.getLargeIcon("export.png"));
 
         Platform.runLater(() -> {
@@ -249,6 +250,38 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             }
         else
             FXDialogProvider.errorDialog(Dictionary.get("open.export"));
+    }
+
+    @FXML
+    protected void onChart(){
+        openCharts();
+    }
+
+    private void onShiftCPressed(){
+        openCharts();
+    }
+
+    private void openCharts(){
+        if(!openViews.getCharts())
+            try{
+                var loader = FXMLViewLoader.getView("ChartsViewModel");
+
+                Parent root = loader.load();
+                var chartsScene = new Scene(root);
+
+                var secondaryStage = new Stage();
+                secondaryStage.setScene(chartsScene);
+                secondaryStage.setTitle("TEST");
+
+                secondaryStage.initOwner(tableView.getScene().getWindow());
+                secondaryStage.show();
+                openViews.openCharts();
+            }catch (Exception e){
+                FXDialogProvider.errorDialog(e.getMessage());
+                e.printStackTrace();
+            }
+        else
+            FXDialogProvider.errorDialog("TODO");//TODO
     }
 
     //drag event

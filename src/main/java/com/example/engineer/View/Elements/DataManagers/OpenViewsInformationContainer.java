@@ -15,6 +15,8 @@ public class OpenViewsInformationContainer {
     private Boolean videoList = false;
     @Getter
     private Boolean createTag = false;
+    @Getter
+    private Boolean charts = false;
 
     // Tag Manager
     public void openTagManager(){
@@ -59,6 +61,15 @@ public class OpenViewsInformationContainer {
 
     public void closeCreateTag(){
         createTag = false;
+    }
+
+    // Charts
+    public void openCharts(){
+        charts = true;
+    }
+
+    public void closeCharts(){
+        charts = false;
     }
 }
 

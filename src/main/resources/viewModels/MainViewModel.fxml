@@ -44,14 +44,24 @@
                </graphic>
             </Button>
 
+            <Button onAction="#onChart">
+               <graphic>
+                  <ImageView fx:id="chartButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+               </graphic>
+            </Button>
+
             <Button onAction="#onExport">
                <graphic>
                   <ImageView fx:id="exportButtonIcon" fitHeight="32.0" fitWidth="32.0" />
                </graphic>
             </Button>
+
+            <padding>
+               <Insets left="2.0" right="2.0" />
+            </padding>
          </HBox>
          <ScrollPane prefHeight="803.0" prefWidth="200.0">
-            <TableView fx:id="tableView" editable="true" prefHeight="807.0" prefWidth="200.0">
+            <TableView fx:id="tableView" editable="true" prefHeight="807.0" prefWidth="212.0">
                <columns>
                   <TableColumn fx:id="nameColumn" prefWidth="100" text="NAME">
                      <cellValueFactory>
