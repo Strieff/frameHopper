@@ -51,12 +51,14 @@ public class ImportChartController implements LanguageChangeListener {
     @Autowired
     UserSettingsManager userSettings;
 
+    String title;
+
     @FXML
     public void initialize(){
         LanguageManager.register(this);
 
         Platform.runLater(() -> {
-            var stage = (Stage)saveArea.getScene().getWindow();
+            var stage = (Stage)rectangle1.getScene().getWindow();
             stage.setOnCloseRequest(e -> handleClose());
         });
 
@@ -71,7 +73,7 @@ public class ImportChartController implements LanguageChangeListener {
             String separator,
             String ticks
     ){
-        var title = viewService.getCustomDataLabel(path);
+        title = viewService.getCustomDataLabel(path);
         var data = FXCollections.observableArrayList(viewService.getCustomData(path));
         var maxValue = data.stream().map(e->e.getYValue().doubleValue()).max(Comparator.naturalOrder()).orElse(0d);
         chartPane.getChildren().clear();
@@ -89,12 +91,16 @@ public class ImportChartController implements LanguageChangeListener {
             rectangle1.setFill(Color.valueOf("blue"));
             legendBox2.setVisible(false);
         }else{
-            rectangle1.setFill(Color.valueOf("greed"));
+            rectangle1.setFill(Color.valueOf("green"));
             rectangle2.setFill(Color.valueOf("red"));
             legendBox2.setVisible(true);
         }
 
         meanArea.setVisible(showMean);
+
+        legend1Label.setText(!colorMean ? title : String.format(Dictionary.get("legend.green"),title));
+        legend2Label.setText(String.format(Dictionary.get("legend.red"),title));
+        legend3Label.setText(Dictionary.get("legend.mean"));
     }
 
     private BarChart<String, Number> createBarChart(
@@ -222,7 +228,9 @@ public class ImportChartController implements LanguageChangeListener {
 
     @Override
     public void changeLanguage() {
-
+        legend1Label.setText(!legendBox2.isVisible() ? title : String.format(Dictionary.get("legend.green"),title));
+        legend2Label.setText(String.format(Dictionary.get("legend.red"),title));
+        legend3Label.setText(Dictionary.get("legend.mean"));
     }
 
 }
