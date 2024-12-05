@@ -226,7 +226,13 @@ public class ExportController implements LanguageChangeListener {
                     (format == 1 && new File(path+File.separator+name).exists()) ||
                     (format == 0 && new File(path+File.separator+name+".xlsx").exists())
             ) {
-                var res = FXDialogProvider.customDialog(Dictionary.get("dialog.export.exists"), 0, "CANCEL", "RENAME", "OVERWRITE");
+                var res = FXDialogProvider.customDialog(
+                        Dictionary.get("dialog.export.exists"),
+                        0,
+                        Dictionary.get("cancel"),
+                        Dictionary.get("dialog.export.option.rename"),
+                        Dictionary.get("dialog.export.option.overwrite")
+                );
 
                 switch (res) {
                     case 0:

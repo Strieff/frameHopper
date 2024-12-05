@@ -1,6 +1,11 @@
 package com.example.engineer.View.FXViews.Charts;
 
 import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
+import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
@@ -8,10 +13,22 @@ import jakarta.annotation.PostConstruct;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -19,11 +36,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.*;
 
 @Component
 @Scope("prototype")
 public class ChartsController implements LanguageChangeListener {
+    @FXML
+    BorderPane chartView;
     @FXML
     private StackPane chartPane;
     @FXML
@@ -37,22 +57,33 @@ public class ChartsController implements LanguageChangeListener {
     @FXML
     private CheckBox meanCheckbox,colorMean;
     @FXML
-    private Button generateButton,importButton,exportButton,clearButton,saveButton;
+    private Button generateButton;
     @FXML
     private TextField tickField,separatorField;
     @FXML
-    private Label tickLabel,separatorLabel;
+    private Label tickLabel,separatorLabel,yAxisLabel, legend1Label, legend2Label, legend3Label;
+    @FXML
+    private VBox saveArea;
+    @FXML
+    private HBox meanArea,legendBox2;
+    @FXML
+    Rectangle rectangle1,rectangle2;
+    @FXML
+    ImageView importButtonIcon,exportButtonIcon,clearButtonIcon,saveButtonIcon;
 
     @Autowired
     ChartsService viewService;
     @Autowired
     OpenViewsInformationContainer openViews;
+    @Autowired
+    UserSettingsManager userSettings;
 
-    private List<TableEntry> entries = new ArrayList<>();
+    private final List<TableEntry> entries = new ArrayList<>();
+    private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
     @PostConstruct
     public void init() {
-        viewService.loadData();
+         viewService.loadData();
     }
 
     @FXML
@@ -60,6 +91,7 @@ public class ChartsController implements LanguageChangeListener {
         LanguageManager.register(this);
 
         videoTable.setItems(viewService.getVideos());
+        videoTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
 
         //checkbox column
         selectColumn.setCellValueFactory(cd -> cd.getValue().selectedProperty());
@@ -119,11 +151,16 @@ public class ChartsController implements LanguageChangeListener {
                 };
             }
         });
+        nameColumn.setText(Dictionary.get("export.name"));
 
         meanCheckbox.setOnMouseClicked(e -> generateChart());
+        meanCheckbox.setText(Dictionary.get("checkbox.mean"));
         colorMean.setOnMouseClicked(e -> generateChart());
+        colorMean.setText(Dictionary.get("checkbox.color"));
         generateButton.setOnMouseClicked(e -> generateChart());
+        generateButton.setText(Dictionary.get("chart.generate"));
 
+        yAxisLabel.setText(Dictionary.get("y-axis.options"));
         yAxisOptions.getItems().addAll(getChartOptions());
         yAxisOptions.getSelectionModel().select(0);
         yAxisOptions.getSelectionModel().selectedItemProperty().addListener((observable,oldValue,newValue) -> {
@@ -131,13 +168,22 @@ public class ChartsController implements LanguageChangeListener {
                 generateChart();
         });
 
+        tickLabel.setText(Dictionary.get("y-axis.ticks"));
+        separatorLabel.setText(Dictionary.get("y-axis.separator"));
 
-        clearButton.setOnAction(e -> {
-            videoTable.getItems().forEach(item -> item.setSelected(false));
-            entries.clear();
-            generateChart();
-        });
+        exportButtonIcon.setImage(FXIconLoader.getLargeIcon("export.png"));
+        importButtonIcon.setImage(FXIconLoader.getLargeIcon("import.png"));
+        clearButtonIcon.setImage(FXIconLoader.getLargeIcon("clean.png"));
+        saveButtonIcon.setImage(FXIconLoader.getLargeIcon("save.png"));
 
+        var option = getOption();
+        legend1Label.setText(!colorMean.isSelected() ? option : String.format(Dictionary.get("legend.green"),option));
+        legend2Label.setText(String.format(Dictionary.get("legend.red"),option));
+        legend3Label.setText(Dictionary.get("legend.mean"));
+
+        //add key binds
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        chartView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
 
         Platform.runLater(() -> {
@@ -149,7 +195,15 @@ public class ChartsController implements LanguageChangeListener {
         });
     }
 
-    private  void generateChart(){
+    //HANDLE KEY BINDS
+    private void handleKeyPressed(KeyEvent event){
+        keyActions.keySet().stream()
+                .filter(k -> k.match(event))
+                .findFirst()
+                .ifPresent(k -> keyActions.get(k).run());
+    }
+
+    private void generateChart(){
         chartPane.getChildren().clear();
 
         if(entries.isEmpty()) return;
@@ -175,15 +229,29 @@ public class ChartsController implements LanguageChangeListener {
         var maxValue = valueMap.values().stream().map(Number::doubleValue).max(Comparator.naturalOrder()).get();
 
         if(!meanCheckbox.isSelected())
-            chartPane.getChildren().add(createBarChart(valueMap,maxValue));
+            chartPane.getChildren().add(createBarChart(valueMap, maxValue,option));
         else
-            chartPane.getChildren().add(layerCharts(
-                    createBarChart(valueMap,maxValue),
-                    createLineChart(valueMap,maxValue)
+            chartPane.getChildren().add(viewService.layerCharts(
+                    createBarChart(valueMap, maxValue,option),
+                    createLineChart(valueMap, maxValue,option)
             ));
+
+        if(!colorMean.isSelected()){
+            rectangle1.setFill(Color.valueOf("blue"));
+            legendBox2.setVisible(false);
+        }else{
+            rectangle1.setFill(Color.valueOf("green"));
+            rectangle2.setFill(Color.valueOf("red"));
+            legendBox2.setVisible(true);
+        }
+
+        meanArea.setVisible(meanCheckbox.isSelected());
+
+        legend1Label.setText(!colorMean.isSelected() ? getOption() : String.format(Dictionary.get("legend.green"),getOption()));
+
     }
 
-    private NumberAxis createYAxis(double maxValue){
+    private NumberAxis createYAxis(double maxValue,String title){
         double separator;
         try{
             separator = Double.parseDouble(separatorField.getText().replace(",","."));
@@ -201,7 +269,7 @@ public class ChartsController implements LanguageChangeListener {
         final NumberAxis yAxis = new NumberAxis(0,Math.ceil(maxValue),separator);
         yAxis.setPrefWidth(80);
         yAxis.setMinorTickCount(ticks);
-        yAxis.setLabel("TEST");
+        yAxis.setLabel(title);
 
         yAxis.setTickLabelFormatter(new NumberAxis.DefaultFormatter(yAxis){
             @Override
@@ -213,10 +281,10 @@ public class ChartsController implements LanguageChangeListener {
         return yAxis;
     }
 
-    private BarChart<String, Number> createBarChart(Map<String,Number> valueMap,Double maxValue) {
+    private BarChart<String, Number> createBarChart(Map<String,Number> valueMap,Double maxValue,String title) {
         var mean = viewService.getMean(valueMap);
 
-        final BarChart<String, Number> chart = new BarChart<>(new CategoryAxis(), createYAxis(maxValue));
+        final BarChart<String, Number> chart = new BarChart<>(new CategoryAxis(), createYAxis(maxValue,title));
         chart.setLegendVisible(false);
         chart.setAnimated(false);
 
@@ -233,12 +301,14 @@ public class ChartsController implements LanguageChangeListener {
                             "-fx-bar-fill: GREEN":
                             "-fx-bar-fill: RED"
             ));
+        else
+            chart.getData().get(0).getData().forEach(d -> d.getNode().setStyle("-fx-bar-fill: BLUE"));
 
         return chart;
     }
 
-    private LineChart<String, Number> createLineChart(Map<String,Number> valueMap,Double maxValue){
-        final LineChart<String, Number> chart = new LineChart<>(new CategoryAxis(), createYAxis(maxValue));
+    private LineChart<String, Number> createLineChart(Map<String,Number> valueMap,Double maxValue,String title){
+        final LineChart<String, Number> chart = new LineChart<>(new CategoryAxis(), createYAxis(maxValue,title));
         chart.setLegendVisible(false);
         chart.setAnimated(false);
         chart.setCreateSymbols(false);
@@ -257,27 +327,6 @@ public class ChartsController implements LanguageChangeListener {
         return chart;
     }
 
-    private StackPane layerCharts(final XYChart<String,Number>... charts){
-        for (XYChart<String, Number> chart : charts)
-            configureOverlayChart(chart);
-
-        StackPane stackPane = new StackPane();
-        stackPane.getChildren().addAll(charts);
-
-        return stackPane;
-    }
-
-    private void configureOverlayChart(final XYChart<String, Number> chart) {
-        chart.setAlternativeRowFillVisible(false);
-        chart.setAlternativeColumnFillVisible(false);
-        chart.setHorizontalGridLinesVisible(false);
-        chart.setVerticalGridLinesVisible(false);
-        chart.getXAxis().setVisible(false);
-        chart.getYAxis().setVisible(false);
-
-        chart.getStylesheets().addAll(getClass().getClassLoader().getResource("overlay-chart.css").toExternalForm());
-    }
-
     private List<String> getChartOptions(){
         return Arrays.stream(new String[]{
                         "chart.complexity",
@@ -290,8 +339,161 @@ public class ChartsController implements LanguageChangeListener {
                 .toList();
     }
 
+    private void close(){
+        openViews.closeCharts();
+        LanguageManager.unregister(this);
+        var stage = (Stage) saveArea.getScene().getWindow();
+        stage.close();
+    }
+
+    @FXML
+    private void handleExport(){
+        var dir = FileChooserProvider.locationFileChooser((Stage)videoTable.getScene().getWindow(), userSettings.getExportPath());
+        String name = FXDialogProvider.inputDialog();
+        if(name == null){
+            FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+            return;
+        }
+
+        while(new File(dir + File.separator + name+ ".csv").exists()){
+            var res = FXDialogProvider.customDialog(
+                    Dictionary.get("dialog.export.exists"),
+                    0,
+                    Dictionary.get("cancel"),
+                    Dictionary.get("dialog.export.option.rename"),
+                    Dictionary.get("dialog.export.option.overwrite")
+            );
+
+            switch (res) {
+                case 0:
+                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
+                    break;
+                case 1:
+                    name = FXDialogProvider.inputDialog();
+                    if(name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+                    break;
+            }
+
+            if(res == 2) break;
+        }
+
+        var path = dir + File.separator + name + ".csv";
+
+        viewService.export(
+                yAxisOptions.getSelectionModel().getSelectedItem(),
+                entries.stream().map(d -> d.id).toList(),
+                path
+        );
+    }
+
+    @FXML
+    private void handleImport() {
+        try{
+            var path = FileChooserProvider.textFileChooser((Stage)saveArea.getScene().getWindow());
+
+            var loader = FXMLViewLoader.getView("ImportChartViewModel");
+
+            Parent root = loader.load();
+            var importScene = new Scene(root);
+
+            ImportChartController controller = loader.getController();
+            controller.init(
+                    path,
+                    meanCheckbox.isSelected(),
+                    colorMean.isSelected(),
+                    separatorField.getText(),
+                    tickField.getText()
+            );
+
+            var secondaryStage = new Stage();
+            secondaryStage.setScene(importScene);
+            secondaryStage.setTitle("Imported chart");
+
+            secondaryStage.initOwner(saveArea.getScene().getWindow());
+            secondaryStage.show();
+        }catch (Exception e){
+            //throw new RuntimeException(e);
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleSave(){
+        var dir = FileChooserProvider.locationFileChooser((Stage)videoTable.getScene().getWindow(), userSettings.getExportPath());
+        String name = FXDialogProvider.inputDialog();
+        if(name == null){
+            FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+            return;
+        }
+
+        while(new File(dir + File.separator + name + ".png").exists()){
+            var res = FXDialogProvider.customDialog(
+                    Dictionary.get("dialog.export.exists"),
+                    0,
+                    Dictionary.get("cancel"),
+                    Dictionary.get("dialog.export.option.rename"),
+                    Dictionary.get("dialog.export.option.overwrite")
+            );
+
+            switch (res) {
+                case 0:
+                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
+                    break;
+                case 1:
+                    name = FXDialogProvider.inputDialog();
+                    if(name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+                    break;
+            }
+
+            if(res == 2) break;
+        }
+
+        var filePath = dir + File.separator + name + ".png";
+
+        viewService.saveChartAsFile(saveArea,filePath);
+
+        FXDialogProvider.messageDialog(Dictionary.get("file.saved"));
+    }
+
+    @FXML
+    private void handleClear(){
+        videoTable.getItems().forEach(item -> item.setSelected(false));
+        entries.clear();
+        generateChart();
+    }
+
     @Override
     public void changeLanguage() {
-        //TODO: change languages
+        //change yAxis options
+        int selected = yAxisOptions.getSelectionModel().getSelectedIndex();
+        yAxisOptions.getItems().clear();
+        yAxisOptions.getItems().addAll(getChartOptions());
+        yAxisOptions.getSelectionModel().select(selected);
+        generateChart();
+
+        videoTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
+        nameColumn.setText(Dictionary.get("export.name"));
+
+        var option = getOption();
+        legend1Label.setText(!colorMean.isSelected() ? option : String.format(Dictionary.get("legend.green"),option));
+        legend2Label.setText(String.format(Dictionary.get("legend.red"),option));
+        legend3Label.setText(Dictionary.get("legend.mean"));
+
+        yAxisLabel.setText(Dictionary.get("y-axis.options"));
+        tickLabel.setText(Dictionary.get("y-axis.ticks"));
+        separatorLabel.setText(Dictionary.get("y-axis.separator"));
+
+        meanCheckbox.setText(Dictionary.get("checkbox.mean"));
+        colorMean.setText(Dictionary.get("checkbox.color"));
+
+        generateButton.setText(Dictionary.get("chart.generate"));
+    }
+
+    private String getOption(){
+        var option = yAxisOptions.getSelectionModel().getSelectedItem().toLowerCase();
+        return option.replaceFirst(
+                String.valueOf(option.charAt(0)),
+                String.valueOf(Character.toUpperCase(option.charAt(0)))
+        );
     }
 }

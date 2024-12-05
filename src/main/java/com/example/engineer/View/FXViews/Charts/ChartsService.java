@@ -4,12 +4,22 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.chart.XYChart;
+import javafx.scene.image.WritableImage;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageIO;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +36,7 @@ public class ChartsService {
     private final Map<Video, Map<String,Number>> videoProperties = new HashMap<>();
 
     public void loadData() {
+        videoProperties.clear();
         final Map<Video, Map<String,Long>> videoData = new HashMap<>();
 
         var videos = videoService.getAll().stream().map(Video::getId).toList();
@@ -142,7 +153,7 @@ public class ChartsService {
     }
 
     //exports data to csv
-    public void export(String yAxis, List<Integer> ids){
+    public void export(String yAxis, List<Integer> ids,String path){
         Map<String,Number> valueMap = null;
         if(Dictionary.get("chart.complexity").equals(yAxis)){
             valueMap = getComplexity(ids);
@@ -165,6 +176,89 @@ public class ChartsService {
                     .append(e.getKey())
                     .append(";")
                     .append(e.getValue().doubleValue());
+
+        try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))){
+            writer.write(exportReady.toString());
+            writer.flush();
+        }catch (Exception e){
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
+    //load custom data label
+    public String getCustomDataLabel(String path){
+        try(var br = new BufferedReader(new FileReader(path))){
+            return br.readLine().split(";")[1];
+        }catch(Exception e){
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    //load data for custom chart
+    public List<XYChart.Data<String, Number>> getCustomData(String path){
+        List<XYChart.Data<String, Number>> initialData = new ArrayList<>();
+
+        try(var br = new BufferedReader(new FileReader(path))){
+
+            br.lines().skip(1).forEachOrdered(e -> {
+                var d = e.split(";");
+                initialData.add(new XYChart.Data<>(
+                        d[0],
+                        Double.parseDouble(d[1])
+                ));
+            });
+
+        }catch(Exception e){
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return initialData;
+    }
+
+    //get mean from custom data
+    public Double getCustomMean(ObservableList<XYChart.Data<String, Number>> data) {
+        return data.stream().map(XYChart.Data::getYValue).mapToDouble(Number::doubleValue).average().orElse(100);
+    }
+
+    //get layered charts
+    public StackPane layerCharts(final XYChart<String,Number>... charts){
+        for (XYChart<String, Number> chart : charts)
+            configureOverlayChart(chart);
+
+        StackPane stackPane = new StackPane();
+        stackPane.getChildren().addAll(charts);
+
+        return stackPane;
+    }
+
+    //apply styles to chart
+    private void configureOverlayChart(final XYChart<String, Number> chart) {
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setVerticalGridLinesVisible(false);
+        chart.getXAxis().setVisible(false);
+        chart.getYAxis().setVisible(false);
+
+        chart.getStylesheets().addAll(getClass().getClassLoader().getResource("overlay-chart.css").toExternalForm());
+    }
+
+    //save chart yo file
+    public void saveChartAsFile(VBox saveArea,String path){
+        WritableImage snapshot = new WritableImage((int) saveArea.getWidth(),(int) saveArea.getHeight());
+        saveArea.snapshot(new SnapshotParameters(), snapshot);
+
+        var file = new File(path);
+        try{
+            ImageIO.write(SwingFXUtils.fromFXImage(snapshot,null),"png",file);
+        }catch (Exception e){
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

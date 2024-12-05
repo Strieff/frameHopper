@@ -5,29 +5,72 @@
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.cell.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
-<BorderPane fx:id="chartsView" maxHeight="600.0" maxWidth="1200.0" prefHeight="900.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.Charts.ChartsController">
+<BorderPane fx:id="chartView" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.Charts.ChartsController">
     <!-- Center: The Bar Chart -->
     <center>
-        <StackPane fx:id="chartPane">
-            <BarChart>
-                <xAxis>
-                    <CategoryAxis side="BOTTOM" />
-                </xAxis>
-                <yAxis>
-                    <NumberAxis fx:id="yAxis" side="LEFT" />
-                </yAxis>
-            </BarChart>
-            <LineChart>
-                <xAxis>
-                    <CategoryAxis side="BOTTOM" />
-                </xAxis>
-                <yAxis>
-                    <NumberAxis fx:id="yAxisLine" side="LEFT" />
-                </yAxis>
-            </LineChart>
-        </StackPane>
+        <VBox fx:id="saveArea">
+            <StackPane fx:id="chartPane" minHeight="550.0" prefHeight="650.0">
+                <BarChart>
+                    <xAxis>
+                        <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis side="LEFT" />
+                    </yAxis>
+                </BarChart>
+                <LineChart minHeight="550.0" prefHeight="606.0" prefWidth="700.0">
+                    <xAxis>
+                        <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis side="LEFT" />
+                    </yAxis>
+                </LineChart>
+            </StackPane>
+         <HBox alignment="TOP_CENTER" fillHeight="false" minHeight="50.0" prefHeight="50.0" prefWidth="700.0">
+             <HBox prefHeight="100.0" prefWidth="200.0">
+                 <Rectangle fx:id="rectangle1" arcHeight="5.0" arcWidth="5.0" fill="GREEN" height="41.0" stroke="BLACK" strokeType="INSIDE" width="47.0">
+                     <HBox.margin>
+                         <Insets left="10.0" top="5.0" />
+                     </HBox.margin>
+                 </Rectangle>
+                 <Label fx:id="legend1Label" prefHeight="50.0" prefWidth="140.0" text="VALUE" wrapText="true">
+                     <HBox.margin>
+                         <Insets left="5.0" />
+                     </HBox.margin>
+                 </Label>
+             </HBox>
+
+             <HBox fx:id="legendBox2" prefHeight="100.0" prefWidth="200.0">
+                 <Rectangle fx:id="rectangle2" arcHeight="5.0" arcWidth="5.0" fill="RED" height="41.0" stroke="BLACK" strokeType="INSIDE" width="47.0">
+                     <HBox.margin>
+                         <Insets left="10.0" top="5.0" />
+                     </HBox.margin>
+                 </Rectangle>
+                 <Label fx:id="legend2Label" prefHeight="50.0" prefWidth="140.0" text="VALUE" wrapText="true">
+                     <HBox.margin>
+                         <Insets left="5.0" />
+                     </HBox.margin>
+                 </Label>
+             </HBox>
+
+             <HBox fx:id="meanArea" prefHeight="100.0" prefWidth="200.0">
+                 <Line startX="-100.0" stroke="#ff8d01" strokeWidth="5.0">
+                     <HBox.margin>
+                         <Insets top="22.0" />
+                     </HBox.margin></Line>
+                 <Label fx:id="legend3Label" prefHeight="50.0" prefWidth="140.0" text="MEAN" wrapText="true">
+                     <HBox.margin>
+                         <Insets left="5.0" />
+                     </HBox.margin>
+                 </Label>
+             </HBox>
+         </HBox>
+        </VBox>
     </center>
 
     <!-- Left: Table for Video Selection -->
@@ -58,7 +101,7 @@
     <!-- Right: Options for Y-axis and Mean -->
     <right>
         <VBox prefWidth="200" BorderPane.alignment="CENTER">
-            <Label text="Y-Axis Options:" />
+            <Label fx:id="yAxisLabel" text="Y-Axis Options:" />
             <!-- ComboBox for Y-axis -->
             <ComboBox fx:id="yAxisOptions" promptText="Choose Y-axis option">
                 <items>
@@ -67,8 +110,8 @@
             </ComboBox>
 
             <!-- Checkbox for showing/hiding mean -->
-            <CheckBox fx:id="meanCheckbox" selected="true" text="Show Mean" />
-            <CheckBox fx:id="colorMean" selected="true" text="Color above/below mean" />
+            <CheckBox fx:id="meanCheckbox" selected="true" text="Show Mean" wrapText="true" />
+            <CheckBox fx:id="colorMean" selected="true" text="Color above/below mean" wrapText="true" />
              <HBox prefHeight="24.0" prefWidth="200.0">
                  <Label fx:id="tickLabel" prefHeight="25.0" prefWidth="60.0" text="Ticks:" />
                  <TextField fx:id="tickField" prefHeight="25.0" prefWidth="80.0" text="10">
@@ -89,37 +132,50 @@
             </VBox.margin></Button>
 
             <!-- Separator -->
-            <Separator orientation="HORIZONTAL" />
-            <HBox prefHeight="100.0" prefWidth="200.0">
-                <children>
+            <Separator />
 
-                    <!-- Action Buttons -->
-                    <VBox alignment="CENTER" prefHeight="100.0" prefWidth="100.0">
-                        <Button fx:id="importButton" alignment="CENTER" contentDisplay="CENTER" text="Import">
-                            <VBox.margin>
-                                <Insets bottom="2.0" top="2.0"/>
-                            </VBox.margin>
-                        </Button>
-                        <Button fx:id="exportButton" alignment="CENTER" contentDisplay="CENTER" text="Export">
-                            <VBox.margin>
-                                <Insets bottom="2.0" top="2.0"/>
-                            </VBox.margin>
-                        </Button>
-                        <Button fx:id="clearButton" alignment="CENTER" contentDisplay="CENTER" text="Clear">
-                            <VBox.margin>
-                                <Insets bottom="2.0" top="2.0"/>
-                            </VBox.margin>
-                        </Button>
-                        <Button fx:id="saveButton" alignment="CENTER" contentDisplay="CENTER" text="Save">
-                            <VBox.margin>
-                                <Insets bottom="2.0" top="2.0"/>
-                            </VBox.margin>
-                        </Button>
-                  <padding>
-                     <Insets bottom="5.0" top="5.0" />
-                  </padding>
-                  </VBox>
-                </children>
+            <HBox alignment="CENTER">
+                <Button onAction="#handleImport">
+                    <graphic>
+                        <ImageView fx:id="importButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                    </graphic>
+                    <HBox.margin>
+                        <Insets right="15.0" />
+                    </HBox.margin>
+                </Button>
+                <Button onAction="#handleExport">
+                    <graphic>
+                        <ImageView fx:id="exportButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                    </graphic>
+                    <HBox.margin>
+                        <Insets left="15.0" />
+                    </HBox.margin>
+                </Button>
+            <VBox.margin>
+               <Insets bottom="15.0" top="10.0" />
+            </VBox.margin>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <Button onAction="#handleClear">
+                    <graphic>
+                        <ImageView fx:id="clearButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                    </graphic>
+               <HBox.margin>
+                  <Insets right="15.0" />
+               </HBox.margin>
+                </Button>
+                <Button onAction="#handleSave">
+                    <graphic>
+                        <ImageView fx:id="saveButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                    </graphic>
+               <HBox.margin>
+                  <Insets left="15.0" />
+               </HBox.margin>
+                </Button>
+            <VBox.margin>
+               <Insets bottom="15.0" />
+            </VBox.margin>
             </HBox>
         </VBox>
     </right>

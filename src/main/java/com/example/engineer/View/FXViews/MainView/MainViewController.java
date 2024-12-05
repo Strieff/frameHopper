@@ -75,6 +75,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::onShiftEPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onShiftLPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onShiftCPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::onCtrlVPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::onCtrlYPressed);
@@ -281,7 +282,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 e.printStackTrace();
             }
         else
-            FXDialogProvider.errorDialog("TODO");//TODO
+            FXDialogProvider.errorDialog(Dictionary.get("open.chart"));
     }
 
     //drag event
@@ -316,7 +317,28 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     }
 
     private boolean isValidFile(File file) throws Exception{
-        return file.getName().endsWith(".gif") || new Tika().detect(file).equals("video/");
+        if(file.getName().endsWith(".gif"))
+            return true;
+
+        if(new Tika().detect(file).equals("video/"))
+            return true;
+
+        var extensions = new String[]{
+                "*.gif","*.webm","*.mkv","*.flv","*.vob",
+                "*.ogv","*.ogg","*.rrc","*.gifv","*.mng",
+                "*.mov","*.avi","*.qt","*.wmv","*.yuv",
+                "*.rm","*.asf","*.amv","*.mp4","*.m4p",
+                "*.m4v","*.mpg","*.mp2","*.mpeg","*.mpe",
+                "*.mpv","*.m4v","*.svi","*.3gp","*.3g2",
+                "*.mxf","*.roq","*.nsv","*.flv","*.f4v",
+                "*.f4p","*.f4a","*.f4b","*.mod"
+        };
+
+        for(String extension : extensions)
+            if(file.getName().endsWith(extension))
+                return true;
+
+        return false;
     }
 
     public void openRecent(String path){
