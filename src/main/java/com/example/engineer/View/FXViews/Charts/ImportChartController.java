@@ -73,34 +73,39 @@ public class ImportChartController implements LanguageChangeListener {
             String separator,
             String ticks
     ){
-        title = viewService.getCustomDataLabel(path);
-        var data = FXCollections.observableArrayList(viewService.getCustomData(path));
-        var maxValue = data.stream().map(e->e.getYValue().doubleValue()).max(Comparator.naturalOrder()).orElse(0d);
-        chartPane.getChildren().clear();
+        try{
+            title = viewService.getCustomDataLabel(path);
+            var data = FXCollections.observableArrayList(viewService.getCustomData(path));
+            var maxValue = data.stream().map(e -> e.getYValue().doubleValue()).max(Comparator.naturalOrder()).orElse(0d);
+            chartPane.getChildren().clear();
 
 
-        if (!showMean)
-            chartPane.getChildren().add(createBarChart(data,maxValue,title,colorMean,separator,ticks));
-        else
-            chartPane.getChildren().add(viewService.layerCharts(createBarChart(
-                    data,maxValue,title,colorMean,separator,ticks),
-                    createLineChart(data, maxValue,title,separator,ticks)
-            ));
+            if (!showMean)
+                chartPane.getChildren().add(createBarChart(data, maxValue, title, colorMean, separator, ticks));
+            else
+                chartPane.getChildren().add(viewService.layerCharts(createBarChart(
+                                data, maxValue, title, colorMean, separator, ticks),
+                        createLineChart(data, maxValue, title, separator, ticks)
+                ));
 
-        if(!colorMean){
-            rectangle1.setFill(Color.valueOf("blue"));
-            legendBox2.setVisible(false);
-        }else{
-            rectangle1.setFill(Color.valueOf("green"));
-            rectangle2.setFill(Color.valueOf("red"));
-            legendBox2.setVisible(true);
+            if (!colorMean) {
+                rectangle1.setFill(Color.valueOf("blue"));
+                legendBox2.setVisible(false);
+            } else {
+                rectangle1.setFill(Color.valueOf("green"));
+                rectangle2.setFill(Color.valueOf("red"));
+                legendBox2.setVisible(true);
+            }
+
+            meanArea.setVisible(showMean);
+
+            legend1Label.setText(!colorMean ? title : String.format(Dictionary.get("legend.green"), title));
+            legend2Label.setText(String.format(Dictionary.get("legend.red"), title));
+            legend3Label.setText(Dictionary.get("legend.mean"));
+        }catch (Exception e){
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
         }
-
-        meanArea.setVisible(showMean);
-
-        legend1Label.setText(!colorMean ? title : String.format(Dictionary.get("legend.green"),title));
-        legend2Label.setText(String.format(Dictionary.get("legend.red"),title));
-        legend3Label.setText(Dictionary.get("legend.mean"));
     }
 
     private BarChart<String, Number> createBarChart(

@@ -187,35 +187,22 @@ public class ChartsService {
     }
 
     //load custom data label
-    public String getCustomDataLabel(String path){
-        try(var br = new BufferedReader(new FileReader(path))){
-            return br.readLine().split(";")[1];
-        }catch(Exception e){
-            FXDialogProvider.errorDialog(e.getMessage());
-            e.printStackTrace();
-        }
-
-        return "";
+    public String getCustomDataLabel(String path) throws Exception{
+        var br = new BufferedReader(new FileReader(path));
+        return br.readLine().split(";")[1];
     }
 
     //load data for custom chart
-    public List<XYChart.Data<String, Number>> getCustomData(String path){
+    public List<XYChart.Data<String, Number>> getCustomData(String path) throws Exception{
         List<XYChart.Data<String, Number>> initialData = new ArrayList<>();
-
-        try(var br = new BufferedReader(new FileReader(path))){
-
-            br.lines().skip(1).forEachOrdered(e -> {
-                var d = e.split(";");
-                initialData.add(new XYChart.Data<>(
-                        d[0],
-                        Double.parseDouble(d[1])
-                ));
-            });
-
-        }catch(Exception e){
-            FXDialogProvider.errorDialog(e.getMessage());
-            e.printStackTrace();
-        }
+        var br = new BufferedReader(new FileReader(path));
+        br.lines().skip(1).forEachOrdered(e -> {
+            var d = e.split(";");
+            initialData.add(new XYChart.Data<>(
+                    d[0],
+                    Double.parseDouble(d[1])
+            ));
+        });
 
         return initialData;
     }

@@ -45,6 +45,9 @@ docker-compose.yml
 Util.java
 .DS_Store
 
-/application/data/
-/application/cache/
-/application/settings/user settings.json
+application/data/
+application/cache/
+"application/settings/user settings.json"
+
+scripts/FrameProcessorServer.spec
+scripts/dist
