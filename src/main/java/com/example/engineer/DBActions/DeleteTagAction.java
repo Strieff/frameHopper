@@ -26,7 +26,7 @@ public class DeleteTagAction extends DBAction{
     public void run() {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             if(tags.size() == 1)
-                tagService.deleteTag(tags.get(0));
+                tagService.deleteTag(tags.getFirst());
             else
                 tagService.deleteTag(tags);
         },executor);

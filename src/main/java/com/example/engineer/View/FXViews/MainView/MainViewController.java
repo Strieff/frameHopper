@@ -300,7 +300,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         if(db.hasFiles()){
             success = true;
             //get file
-            var file = db.getFiles().get(0);
+            var file = db.getFiles().getFirst();
 
             try {
                 if(isValidFile(file))

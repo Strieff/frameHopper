@@ -296,13 +296,13 @@ public class ChartsController implements LanguageChangeListener {
 
         chart.getData().add(new XYChart.Series(dtoList));
         if(colorMean.isSelected())
-            chart.getData().get(0).getData().forEach(d -> d.getNode().setStyle(
+            chart.getData().getFirst().getData().forEach(d -> d.getNode().setStyle(
                     d.getYValue().doubleValue()>=mean?
                             "-fx-bar-fill: GREEN":
                             "-fx-bar-fill: RED"
             ));
         else
-            chart.getData().get(0).getData().forEach(d -> d.getNode().setStyle("-fx-bar-fill: BLUE"));
+            chart.getData().getFirst().getData().forEach(d -> d.getNode().setStyle("-fx-bar-fill: BLUE"));
 
         return chart;
     }

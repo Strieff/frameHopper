@@ -18,7 +18,7 @@
     <description>engineer</description>
 
     <properties>
-        <java.version>20</java.version>
+        <java.version>21</java.version>
         <jakarta.validation.api.version>3.0.2</jakarta.validation.api.version>
         <apache.poi.version>4.1.2</apache.poi.version>
         <log4j2.version>2.23.1</log4j2.version>
