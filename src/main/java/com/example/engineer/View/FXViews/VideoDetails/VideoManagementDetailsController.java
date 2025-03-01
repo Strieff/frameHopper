@@ -1,11 +1,17 @@
 package com.example.engineer.View.FXViews.VideoDetails;
 
 import com.example.engineer.Model.Video;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.FXViews.VideoMerge.VideoMetadataMergeController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -19,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,7 +88,27 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
     }
 
     private void changePath() {
-        viewService.changePath(id,(Stage)closeButton.getScene().getWindow());
+        try {
+            var file = new File(FileChooserProvider.videoFileChooser((Stage)closeButton.getScene().getWindow()));
+
+            var loader = FXMLViewLoader.getView("MetadataComparisonViewModel");
+
+            Parent root = loader.load();
+            var metadataComparisonScene = new Scene(root);
+
+            VideoMetadataMergeController controller = loader.getController();
+            controller.init(id,file);
+
+            var secondaryStage = new Stage();
+            secondaryStage.setScene(metadataComparisonScene);
+            secondaryStage.setTitle("Path Change");
+
+            secondaryStage.initOwner(videoDetailsView.getScene().getWindow());
+            secondaryStage.show();
+        } catch (Exception e) {
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void onShiftDPressed() {

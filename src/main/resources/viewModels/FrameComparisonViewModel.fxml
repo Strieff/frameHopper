@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane fx:id="frameDataComparisonView" prefHeight="581.0" prefWidth="540.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.VideoMerge.FrameDataMergeController">
+   <top>
+      <Label fx:id="titleLabel" alignment="CENTER" prefHeight="57.0" prefWidth="568.0" style=" -fx-border-color:black; -fx-border-width: 1; -fx-border-style: solid;" text="FRAME DATA" BorderPane.alignment="CENTER">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
+   </top>
+   <center>
+      <VBox>
+          <HBox prefHeight="76.0" prefWidth="540.0">
+              <VBox prefHeight="200.0" prefWidth="270.0" style=" -fx-border-color:black; -fx-border-width: 1; -fx-border-style: solid;">
+                  <Label alignment="CENTER" prefHeight="37.0" prefWidth="268.0" text="OLD" />
+                  <HBox prefHeight="44.0" prefWidth="268.0">
+                      <Button fx:id="oldSelectAll" mnemonicParsing="false" prefHeight="30.0" prefWidth="114.0" text="Select all">
+                          <HBox.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                          </HBox.margin>
+                      </Button>
+                      <Button fx:id="oldSelectDistinct" mnemonicParsing="false" prefHeight="30.0" prefWidth="124.0" text="Select distinct">
+                          <HBox.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                          </HBox.margin>
+                      </Button>
+                  </HBox>
+              </VBox>
+
+              <VBox prefHeight="200.0" prefWidth="270.0" style=" -fx-border-color:black; -fx-border-width: 1; -fx-border-style: solid;">
+                  <Label alignment="CENTER" prefHeight="37.0" prefWidth="290.0" text="NEW" />
+                  <HBox prefHeight="44.0" prefWidth="200.0">
+                      <Button fx:id="newSelectAll" mnemonicParsing="false" prefHeight="30.0" prefWidth="124.0" text="Select all">
+                          <HBox.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                          </HBox.margin>
+                      </Button>
+                      <Button fx:id="newSelectDistinct" mnemonicParsing="false" prefHeight="30.0" prefWidth="124.0" text="Select distinct">
+                          <HBox.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                          </HBox.margin>
+                      </Button>
+                  </HBox>
+              </VBox>
+          </HBox>
+          <HBox prefHeight="351.0" prefWidth="540.0" style=" -fx-border-color:black; -fx-border-width: 1; -fx-border-style: solid;" BorderPane.alignment="CENTER">
+              <TableView fx:id="oldFramesTable" editable="true" prefHeight="400" prefWidth="270.0">
+                  <columns>
+                      <TableColumn fx:id="oldCheckboxColumn" maxWidth="60" minWidth="40" />
+                      <TableColumn fx:id="oldFrameNoColumn" prefWidth="100" text="Frame No.">
+                          <cellValueFactory>
+                              <PropertyValueFactory property="number" />
+                          </cellValueFactory>
+                      </TableColumn>
+                      <TableColumn fx:id="oldTagAmount" prefWidth="100" text="Codes">
+                          <cellValueFactory>
+                              <PropertyValueFactory property="amount" />
+                          </cellValueFactory>
+                      </TableColumn>
+                  </columns>
+                  <columnResizePolicy>
+                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                  </columnResizePolicy>
+              </TableView>
+
+              <TableView fx:id="newFramesTable" editable="true" prefHeight="400" prefWidth="270.0">
+                  <columns>
+                      <TableColumn fx:id="newCheckboxColumn" maxWidth="60" minWidth="40" />
+                      <TableColumn fx:id="newFrameNoColumn" prefWidth="100" text="Frame No.">
+                          <cellValueFactory>
+                              <PropertyValueFactory property="number" />
+                          </cellValueFactory>
+                      </TableColumn>
+                      <TableColumn fx:id="newTagAmount" prefWidth="100" text="Codes">
+                          <cellValueFactory>
+                              <PropertyValueFactory property="amount" />
+                          </cellValueFactory>
+                      </TableColumn>
+                  </columns>
+                  <columnResizePolicy>
+                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                  </columnResizePolicy>
+              </TableView>
+          </HBox>
+
+      </VBox>
+
+   </center>
+   <bottom>
+       <VBox prefHeight="98.0" prefWidth="540.0" style=" -fx-border-color:black; -fx-border-width: 1; -fx-border-style: solid;" BorderPane.alignment="CENTER">
+           <Label fx:id="conflictLabel" alignment="CENTER" prefHeight="64.0" prefWidth="538.0" text="Label" />
+           <HBox alignment="CENTER" prefHeight="75.0" prefWidth="538.0">
+               <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="150.0" text="Cancel">
+                   <HBox.margin>
+                       <Insets bottom="5.0" right="50.0" top="5.0" />
+                   </HBox.margin>
+               </Button>
+               <Button fx:id="finishButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="150.0" text="Finish">
+                   <HBox.margin>
+                       <Insets bottom="5.0" left="50.0" top="5.0" />
+                   </HBox.margin>
+               </Button>
+           </HBox>
+       </VBox>
+   </bottom>
+</BorderPane>
