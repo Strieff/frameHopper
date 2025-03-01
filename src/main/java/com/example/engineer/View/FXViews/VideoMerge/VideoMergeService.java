@@ -1,6 +1,6 @@
 package com.example.engineer.View.FXViews.VideoMerge;
 
-import com.example.engineer.FrameProcessor.FrameProcessorRequestManager;
+import com.example.engineer.FrameProcessor.FrameProcessor;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
@@ -23,8 +23,6 @@ public class VideoMergeService {
     private VideoService videoService;
     @Autowired
     private FrameService frameService;
-    @Autowired
-    private FrameProcessorRequestManager requestManager;
 
     //METADATA COMPARISON
 
@@ -36,17 +34,17 @@ public class VideoMergeService {
         if(videoService.exists(file.getAbsolutePath()))
             return videoService.getByPath(file.getAbsolutePath());
 
-        var data = requestManager.getVideoData().split(";");
+        var data = FrameProcessor.getInstance().getInfo();
 
         return Video.builder()
                 .id(-1)
                 .path(file.getAbsolutePath())
                 .name(file.getName())
-                .totalFrames(Integer.parseInt(data[0]))
-                .frameRate(Double.parseDouble(data[3]))
-                .duration(Integer.parseInt(data[4])/1000d)
-                .videoHeight(Integer.parseInt(data[1]))
-                .videoWidth(Integer.parseInt(data[2]))
+                .totalFrames(data.getTotalFrames())
+                .frameRate(data.getFramerate())
+                .duration(data.getDuration())
+                .videoHeight(data.getHeight())
+                .videoWidth(data.getWidth())
                 .build();
     }
 

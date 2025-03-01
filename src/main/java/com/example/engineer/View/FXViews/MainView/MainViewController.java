@@ -111,7 +111,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
             stage.setOnCloseRequest(e -> {
-                viewService.close();
                 System.exit(0);
             });
             mainView.requestFocus();
@@ -303,12 +302,15 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             var file = db.getFiles().getFirst();
 
             try {
-                if(isValidFile(file))
+                //if(isValidFile(file)) {
+                    //runTest(file);
                     prepareVideo(file);
-                else
-                    throw new Exception();
+                //}
+                //else
+                    //throw new Exception();
             }catch (Exception e){
                 FXDialogProvider.errorDialog(Dictionary.get("error.drag"));
+                e.printStackTrace();
             }
         }
 
@@ -316,7 +318,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         event.consume();
     }
 
-    private boolean isValidFile(File file) throws Exception{
+/*    private boolean isValidFile(File file) throws Exception{
         if(file.getName().endsWith(".gif"))
             return true;
 
@@ -324,36 +326,33 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             return true;
 
         var extensions = new String[]{
-                "*.gif","*.webm","*.mkv","*.flv","*.vob",
-                "*.ogv","*.ogg","*.rrc","*.gifv","*.mng",
-                "*.mov","*.avi","*.qt","*.wmv","*.yuv",
-                "*.rm","*.asf","*.amv","*.mp4","*.m4p",
-                "*.m4v","*.mpg","*.mp2","*.mpeg","*.mpe",
-                "*.mpv","*.m4v","*.svi","*.3gp","*.3g2",
-                "*.mxf","*.roq","*.nsv","*.flv","*.f4v",
-                "*.f4p","*.f4a","*.f4b","*.mod"
+                ".gif",".webm",".mkv",".flv",".vob",
+                ".ogv",".ogg",".rrc",".gifv",".mng",
+                ".mov",".avi",".qt",".wmv",".yuv",
+                ".rm",".asf",".amv",".mp4",".m4p",
+                ".m4v",".mpg",".mp2",".mpeg",".mpe",
+                ".mpv",".m4v",".svi",".3gp",".3g2",
+                ".mxf",".roq",".nsv",".flv",".f4v",
+                ".f4p",".f4a",".f4b",".mod"
         };
 
         for(String extension : extensions)
-            if(file.getName().endsWith(extension))
+            if(file.getAbsolutePath().endsWith(extension))
                 return true;
 
         return false;
-    }
+    }*/
 
     public void openRecent(String path){
         prepareVideo(new File(path));
     }
 
     public void prepareVideo(File file){
-        //get cache
-        var cache = viewService.setCache(file);
         //get DB video
         var video = viewService.getVideo(file);
 
         //prepare necessary items
         viewService.prepareVideo(
-                cache,
                 video,
                 file,
                 dropLabel

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="mainView" maxHeight="900.0" maxWidth="1200.0" prefHeight="900.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.MainView.TestController">
+   <center>
+      <Canvas fx:id="frameCanvas" BorderPane.alignment="CENTER" />
+   </center>
+   <top>
+      <Button mnemonicParsing="false" text="Button" BorderPane.alignment="CENTER" />
+   </top>
+</BorderPane>
