@@ -111,7 +111,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
             stage.setOnCloseRequest(e -> {
-                viewService.close();
                 System.exit(0);
             });
             mainView.requestFocus();
@@ -322,14 +321,14 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             return true;
 
         var extensions = new String[]{
-                "*.gif","*.webm","*.mkv","*.flv","*.vob",
-                "*.ogv","*.ogg","*.rrc","*.gifv","*.mng",
-                "*.mov","*.avi","*.qt","*.wmv","*.yuv",
-                "*.rm","*.asf","*.amv","*.mp4","*.m4p",
-                "*.m4v","*.mpg","*.mp2","*.mpeg","*.mpe",
-                "*.mpv","*.m4v","*.svi","*.3gp","*.3g2",
-                "*.mxf","*.roq","*.nsv","*.flv","*.f4v",
-                "*.f4p","*.f4a","*.f4b","*.mod"
+                "gif", "webm", "mkv", "flv", "vob",
+                "ogv", "ogg", "rrc", "gifv", "mng",
+                "mov", "avi", "qt", "wmv", "yuv",
+                "rm", "asf", "amv", "mp4", "m4p",
+                "m4v", "mpg", "mp2", "mpeg", "mpe",
+                "mpv", "m4v", "svi", "3gp", "3g2",
+                "mxf", "roq", "nsv", "flv", "f4v",
+                "f4p", "f4a", "f4b", "mod"
         };
 
         for(String extension : extensions)
@@ -344,8 +343,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     }
 
     public void prepareVideo(File file){
-        //get cache
-        var cache = viewService.setCache(file);
         //get DB video
         var video = viewService.getVideo(file);
 
@@ -354,7 +351,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
         //prepare necessary items
         viewService.prepareVideo(
-                cache,
                 video,
                 file,
                 dropLabel

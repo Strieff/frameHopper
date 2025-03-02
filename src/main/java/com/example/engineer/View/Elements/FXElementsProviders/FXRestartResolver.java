@@ -1,18 +1,25 @@
 package com.example.engineer.View.Elements.FXElementsProviders;
 
+import java.io.File;
+
 public class FXRestartResolver {
     public static void reset(){
-        if(System.getProperty("os.name").toLowerCase().contains("win"))
-            try {
-                ProcessBuilder pb = new ProcessBuilder("cmd","/c","restartProgram");
-                pb.start();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        try {
+            String jarDir = new File(FXRestartResolver.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
+            File jarFile = new File(jarDir, "StartFrameHopper.jar");
+
+            if(!jarFile.exists()) {
+                FXDialogProvider.messageDialog("PLEASE RESTART");
+                System.exit(0);
             }
-        else
-            FXDialogProvider.messageDialog("PLEASE RESTART");
+
+            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", jarFile.getAbsolutePath());
+            processBuilder.inheritIO();
+            processBuilder.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         System.exit(0);
-
     }
 }
