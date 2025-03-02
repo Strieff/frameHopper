@@ -1,6 +1,5 @@
 package com.example.engineer;
 
-import com.example.engineer.FrameProcessor.FrameProcessorClient;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
@@ -47,7 +46,6 @@ public class EngineerApplication extends Application {
             primaryStage.show();
 
             checkNecessaryFiles();
-            context.getBean(FrameProcessorClient.class).connect();
             closeLoadingWindow();
 
             if (context.getBean(UserSettingsManager.class).openRecent())
