@@ -75,6 +75,13 @@ public class MainViewService {
 
     public Node jump(int toJump) {
         info.setCurrentIndex(toJump-1);
+
+        if(toJump > info.getVideo().getTotalFrames()-1)
+            info.setCurrentIndex(info.getVideo().getTotalFrames()-1);
+
+        if(toJump < 1)
+            info.setCurrentIndex(0);
+
         return displayCurrentFrame();
     }
 

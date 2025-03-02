@@ -15,18 +15,6 @@ public class VideoFrameProcessor extends FrameProcessor {
     }
 
     @Override
-    public void loadVideo(File file) {
-        try{
-            grabber = new FFmpegFrameGrabber(file);
-            grabber.start();
-
-            info = new InformationContainer(grabber);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public ImageView getFrame(int index, int frameHeight, int frameWidth) {
         var scaleFactor = getScaleFactor(frameHeight, frameWidth);
 
@@ -37,8 +25,9 @@ public class VideoFrameProcessor extends FrameProcessor {
         //get frame
         var frame = getRawFrame(index);
 
-        if(frame == null)
-            return null;
+        if(frame == null) {
+            frame = getRawFrame(--index);
+        }
 
         BufferedImage image = converter.convert(frame);
         var scaledImage = drawImage(image, targetWidth, targetHeight);

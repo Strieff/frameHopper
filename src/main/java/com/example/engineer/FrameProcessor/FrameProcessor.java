@@ -18,10 +18,8 @@ public abstract class FrameProcessor{
     @Getter
     @Setter
     protected int currentFrame = 0;
-
     @Getter
     protected InformationContainer info;
-
     protected FFmpegFrameGrabber grabber;
     protected Java2DFrameConverter converter = new Java2DFrameConverter();
 
@@ -31,12 +29,21 @@ public abstract class FrameProcessor{
 
     public static FrameProcessor getFrameProcessor(String extension) {
         if (extension.equals("gif"))
-            return null;
+            return new GifFrameProcessor();
 
         return new VideoFrameProcessor();
     }
 
-    public abstract void loadVideo(File file);
+    public void loadVideo(File file) {
+        try{
+            grabber = new FFmpegFrameGrabber(file);
+            grabber.start();
+
+            loadMetadata();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     public abstract ImageView getFrame(int index, int frameHeight, int frameWidth);
 
@@ -57,9 +64,14 @@ public abstract class FrameProcessor{
         return scaledImage;
     }
 
+    protected void loadMetadata(){
+        info = new InformationContainer(grabber);
+    }
+
     public void close(){
         try {
             grabber.close();
+            grabber.release();
         } catch (FrameGrabber.Exception e) {
             throw new RuntimeException(e);
         }
