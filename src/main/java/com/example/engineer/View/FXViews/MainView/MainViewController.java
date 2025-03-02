@@ -302,12 +302,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             var file = db.getFiles().getFirst();
 
             try {
-                //if(isValidFile(file)) {
-                    //runTest(file);
+                if(isValidFile(file))
                     prepareVideo(file);
-                //}
-                //else
-                    //throw new Exception();
+                else
+                    throw new Exception();
             }catch (Exception e){
                 FXDialogProvider.errorDialog(Dictionary.get("error.drag"));
                 e.printStackTrace();
@@ -318,22 +316,19 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         event.consume();
     }
 
-/*    private boolean isValidFile(File file) throws Exception{
-        if(file.getName().endsWith(".gif"))
-            return true;
-
+    private boolean isValidFile(File file) throws Exception{
         if(new Tika().detect(file).equals("video/"))
             return true;
 
         var extensions = new String[]{
-                ".gif",".webm",".mkv",".flv",".vob",
-                ".ogv",".ogg",".rrc",".gifv",".mng",
-                ".mov",".avi",".qt",".wmv",".yuv",
-                ".rm",".asf",".amv",".mp4",".m4p",
-                ".m4v",".mpg",".mp2",".mpeg",".mpe",
-                ".mpv",".m4v",".svi",".3gp",".3g2",
-                ".mxf",".roq",".nsv",".flv",".f4v",
-                ".f4p",".f4a",".f4b",".mod"
+                "gif","webm","mkv","flv","vob",
+                "ogv","ogg","rrc","gifv","mng",
+                "mov","avi","qt","wmv","yuv",
+                "rm","asf","amv","mp4","m4p",
+                "m4v","mpg","mp2","mpeg","mpe",
+                "mpv","m4v","svi","3gp","3g2",
+                "mxf","roq","nsv","flv","f4v",
+                "f4p","f4a","f4b","mod"
         };
 
         for(String extension : extensions)
@@ -341,7 +336,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 return true;
 
         return false;
-    }*/
+    }
 
     public void openRecent(String path){
         prepareVideo(new File(path));
@@ -350,6 +345,9 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     public void prepareVideo(File file){
         //get DB video
         var video = viewService.getVideo(file);
+
+        //prepare ffmpeg
+        viewService.prepareProcessor(file,video);
 
         //prepare necessary items
         viewService.prepareVideo(
@@ -401,7 +399,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         dropLabel.setGraphic(viewService.moveLeft());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
-        System.out.println("Comma key pressed!");
     }
 
     //move left
@@ -409,7 +406,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         dropLabel.setGraphic(viewService.moveRight());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
-        System.out.println("Period key pressed!");
     }
 
     //OPEN VIDEO LIST

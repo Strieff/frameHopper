@@ -48,17 +48,29 @@ public class MainViewService {
 
     //get video from DB
     public Video getVideo(File videoFile){
-        if(frameProcessor != null)
-            frameProcessor.close();
-
-        frameProcessor = FrameProcessor.getFrameProcessor(FilenameUtils.getExtension(videoFile.getAbsolutePath()));
-        frameProcessor.loadVideo(videoFile);
         return videoService.createVideoIfNotExists(videoFile);
     }
 
     //set up information container
     public void prepareVideo(Video video, File videoFile,Label label){
         info = new InformationContainer(label,video,videoFile,frameService);
+    }
+
+    public void prepareProcessor(File file,Video video){
+        if(frameProcessor != null)
+            frameProcessor.close();
+
+        frameProcessor = FrameProcessor.getFrameProcessor(FilenameUtils.getExtension(file.getAbsolutePath()));
+        frameProcessor.loadVideo(file);
+
+        if(video.getTotalFrames() == null){
+            video.setTotalFrames(frameProcessor.getInfo().getTotalFrames());
+            video.setDuration(frameProcessor.getInfo().getDuration());
+            video.setFrameRate(frameProcessor.getInfo().getFramerate());
+            video.setVideoWidth(frameProcessor.getInfo().getWidth());
+            video.setVideoHeight(frameProcessor.getInfo().getHeight());
+            videoService.saveVideo(video);
+        }
     }
 
     public Node jump(int toJump) {
@@ -122,13 +134,15 @@ public class MainViewService {
 
     //move right method
     public ImageView moveRight(){
-        info.setCurrentIndex(getCurrentIndex()+1);
+        if(info.getCurrentIndex() < info.getVideo().getTotalFrames()-1)
+            info.setCurrentIndex(getCurrentIndex()+1);
         return displayCurrentFrame();
     }
 
     //move left method
     public ImageView moveLeft(){
-        info.setCurrentIndex(getCurrentIndex()-1);
+        if(info.getCurrentIndex()>0)
+            info.setCurrentIndex(getCurrentIndex()-1);
         return displayCurrentFrame();
     }
 
