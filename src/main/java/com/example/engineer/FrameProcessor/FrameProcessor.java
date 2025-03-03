@@ -1,8 +1,10 @@
 package com.example.engineer.FrameProcessor;
 
+import com.example.engineer.View.Elements.FXElementsProviders.ViablePathProvider;
 import javafx.scene.image.ImageView;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.io.FilenameUtils;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -34,10 +36,46 @@ public abstract class FrameProcessor{
         return new VideoFrameProcessor();
     }
 
+    public static InformationContainer getTempData(File file){
+        FFmpegFrameGrabber grabber;
+
+        try{
+            grabber = new FFmpegFrameGrabber(ViablePathProvider.getFile(file));
+            grabber.setFormat(FilenameUtils.getExtension(file.getAbsolutePath()));
+        }catch (Exception e){
+            try {
+                grabber = new FFmpegFrameGrabber(ViablePathProvider.getFallbackFile(file));
+                grabber.setFormat(FilenameUtils.getExtension(file.getAbsolutePath()));
+                grabber.start();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        var data = new InformationContainer(grabber);
+        try {
+            grabber.close();
+            grabber.release();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
     public void loadVideo(File file) {
         try{
-            grabber = new FFmpegFrameGrabber(file);
-            grabber.start();
+            grabber = new FFmpegFrameGrabber(ViablePathProvider.getFile(file));
+            grabber.setFormat(FilenameUtils.getExtension(file.getAbsolutePath()));
+            try{
+                grabber.start();
+            }catch (Exception e){
+                close();
+                grabber = new FFmpegFrameGrabber(ViablePathProvider.getFallbackFile(file));
+                grabber.setFormat(FilenameUtils.getExtension(file.getAbsolutePath()));
+                grabber.start();
+            }
+
+
 
             loadMetadata();
         }catch (Exception e){
@@ -75,6 +113,11 @@ public abstract class FrameProcessor{
         } catch (FrameGrabber.Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void onClose(){
+        if(instance != null)
+            instance.close();
     }
 
     @Getter

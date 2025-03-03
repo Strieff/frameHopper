@@ -1,8 +1,10 @@
 package com.example.engineer.View.FXViews.MainView;
 
+import com.example.engineer.FrameProcessor.FrameProcessor;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.ViablePathProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.DictionaryCreator;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
@@ -111,6 +113,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
             stage.setOnCloseRequest(e -> {
+                FrameProcessor.onClose();
+                ViablePathProvider.clearFiles();
                 System.exit(0);
             });
             mainView.requestFocus();

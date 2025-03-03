@@ -107,10 +107,7 @@ public class FrameDataMergeController implements LanguageChangeListener {
             if(!entry.isHasListener()){
                 entry.selectedProperty().addListener((observable, oldValue, newValue) -> {
                     if(entry.isSelectable())
-                        if(newValue)
-                            oldFrames.add(entry);
-                        else
-                            oldFrames.remove(entry);
+                        entry.setSelected(newValue);
                 });
                 entry.setHasListener(true);
             }
@@ -147,10 +144,7 @@ public class FrameDataMergeController implements LanguageChangeListener {
             if(!entry.isHasListener()){
                 entry.selectedProperty().addListener((observable, oldValue, newValue) -> {
                     if(entry.isSelectable())
-                        if(newValue)
-                            newFrames.add(entry);
-                        else
-                            newFrames.remove(entry);
+                        entry.setSelected(newValue);
                 });
                 entry.setHasListener(true);
             }
@@ -205,18 +199,14 @@ public class FrameDataMergeController implements LanguageChangeListener {
     private void selectAll(TableView<TableEntry> framesTable, ObservableList<TableEntry> frameList) {
         if(!framesTable.getItems().isEmpty())
             for(var e : framesTable.getItems())
-                if(!e.selectedProperty().get()) {
+                if(!e.selectedProperty().get() && e.selectable)
                     e.setSelected(true);
-                    frameList.add(e);
-                }
     }
 
     private void deselectAll(TableView<TableEntry> framesTable, ObservableList<TableEntry> frameList) {
         if(!framesTable.getItems().isEmpty()) {
             for (var e : framesTable.getItems())
                 e.setSelected(false);
-
-            frameList.removeAll();
         }
 
     }

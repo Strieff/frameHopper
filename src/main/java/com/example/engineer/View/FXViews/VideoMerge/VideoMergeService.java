@@ -34,7 +34,7 @@ public class VideoMergeService {
         if(videoService.exists(file.getAbsolutePath()))
             return videoService.getByPath(file.getAbsolutePath());
 
-        var data = FrameProcessor.getInstance().getInfo();
+        var data = FrameProcessor.getInstance() != null ? FrameProcessor.getInstance().getInfo() : FrameProcessor.getTempData(file);
 
         return Video.builder()
                 .id(-1)
@@ -129,7 +129,7 @@ public class VideoMergeService {
         if(doesNewHaveMoreFrames(oldVideo, newVideo))
             conflictAreas.add(Dictionary.get("fv.conflict.new"));
 
-        return String.format(Dictionary.get("fv.metadata.conflict") ,("\n" + String.join("\n",conflictAreas)));
+        return String.format(Dictionary.get("mv.metadata.conflict"),("\n" + String.join("\n",conflictAreas)));
     }
 
     public boolean doesOldHaveMoreFrames(Video oldVideo, Video newVideo){
@@ -141,7 +141,10 @@ public class VideoMergeService {
     }
 
     private boolean doBothHaveData(Video oldVideo, Video newVideo){
-        return !newVideo.getFrames().isEmpty() && !oldVideo.getFrames().isEmpty();
+        var oldFrames = frameService.getAllByVideo(oldVideo);
+        var newFrames = frameService.getAllByVideo(newVideo);
+
+        return !oldFrames.isEmpty() && !newFrames.isEmpty();
     }
 
     public void blockOverflow(ObservableList<TableEntry> oldFrames, Video newVideo) {

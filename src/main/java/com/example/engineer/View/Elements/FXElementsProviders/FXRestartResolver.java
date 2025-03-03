@@ -10,6 +10,7 @@ public class FXRestartResolver {
 
             if(!jarFile.exists()) {
                 FXDialogProvider.messageDialog("PLEASE RESTART");
+                ViablePathProvider.clearFiles();
                 System.exit(0);
             }
 
@@ -20,6 +21,7 @@ public class FXRestartResolver {
             e.printStackTrace();
         }
 
+        ViablePathProvider.clearFiles();
         System.exit(0);
     }
 }

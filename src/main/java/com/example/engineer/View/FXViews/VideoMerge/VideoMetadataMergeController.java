@@ -1,11 +1,15 @@
 package com.example.engineer.View.FXViews.VideoMerge;
 
 import com.example.engineer.Model.Video;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
+import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -42,6 +46,7 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
         cancelButton.setText(Dictionary.get("cancel"));
         cancelButton.setOnAction(event -> closeWindow());
         continueButton.setText(Dictionary.get("continue"));
+        continueButton.setOnAction(event -> openFrameData());
 
 
         oldDataLabel.setWrapText(true);
@@ -66,6 +71,28 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
         else {
             conflictLabel.setText(String.format(Dictionary.get("mv.metadata.conflict"), conflictData));
             conflictLabel.setTextFill(Color.RED);
+        }
+    }
+
+    private void openFrameData(){
+        try {
+            var loader = FXMLViewLoader.getView("FrameComparisonViewModel");
+
+            Parent root = loader.load();
+            var metadataComparisonScene = new Scene(root);
+
+            FrameDataMergeController controller = loader.getController();
+            controller.init(oldVideo,newVideo);
+
+            var secondaryStage = new Stage();
+            secondaryStage.setScene(metadataComparisonScene);
+            secondaryStage.setTitle("Path Change");
+
+            secondaryStage.initOwner(metadataComparisonView.getScene().getWindow());
+            secondaryStage.show();
+        } catch (Exception e) {
+            FXDialogProvider.errorDialog(e.getMessage());
+            e.printStackTrace();
         }
     }
 
