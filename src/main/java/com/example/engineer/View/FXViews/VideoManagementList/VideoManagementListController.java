@@ -5,7 +5,7 @@ import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationConta
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
-import com.example.engineer.View.Elements.FXElementsProviders.FXRestartResolver;
+import com.example.engineer.View.Elements.FXElementsProviders.RestartResolver;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
@@ -172,9 +172,15 @@ public class VideoManagementListController implements LanguageChangeListener {
             var stage = (Stage) codeTable.getScene().getWindow();
             stage.setOnCloseRequest(e -> {
                 LanguageManager.unregister(this);
-                openViews.closeVideoList();
+                close();
             });
         });
+    }
+
+    public void close(){
+        var stage = (Stage) codeTable.getScene().getWindow();
+        openViews.closeVideoList();
+        stage.close();
     }
 
     private void handleKeyPressed(KeyEvent event){
@@ -219,7 +225,7 @@ public class VideoManagementListController implements LanguageChangeListener {
 
             //get controller
             VideoManagementDetailsController videoController = loader.getController();
-            videoController.init(viewService.getVideo(id));
+            videoController.init(viewService.getVideo(id),this);
 
             //new stage
             var secondaryStage = new Stage();
@@ -256,7 +262,7 @@ public class VideoManagementListController implements LanguageChangeListener {
             return;
 
         if(id == mainViewService.getCurrentId())
-            FXRestartResolver.reset();
+            RestartResolver.reset();
     }
 
     @Override

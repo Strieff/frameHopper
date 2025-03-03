@@ -1,10 +1,12 @@
 package com.example.engineer.View.FXViews.VideoMerge;
 
 import com.example.engineer.FrameProcessor.FrameProcessor;
+import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,9 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class VideoMergeService {
@@ -111,6 +111,8 @@ public class VideoMergeService {
                 e.getTags().stream().map(Tag::getName).toList()
         )));
 
+        data.sort(Comparator.comparingInt(TableEntry::getNumber));
+
         return data;
     }
 
@@ -129,7 +131,7 @@ public class VideoMergeService {
         if(doesNewHaveMoreFrames(oldVideo, newVideo))
             conflictAreas.add(Dictionary.get("fv.conflict.new"));
 
-        return String.format(Dictionary.get("mv.metadata.conflict"),("\n" + String.join("\n",conflictAreas)));
+        return String.format(Dictionary.get("fv.metadata.conflict"),("\n" + String.join("\n",conflictAreas)));
     }
 
     public boolean doesOldHaveMoreFrames(Video oldVideo, Video newVideo){
@@ -140,7 +142,7 @@ public class VideoMergeService {
         return oldVideo.getTotalFrames() < newVideo.getTotalFrames();
     }
 
-    private boolean doBothHaveData(Video oldVideo, Video newVideo){
+    public boolean doBothHaveData(Video oldVideo, Video newVideo){
         var oldFrames = frameService.getAllByVideo(oldVideo);
         var newFrames = frameService.getAllByVideo(newVideo);
 
@@ -167,5 +169,110 @@ public class VideoMergeService {
         data.add(String.format(Dictionary.get("mv.video.dimensions"),String.join(" x ",video.getVideoWidth().toString(),video.getVideoHeight().toString())));
 
         return String.format(Dictionary.get(oldVideo ? "mv.metadata.old" : "mv.metadata.new"),("\n" + String.join("\n",data)));
+    }
+
+    public Video mergeData(Video oldVideo, Video newVideo){
+        return mergeData(
+                FXCollections.observableArrayList(),
+                oldVideo,
+                FXCollections.observableArrayList(),
+                newVideo
+        );
+    }
+
+    public Video mergeData(ObservableList<TableEntry> oldFrames, Video oldVideo, ObservableList<TableEntry> newFrames, Video newVideo) {
+        var oldSelectedEntries = oldFrames.stream().filter(e -> e.selectedProperty().get()).toList();
+        var newSelectedEntries = newFrames.stream().filter(e -> e.selectedProperty().get()).toList();
+
+        if(oldSelectedEntries.isEmpty() && newSelectedEntries.isEmpty())
+            return saveMergedData(new ArrayList<>(),oldVideo,newVideo);
+
+        if(oldSelectedEntries.isEmpty())
+            return saveMergedData(
+                    getFilteredFrames(newVideo,newSelectedEntries),
+                    oldVideo,
+                    newVideo
+            );
+
+        if(newSelectedEntries.isEmpty())
+            return saveMergedData(
+                    getFilteredFrames(oldVideo,oldSelectedEntries),
+                    oldVideo,
+                    newVideo
+            );
+
+        var unifiedFrameList = getUnifiedFrameList(
+                doesOldHaveMoreFrames(oldVideo,newVideo) ? oldVideo.getTotalFrames() : newVideo.getTotalFrames(),
+                getFilteredFrames(oldVideo,oldSelectedEntries),
+                getFilteredFrames(newVideo,newSelectedEntries)
+        );
+
+        return saveMergedData(unifiedFrameList,oldVideo,newVideo);
+    }
+
+    private List<Frame> getFilteredFrames(Video video,List<TableEntry> entries){
+        return frameService.getAllByVideo(video).stream()
+                .filter(f -> {
+                    for(var e : entries)
+                        if(e.getId() == f.getId())
+                            return true;
+
+                    return false;
+                })
+                .toList();
+    }
+
+    private List<Frame> getUnifiedFrameList(int total,List<Frame> oldFrames,List<Frame> newFrames){
+        Map<Integer,Set<Tag>> frameData = new HashMap<>();
+
+        for (int i = 0; i < total; i++) {
+            int finalI = i;
+            var oldFrame = oldFrames.stream().filter(f -> f.getFrameNumber() == finalI).findFirst().orElse(null);
+            var newFrame = newFrames.stream().filter(f -> f.getFrameNumber() == finalI).findFirst().orElse(null);
+
+            if(oldFrame != null && newFrame != null){
+                Set<Tag> tags = new HashSet<>();
+                tags.addAll(oldFrame.getTags());
+                tags.addAll(newFrame.getTags());
+                frameData.put(i,tags);
+            }else if(oldFrame != null){
+                frameData.put(i,new HashSet<>(oldFrame.getTags()));
+            }else if(newFrame != null){
+                frameData.put(i,new HashSet<>(newFrame.getTags()));
+            }
+        }
+
+        return frameData.entrySet().stream().map(e -> Frame.builder()
+                .frameNumber(e.getKey())
+                .tags(e.getValue().stream().toList())
+                .build()).toList();
+    }
+
+    private Video saveMergedData(List<Frame> frames, Video oldVideo, Video newVideo){
+        if(newVideo.getId() != -1)
+            videoService.deleteVideo(newVideo.getId());
+
+        videoService.deleteVideo(oldVideo.getId());
+
+        newVideo.setId(oldVideo.getId());
+
+        newVideo.setFrames(frames);
+
+        var finalVideo = videoService.saveVideo(newVideo);
+        frames.forEach(f -> {
+            f.setVideo(finalVideo);
+            frameService.save(f);
+        });
+
+        return finalVideo;
+    }
+
+    public boolean getMergeConfirmation(){
+        return FXDialogProvider.customDialog(
+                Dictionary.get("fv.final-warning"),
+                0,
+                Dictionary.get("cancel"),
+                Dictionary.get("finish")
+        ) == 1;
     }
 }

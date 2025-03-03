@@ -1,11 +1,15 @@
 package com.example.engineer.View.FXViews.VideoMerge;
 
 import com.example.engineer.Model.Video;
+import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.example.engineer.View.Elements.FXElementsProviders.RestartResolver;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.FXViews.MainView.MainViewService;
+import com.example.engineer.View.FXViews.VideoManagementList.VideoManagementListController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -33,9 +37,15 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
 
     @Autowired
     private VideoMergeService viewService;
+    @Autowired
+    private MainViewService mainViewService;
+    @Autowired
+    private OpenViewsInformationContainer openViews;
 
     private Video oldVideo;
     private Video newVideo;
+
+    private VideoManagementListController parent;
 
     @FXML
     public void initialize() {
@@ -46,7 +56,16 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
         cancelButton.setText(Dictionary.get("cancel"));
         cancelButton.setOnAction(event -> closeWindow());
         continueButton.setText(Dictionary.get("continue"));
-        continueButton.setOnAction(event -> openFrameData());
+        continueButton.setOnAction(event -> {
+            if(conflictLabel.getText().equals(Dictionary.get("mv.metadata.no-conflict"))) {
+                if (viewService.getMergeConfirmation())
+                    if (!viewService.doBothHaveData(oldVideo, newVideo)) {
+                        merge();
+                        parent.close();
+                    }
+            }else
+                openFrameData();
+        });
 
 
         oldDataLabel.setWrapText(true);
@@ -58,9 +77,10 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
         });
     }
 
-    public void init(int id,File newFile){
+    public void init(int id,File newFile,VideoManagementListController parent){
         oldVideo = viewService.getVideo(id);
         newVideo = viewService.getVideoFromFile(newFile);
+        this.parent = parent;
 
         oldDataLabel.setText(viewService.getVideoData(oldVideo,true));
         newDataLabel.setText(viewService.getVideoData(newVideo,false));
@@ -82,7 +102,7 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
             var metadataComparisonScene = new Scene(root);
 
             FrameDataMergeController controller = loader.getController();
-            controller.init(oldVideo,newVideo);
+            controller.init(oldVideo,newVideo,parent);
 
             var secondaryStage = new Stage();
             secondaryStage.setScene(metadataComparisonScene);
@@ -96,7 +116,14 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
         }
     }
 
-    private void closeWindow() {
+    private void merge(){
+        viewService.mergeData(oldVideo,newVideo);
+        if(mainViewService.getCurrentId() == newVideo.getId())
+            RestartResolver.reset();
+
+    }
+
+    public void closeWindow() {
         LanguageManager.unregister(this);
         Stage stage = (Stage) metadataComparisonView.getScene().getWindow();
         stage.close();

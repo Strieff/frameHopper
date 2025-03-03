@@ -457,7 +457,7 @@ public class SettingsController implements UpdateTableListener, LanguageChangeLi
             VideoManagementDetailsController videoController = loader.getController();
             var vid = viewService.getCurrentVideo();
             if(vid!=null)
-                videoController.init(vid);
+                videoController.init(vid,null);
             else
                 throw new Exception("No video is open");
 

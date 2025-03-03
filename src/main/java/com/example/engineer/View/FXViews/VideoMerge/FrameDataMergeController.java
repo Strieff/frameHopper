@@ -1,9 +1,12 @@
 package com.example.engineer.View.FXViews.VideoMerge;
 
 import com.example.engineer.Model.Video;
+import com.example.engineer.View.Elements.FXElementsProviders.RestartResolver;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.FXViews.MainView.MainViewService;
+import com.example.engineer.View.FXViews.VideoManagementList.VideoManagementListController;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -23,7 +27,7 @@ public class FrameDataMergeController implements LanguageChangeListener {
     @FXML
     private BorderPane frameDataComparisonView;
     @FXML
-    private Label conflictLabel,titleLabel;
+    private Label conflictLabel,titleLabel,oldLabel,newLabel;
     @FXML
     private Button cancelButton,finishButton,oldSelectAll,oldSelectDistinct,newSelectAll,newSelectDistinct;
     @FXML
@@ -35,6 +39,8 @@ public class FrameDataMergeController implements LanguageChangeListener {
 
     @Autowired
     private VideoMergeService viewService;
+    @Autowired
+    private MainViewService mainViewService;
 
     private final ObservableList<TableEntry> oldFrames = FXCollections.observableArrayList();
     private final ObservableList<TableEntry> newFrames = FXCollections.observableArrayList();
@@ -42,18 +48,22 @@ public class FrameDataMergeController implements LanguageChangeListener {
     private Video oldVideo,newVideo;
     private boolean allOldSelected = false;
     private boolean allNewSelected = false;
+    private VideoManagementListController parent;
 
     @FXML
     public void initialize() {
         LanguageManager.register(this);
 
-        titleLabel.setText(Dictionary.get("mv.frame-data"));
+        titleLabel.setText(Dictionary.get("fv.frame-data"));
+
+        oldLabel.setText(Dictionary.get("fv.old-data"));
+        newLabel.setText(Dictionary.get("fv.new-data"));
 
         //BUTTONS
         cancelButton.setText(Dictionary.get("cancel"));
         cancelButton.setOnAction(event -> closeWindow());
 
-        finishButton.setText(Dictionary.get("finish"));
+        finishButton.setText(Dictionary.get("continue"));
         finishButton.setOnAction(event -> mergeData());
 
         //OLD DATA BUTTONS
@@ -108,6 +118,8 @@ public class FrameDataMergeController implements LanguageChangeListener {
                 entry.selectedProperty().addListener((observable, oldValue, newValue) -> {
                     if(entry.isSelectable())
                         entry.setSelected(newValue);
+                    else
+                        entry.setSelected(false);
                 });
                 entry.setHasListener(true);
             }
@@ -143,8 +155,7 @@ public class FrameDataMergeController implements LanguageChangeListener {
 
             if(!entry.isHasListener()){
                 entry.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                    if(entry.isSelectable())
-                        entry.setSelected(newValue);
+                    entry.setSelected(newValue);
                 });
                 entry.setHasListener(true);
             }
@@ -166,9 +177,10 @@ public class FrameDataMergeController implements LanguageChangeListener {
 
 
 
-    public void init(Video oldVideo, Video newVideo) {
+    public void init(Video oldVideo, Video newVideo, VideoManagementListController parent) {
         this.oldVideo = oldVideo;
         this.newVideo = newVideo;
+        this.parent = parent;
 
         oldFrames.addAll(viewService.getFrames(oldVideo));
         oldFramesTable.setItems(oldFrames);
@@ -177,6 +189,8 @@ public class FrameDataMergeController implements LanguageChangeListener {
         newFramesTable.setItems(newFrames);
 
         conflictLabel.setText(viewService.compareFrameData(oldVideo,newVideo));
+        if(!conflictLabel.getText().equals(Dictionary.get("mv.metadata.no-conflict")))
+            conflictLabel.setTextFill(Color.RED);
 
         if(newFrames.isEmpty() && oldFrames.isEmpty())
             return;
@@ -193,7 +207,20 @@ public class FrameDataMergeController implements LanguageChangeListener {
     }
 
     private void mergeData(){
+        if(viewService.getMergeConfirmation()){
+            var mergedVideo = viewService.mergeData(
+                    oldFramesTable.getItems(),
+                    oldVideo,
+                    newFramesTable.getItems(),
+                    newVideo
+            );
 
+            if (mergedVideo != null)
+                if(mergedVideo.getId() == mainViewService.getCurrentId())
+                    RestartResolver.reset();
+
+            parent.close();
+        }
     }
 
     private void selectAll(TableView<TableEntry> framesTable, ObservableList<TableEntry> frameList) {
@@ -223,11 +250,13 @@ public class FrameDataMergeController implements LanguageChangeListener {
 
     @Override
     public void changeLanguage() {
-        //TODO
-        titleLabel.setText(Dictionary.get("mv.frame-data"));
+        titleLabel.setText(Dictionary.get("fv.frame-data"));
+
+        oldLabel.setText(Dictionary.get("fv.old-data"));
+        newLabel.setText(Dictionary.get("fv.new-data"));
 
         cancelButton.setText(Dictionary.get("cancel"));
-        finishButton.setText(Dictionary.get("finish"));
+        finishButton.setText(Dictionary.get("continue"));
 
         oldSelectAll.setText(Dictionary.get("fv.select-all"));
         oldSelectDistinct.setText(Dictionary.get("fv.select-distinct"));
@@ -245,5 +274,9 @@ public class FrameDataMergeController implements LanguageChangeListener {
         newTagAmount.setText(Dictionary.get("fv.count"));
 
         conflictLabel.setText(viewService.compareFrameData(oldVideo,newVideo));
+        if(!conflictLabel.getText().equals(Dictionary.get("mv.metadata.no-conflict")))
+            conflictLabel.setTextFill(Color.RED);
+        else
+            conflictLabel.setTextFill(Color.BLACK);
     }
 }

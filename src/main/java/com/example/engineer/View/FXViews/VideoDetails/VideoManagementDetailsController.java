@@ -7,6 +7,7 @@ import com.example.engineer.View.Elements.FXElementsProviders.FileChooserProvide
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
 import com.example.engineer.View.Elements.Language.LanguageManager;
+import com.example.engineer.View.FXViews.VideoManagementList.VideoManagementListController;
 import com.example.engineer.View.FXViews.VideoMerge.VideoMetadataMergeController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -46,6 +47,7 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
 
     private int id;
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
+    private VideoManagementListController parent;
 
     @FXML
     public void initialize() {
@@ -79,7 +81,8 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
                 .ifPresent(k -> keyActions.get(k).run());
     }
 
-    public void init(Video video){
+    public void init(Video video,VideoManagementListController parent){
+        this.parent=parent;
         id = video.getId();
         frameAmountLabel.setText(Dictionary.get("vd.frameAmount")+video.getTotalFrames());
         frameRateLabel.setText(Dictionary.get("vd.framerate")+video.getFrameRate());
@@ -97,7 +100,7 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
             var metadataComparisonScene = new Scene(root);
 
             VideoMetadataMergeController controller = loader.getController();
-            controller.init(id,file);
+            controller.init(id,file,parent);
 
             var secondaryStage = new Stage();
             secondaryStage.setScene(metadataComparisonScene);

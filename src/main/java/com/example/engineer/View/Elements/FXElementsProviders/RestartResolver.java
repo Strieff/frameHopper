@@ -2,10 +2,10 @@ package com.example.engineer.View.Elements.FXElementsProviders;
 
 import java.io.File;
 
-public class FXRestartResolver {
+public class RestartResolver {
     public static void reset(){
         try {
-            String jarDir = new File(FXRestartResolver.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
+            String jarDir = new File(RestartResolver.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
             File jarFile = new File(jarDir, "StartFrameHopper.jar");
 
             if(!jarFile.exists()) {

@@ -42,6 +42,7 @@ public abstract class FrameProcessor{
         try{
             grabber = new FFmpegFrameGrabber(ViablePathProvider.getFile(file));
             grabber.setFormat(FilenameUtils.getExtension(file.getAbsolutePath()));
+            grabber.start();
         }catch (Exception e){
             try {
                 grabber = new FFmpegFrameGrabber(ViablePathProvider.getFallbackFile(file));

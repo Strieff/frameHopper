@@ -410,7 +410,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         dropLabel.setGraphic(viewService.moveRight());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
-        System.out.println("Period key pressed!");
     }
 
     //OPEN VIDEO LIST
@@ -452,7 +451,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 VideoManagementDetailsController videoController = loader.getController();
                 var vid = viewService.getCurrentVideo();
                 if(vid != null)
-                    videoController.init(vid);
+                    videoController.init(vid,null);
                 else
                     throw new Exception(Dictionary.get("error.main.not-open"));
 
