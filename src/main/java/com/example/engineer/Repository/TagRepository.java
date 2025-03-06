@@ -39,10 +39,6 @@ public interface TagRepository extends JpaRepository<Tag,Double> {
     @Query("delete Tag t where t.id in :tags")
     void batchTagDelete(@Param("tags") List<Integer> tags);
 
-    @Modifying(clearAutomatically = true)
-    @Query("update Tag t set t.deleted = :hideAction where t.id in :tags")
-    void batchHideTag(@Param("tags") List<Integer> tags, @Param("hideAction") boolean hideAction);
-
     @EntityGraph(attributePaths = "frames")
     @Query("select t from Tag t")
     List<Tag> findAllEnriched();

@@ -19,9 +19,6 @@ public interface FrameRepository extends JpaRepository<Frame,Long> {
     @Query("select f from Frame f where f.frameNumber=:frameNumber and f.video=:video")
     Optional<Frame> findFrameByFrameNumberAndVideo(@Param("frameNumber") int frameNumber, @Param("video") Video video);
 
-    @Query("select f from Frame f join f.tags t where t=:tag")
-    List<Frame> getAllFramesWithTag(@Param("tag") Tag tag);
-
     @EntityGraph(attributePaths = {"video","tags"})
     @Query("select f from Frame f")
     List<Frame> findAllWithVideos();
@@ -40,8 +37,6 @@ public interface FrameRepository extends JpaRepository<Frame,Long> {
     @Override
     @EntityGraph(attributePaths = "tags")
     Optional<Frame> findById(Long aLong);
-
-
 
     @EntityGraph(attributePaths = "tags")
     @Query("select f from Frame f where f.video=:video and f.frameNumber=:frameNo")
