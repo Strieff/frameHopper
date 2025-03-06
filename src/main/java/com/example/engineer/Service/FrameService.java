@@ -65,17 +65,19 @@ public class FrameService {
         return frameRepository.findAllByVideo(video);
     }
 
+    public Frame getFrame(Video video, int frameNumber){
+        return frameRepository.findFrameOnVideo(video,frameNumber).orElse(null);
+    }
+
+    public void getAllVideoData(Video video){
+        video.setFrames(getAllByVideo(video));
+    }
+
     public void save(Frame frame){
         frameRepository.save(frame);
     }
 
-    public void reassignFrames(int newId,int oldId){
-        frameRepository.reassignFrames(oldId,newId);
-    }
-
-    @Transactional
-    public void removeFramesOverLimit(int videoId,int limit,List<Integer> frames){
-        frameRepository.deleteFramesAssociations(frames);
-        frameRepository.deleteFramesAboveLimit(limit,videoId);
+    public Frame getById(int id){
+        return frameRepository.findById((long) id).orElse(null);
     }
 }

@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
@@ -23,21 +23,12 @@ public class VideoService {
     @Autowired
     TagRepository tagRepository;
 
-    public Video addVideoData(Video video, Integer totalFrames, Double frameRate, Double duration, Integer height, Integer width){
-        video.setTotalFrames(totalFrames);
-        video.setFrameRate(frameRate);
-        video.setDuration(duration);
-        video.setVideoHeight(height);
-        video.setVideoWidth(width);
-        return videoRepository.save(video);
-    }
-
     public Video createVideoIfNotExists(File video){
         Optional<Video> exist = videoRepository.findByPath(video.getPath());
 
         if(exist.isEmpty()) {
             Video newVideo = Video.builder()
-                    .name(video.getName())
+                    .name(video.getName().replace(" ","%20"))
                     .path(video.getAbsolutePath())
                     .build();
             return videoRepository.save(newVideo);
@@ -69,12 +60,51 @@ public class VideoService {
         return videoRepository.findAll();
     }
 
+    public List<Video> getAllData(){
+        var videos = getAll();
+
+        if(videos.isEmpty())
+            return Collections.emptyList();
+
+        var frames = frameRepository.findAllWithVideos();
+
+        if(frames.isEmpty())
+            return videos;
+
+        getUnifiedVideoData(videos,frames);
+
+        return videos;
+    }
+
+    private void getUnifiedVideoData(List<Video> videos, List<Frame> frames){
+        Map<Video,List<Frame>> videoFramesMap = videos.stream()
+                .collect(Collectors.toMap(Function.identity(),v -> new ArrayList<>()));
+
+        for(var frame : frames){
+            var frameList = videoFramesMap.get(frame.getVideo());
+            frameList.add(frame);
+        }
+
+        for(var v : videoFramesMap.keySet())
+            v.setFrames(videoFramesMap.get(v));
+
+        videoFramesMap.forEach(Video::setFrames);
+    }
+
     public Video saveVideo(Video video){
         return videoRepository.save(video);
     }
 
     public boolean exists(String pathOfNewPath) {
         return getByPath(pathOfNewPath) != null;
+    }
+
+    public boolean existsByName(String name){
+        return !videoRepository.findByName(name).isEmpty();
+    }
+
+    public List<Video> getAllByName(String name){
+        return videoRepository.findByName(name);
     }
 
     @Transactional
@@ -93,8 +123,5 @@ public class VideoService {
         videoRepository.delete(toDelete);
     }
 
-    @Transactional
-    public void deleteVideo(Video video){
-       videoRepository.delete(video);
-    }
+
 }

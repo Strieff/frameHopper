@@ -22,25 +22,37 @@ public class TagService {
         return tagRepository.findAll();
     }
 
+    public List<Tag> getAllEnriched(){
+        return tagRepository.findAllEnriched();
+    }
+
+    public List<Object[]> getAllEnriched(Video video) {
+        return tagRepository.countTagOccurrencesInVideoFrames(video);
+    }
+
     public Tag createTag(String name,Double value,String description){
         return tagRepository.save(Tag.builder()
-                        .name(name)
-                        .value(value)
-                        .description(description)
-                        .build());
+                .name(name)
+                .value(value)
+                .description(description)
+                .build());
     }
 
     public Tag getTag(int id){
         return tagRepository.findById((double) id).orElse(null);
     }
 
+    public Tag getTag(String name) {
+        return tagRepository.findByNameEnriched(name).orElse(null);
+    }
+
     public Tag editTag(Integer id,String name,Double value,String description){
         return tagRepository.save(Tag.builder()
-                        .id(id)
-                        .name(name)
-                        .value(value)
-                        .description(description)
-                        .build());
+                .id(id)
+                .name(name)
+                .value(value)
+                .description(description)
+                .build());
     }
 
     @Transactional
@@ -76,9 +88,8 @@ public class TagService {
         tagRepository.totalDeleteTags(tags.stream().map(Tag::getId).toList());
     }
 
-    @Transactional
-    public void hideTags(List<Integer> tagIds, boolean hideAction){
-        tagRepository.batchHideTag(tagIds,hideAction);
+    public List<Object[]> countTagsOnFramesOfVideo(List<Integer> videoIds){
+        return tagRepository.countTagOccurrencesInVideoFrames(videoIds);
     }
 
     public Map<Video,Long> getAmountOfUniqueTagsOnVideos(List<Video> videos){
@@ -91,7 +102,7 @@ public class TagService {
         return map;
     }
 
-    public List<Object[]> countTagsOnFramesOfVideo(List<Integer> videoIds){
-        return tagRepository.countTagOccurrencesInVideoFrames(videoIds);
+    public Tag getById(int id) {
+        return tagRepository.findByIdEnriched(id).orElse(null);
     }
 }

@@ -22,6 +22,10 @@ public interface FrameRepository extends JpaRepository<Frame,Long> {
     @Query("select f from Frame f join f.tags t where t=:tag")
     List<Frame> getAllFramesWithTag(@Param("tag") Tag tag);
 
+    @EntityGraph(attributePaths = {"video","tags"})
+    @Query("select f from Frame f")
+    List<Frame> findAllWithVideos();
+
     @EntityGraph(attributePaths = "tags")
     List<Frame> findAllByVideo(Video video);
 
@@ -33,15 +37,13 @@ public interface FrameRepository extends JpaRepository<Frame,Long> {
     @Query(value = "delete from FRAME where VIDEO_ID=:videoId", nativeQuery = true)
     void totalFrameDelete(@Param("videoId") Integer videoId);
 
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update FRAME set VIDEO_ID=:newVideoId where VIDEO_ID=:oldVideoId", nativeQuery = true)
-    void reassignFrames(@Param("oldVideoId") Integer oldVideoId,@Param("newVideoId") Integer newVideoId);
+    @Override
+    @EntityGraph(attributePaths = "tags")
+    Optional<Frame> findById(Long aLong);
 
-    @Modifying(clearAutomatically = true)
-    @Query(value = "delete from FRAME where frameNumber>:maxFrameCount and VIDEO_ID=:videoId", nativeQuery = true)
-    void deleteFramesAboveLimit(@Param("maxFrameCount") Integer maxFrameCount,@Param("videoId") Integer videoId);
 
-    @Modifying(clearAutomatically = true)
-    @Query(value = "delete from FRAME_TAG where FRAME_ID in frames", nativeQuery = true)
-    void deleteFramesAssociations(@Param("frames") List<Integer> frames);
+
+    @EntityGraph(attributePaths = "tags")
+    @Query("select f from Frame f where f.video=:video and f.frameNumber=:frameNo")
+    Optional<Frame> findFrameOnVideo(@Param("video") Video video, @Param("frameNo") int frameNo);
 }

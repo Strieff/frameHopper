@@ -17,4 +17,7 @@ public interface VideoRepository extends JpaRepository<Video,Long> {
 
     @Query("select v from Video v where v.id in :ids")
     List<Video> findById(@Param("ids") List<Integer> ids);
+
+    @Query("select v from Video v where v.name=:name")
+    List<Video> findByName(@Param("name") String name);
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Video")
@@ -34,8 +35,13 @@ public class Video {
     @Override
     public boolean equals(Object o) {
         if(o instanceof Video)
-            return ((Video) o).getName().equals(this.getName());
+            return (((Video) o).getId()) == this.getId();
 
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);  // Use the ID field for hashCode
     }
 }
