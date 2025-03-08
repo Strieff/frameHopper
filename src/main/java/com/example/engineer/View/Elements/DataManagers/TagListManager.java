@@ -41,12 +41,6 @@ public class TagListManager {
                 .orElse(null);
     }
 
-    public int getNumberOfVisibleTags(){
-        return (int) tagList.stream()
-                .filter(t -> !t.isDeleted())
-                .count();
-    }
-
     public int getSize(){
         return tagList.size();
     }

@@ -1,6 +1,7 @@
 package com.example.engineer.Service;
 
 import com.example.engineer.Model.Frame;
+import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Repository.FrameRepository;
 import com.example.engineer.Repository.TagRepository;
@@ -76,6 +77,12 @@ public class VideoService {
         return videos;
     }
 
+    public List<Video> getAllData(String name){
+        return getAllData().stream()
+                .filter(v -> v.getName().equals(name))
+                .toList();
+    }
+
     private void getUnifiedVideoData(List<Video> videos, List<Frame> frames){
         Map<Video,List<Frame>> videoFramesMap = videos.stream()
                 .collect(Collectors.toMap(Function.identity(),v -> new ArrayList<>()));
@@ -123,5 +130,15 @@ public class VideoService {
         videoRepository.delete(toDelete);
     }
 
+    public double getTotalPoints(Video video) {
+        return video.getFrames().stream()
+                .map(Frame::getTags)
+                .flatMap(List::stream)
+                .mapToDouble(Tag::getValue)
+                .sum();
+    }
 
+    public double getComplexity(Video video) {
+        return getTotalPoints(video)/video.getDuration();
+    }
 }

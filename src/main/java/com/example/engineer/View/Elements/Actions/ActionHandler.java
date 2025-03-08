@@ -13,10 +13,6 @@ public  class ActionHandler {
     protected TagListManager tagList;
     protected FrameService frameService;
 
-    public void clearTagList(){
-        tagIdList.clear();
-    }
-
     public void addTag(Integer id){
         tagIdList.add(id);
     }

@@ -1,11 +1,13 @@
 package com.example.engineer.Service;
 
+import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
-import com.example.engineer.Repository.FrameRepository;
 import com.example.engineer.Repository.TagRepository;
 import jakarta.transaction.Transactional;
+import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -15,8 +17,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class TagService {
+    @Autowired
     private final TagRepository tagRepository;
-    private final FrameRepository frameRepository;
 
     public List<Tag> getAllTags(){
         return tagRepository.findAll();
@@ -104,5 +106,31 @@ public class TagService {
 
     public Tag getById(int id) {
         return tagRepository.findByIdEnriched(id).orElse(null);
+    }
+
+    public Map<Tag, Pair<Double,Integer>> getAllTagData(List<Video> videos) {
+        var tags = videos.stream()
+                .map(Video::getFrames)
+                .flatMap(List::stream)
+                .map(Frame::getTags)
+                .flatMap(List::stream)
+                .toList();
+
+        var pointSumMap = new HashMap<Tag,Double>();
+        tags.forEach(t -> pointSumMap.merge(t,t.getValue(),Double::sum));
+
+        var occurrenceSumMap = new HashMap<Tag,Integer>();
+        videos.stream()
+                .map(Video::getFrames)
+                .flatMap(List::stream)
+                .forEach(f -> f.getTags()
+                        .forEach(t -> occurrenceSumMap.merge(t,1,Integer::sum))
+                );
+
+        var dataMap = new HashMap<Tag, Pair<Double,Integer>>();
+        for(var t : pointSumMap.keySet())
+            dataMap.put(t,new Pair<>(pointSumMap.get(t), occurrenceSumMap.get(t)));
+
+        return dataMap;
     }
 }
