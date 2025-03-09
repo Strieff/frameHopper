@@ -15,7 +15,7 @@ GET http://localhost:8080/api/frame/video/Zabotest.mp4
 Accept: application/json
 
 ###frame API - video/frameNo
-GET  http://localhost:8080/api/frame/video/Zabotest.mp4/frame/100
+GET  http://localhost:8080/api/frame/video/Zabotest.mp4/frame/1
 Accept: application/json
 
 ###tag API - all
