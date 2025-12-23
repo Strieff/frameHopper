@@ -21,7 +21,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -46,12 +45,15 @@ public class ImportChartController implements LanguageChangeListener {
     @FXML
     HBox legendBox2,meanArea;
 
-    @Autowired
-    ChartsService viewService;
-    @Autowired
-    UserSettingsManager userSettings;
+    private final ChartsService viewService;
+    private final UserSettingsManager userSettings;
 
     String title;
+
+    public ImportChartController(ChartsService viewService, UserSettingsManager userSettings) {
+        this.viewService = viewService;
+        this.userSettings = userSettings;
+    }
 
     @FXML
     public void initialize(){

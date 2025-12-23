@@ -1,48 +1,58 @@
 package com.example.engineer.Service;
 
+import com.example.engineer.FfmpegService.FfmpegService;
+import com.example.engineer.FfmpegService.VideoInfoDto;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Repository.FrameRepository;
-import com.example.engineer.Repository.TagRepository;
 import com.example.engineer.Repository.VideoRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
-    @Autowired
-    VideoRepository videoRepository;
-    @Autowired
-    FrameRepository frameRepository;
-    @Autowired
-    TagRepository tagRepository;
+    private final VideoRepository videoRepository;
+    private final FrameRepository frameRepository;
+    private final FfmpegService ffmpegService;
 
-    public Video createVideoIfNotExists(File video){
-        Optional<Video> exist = videoRepository.findByPath(video.getPath());
+    public VideoService(
+            VideoRepository videoRepository,
+            FrameRepository frameRepository,
+            FfmpegService ffmpegService
+    ) {
+        this.videoRepository = videoRepository;
+        this.frameRepository = frameRepository;
+        this.ffmpegService = ffmpegService;
+    }
 
-        if(exist.isEmpty()) {
-            Video newVideo = Video.builder()
-                    .name(video.getName().replace(" ","%20"))
-                    .path(video.getAbsolutePath())
-                    .build();
-            return videoRepository.save(newVideo);
-        }else {
-            Video vid = exist.get();
+    public Video createOrGet(File video){
+        return videoRepository.findByPath(video.getPath()).orElseGet(() -> {
 
-            if(vid.getPath()==null){
-                vid.setPath(video.getAbsolutePath());
-                videoRepository.save(vid);
+            VideoInfoDto data;
+            try {
+                data = ffmpegService.getVideoInfo(video.getAbsolutePath());
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
             }
 
-            return vid;
-        }
+            return videoRepository.save(
+                    Video.builder()
+                            .name(video.getName().replace(" ", "%20"))
+                            .path(video.getAbsolutePath())
+                            .frameRate(data.frameRate())
+                            .duration(data.durationInSeconds())
+                            .totalFrames(data.totalFrames())
+                            .videoHeight(data.height())
+                            .videoWidth(data.width())
+                            .build()
+            );
+        });
     }
 
     public Video getByPath(String path){
@@ -67,35 +77,27 @@ public class VideoService {
         if(videos.isEmpty())
             return Collections.emptyList();
 
-        var frames = frameRepository.findAllWithVideos();
+        videos.forEach(v -> v.setFrames(new ArrayList<>()));
 
-        if(frames.isEmpty())
-            return videos;
+        var allFrames = frameRepository.findAllWithVideos();
 
-        getUnifiedVideoData(videos,frames);
+        Map<Integer, List<Frame>> framesByVideoId = allFrames.stream()
+                .collect(Collectors.groupingBy(f -> f.getVideo().getId()));
+
+        for (Video v : videos) {
+            List<Frame> frames = framesByVideoId.getOrDefault(v.getId(), List.of());
+
+            frames.sort(Comparator.comparingInt(Frame::getFrameNumber)); // low -> high
+            v.getFrames().addAll(frames);
+        }
 
         return videos;
     }
 
-    public List<Video> getAllData(String name){
+    public List<Video> getAllData(int id){
         return getAllData().stream()
-                .filter(v -> v.getName().equals(name))
+                .filter(v -> v.getId() == id)
                 .toList();
-    }
-
-    private void getUnifiedVideoData(List<Video> videos, List<Frame> frames){
-        Map<Video,List<Frame>> videoFramesMap = videos.stream()
-                .collect(Collectors.toMap(Function.identity(),v -> new ArrayList<>()));
-
-        for(var frame : frames){
-            var frameList = videoFramesMap.get(frame.getVideo());
-            frameList.add(frame);
-        }
-
-        for(var v : videoFramesMap.keySet())
-            v.setFrames(videoFramesMap.get(v));
-
-        videoFramesMap.forEach(Video::setFrames);
     }
 
     public Video saveVideo(Video video){
@@ -106,12 +108,8 @@ public class VideoService {
         return getByPath(pathOfNewPath) != null;
     }
 
-    public boolean existsByName(String name){
-        return !videoRepository.findByName(name).isEmpty();
-    }
-
-    public List<Video> getAllByName(String name){
-        return videoRepository.findByName(name);
+    public boolean exists(int id) {
+        return getById(id) != null;
     }
 
     @Transactional
@@ -132,8 +130,7 @@ public class VideoService {
 
     public double getTotalPoints(Video video) {
         return video.getFrames().stream()
-                .map(Frame::getTags)
-                .flatMap(List::stream)
+                .flatMap(f -> f.getTags().stream())
                 .mapToDouble(Tag::getValue)
                 .sum();
     }

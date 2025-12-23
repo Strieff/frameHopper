@@ -8,6 +8,8 @@ application/old.jar
 application/tęst
 cache/
 data/
+application/
+ffmpeg/
 .mvn
 
 
@@ -49,5 +51,5 @@ application/data/
 application/cache/
 "application/settings/user settings.json"
 
-scripts/FrameProcessorServer.spec
-scripts/dist
+test-videos/
+settings/user settings.json

@@ -1,6 +1,6 @@
 package com.example.engineer.View.Elements.Language;
 
-import com.example.engineer.Model.UserSettings;
+import com.example.engineer.config.UserSettings;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 
 import java.io.*;

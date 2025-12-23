@@ -1,54 +1,62 @@
 package com.example.engineer.View.FXViews.MainView;
 
-import com.example.engineer.FrameProcessor.FrameProcessor;
+import com.example.engineer.FfmpegService.VideoDataProvider;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
+import com.example.engineer.View.Elements.DataManagers.UserSettingsManager;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Actions.PasteRecentAction;
 import com.example.engineer.View.Elements.Actions.RemoveRecentAction;
 import com.example.engineer.View.Elements.Actions.UndoRedoAction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class MainViewService {
-    @Autowired
-    private VideoService videoService;
-    @Autowired
-    private FrameService frameService;
-    @Autowired
-    private PasteRecentAction pasteRecentAction;
-    @Autowired
-    private RemoveRecentAction removeRecentAction;
-    @Autowired
-    private UndoRedoAction undoRedoAction;
+    private final VideoService videoService;
+    private final FrameService frameService;
+    private final PasteRecentAction pasteRecentAction;
+    private final RemoveRecentAction removeRecentAction;
+    private final UndoRedoAction undoRedoAction;
+    private final VideoDataProvider videoDataProvider;
+    private final UserSettingsManager userSettings;
 
     private InformationContainer info;
-    private FrameProcessor frameProcessor;
+
+    public MainViewService(
+            VideoService videoService,
+            FrameService frameService,
+            PasteRecentAction pasteRecentAction,
+            RemoveRecentAction removeRecentAction,
+            UndoRedoAction undoRedoAction,
+            VideoDataProvider videoDataProvider, UserSettingsManager userSettings
+    ) {
+        this.videoService = videoService;
+        this.frameService = frameService;
+        this.pasteRecentAction = pasteRecentAction;
+        this.removeRecentAction = removeRecentAction;
+        this.undoRedoAction = undoRedoAction;
+        this.videoDataProvider = videoDataProvider;
+        this.userSettings = userSettings;
+    }
 
 
     //get video from DB
     public Video getVideo(File videoFile){
-        return videoService.createVideoIfNotExists(videoFile);
+        videoDataProvider.clearCache();
+        userSettings.setRecentPath(videoFile.getAbsolutePath());
+        return videoService.createOrGet(videoFile);
     }
 
     //set up information container
@@ -56,24 +64,7 @@ public class MainViewService {
         info = new InformationContainer(label,video,videoFile,frameService);
     }
 
-    public void prepareProcessor(File file,Video video){
-        if(frameProcessor != null)
-            frameProcessor.close();
-
-        frameProcessor = FrameProcessor.getFrameProcessor(FilenameUtils.getExtension(file.getAbsolutePath()));
-        frameProcessor.loadVideo(file);
-
-        if(video.getTotalFrames() == null){
-            video.setTotalFrames(frameProcessor.getInfo().getTotalFrames());
-            video.setDuration(frameProcessor.getInfo().getDuration());
-            video.setFrameRate(frameProcessor.getInfo().getFramerate());
-            video.setVideoWidth(frameProcessor.getInfo().getWidth());
-            video.setVideoHeight(frameProcessor.getInfo().getHeight());
-            videoService.saveVideo(video);
-        }
-    }
-
-    public Node jump(int toJump) {
+    public Image jump(int toJump) {
         info.setCurrentIndex(toJump-1);
 
         if(toJump > info.getVideo().getTotalFrames()-1)
@@ -85,10 +76,17 @@ public class MainViewService {
         return displayCurrentFrame();
     }
 
-    //GETTERS
-    public ImageView displayCurrentFrame(){
-        var imageLabel = info.getLabel();
-        return frameProcessor.getFrame(info.getCurrentIndex(), (int) imageLabel.getWidth(), (int) imageLabel.getHeight());
+    public Image displayCurrentFrame(){
+        try {
+            return videoDataProvider.getFrame(
+                    info.getVideo(),
+                    info.currentIndex
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public ObservableList<TableEntry> displayCurrentTags(){
@@ -104,10 +102,6 @@ public class MainViewService {
 
     public int getCurrentIndex(){
         return info.getCurrentIndex();
-    }
-
-    public String getCurrentPath() {
-        return info.getVideo().getPath();
     }
 
     public List<Tag> getTagsOnFrame(){
@@ -130,24 +124,15 @@ public class MainViewService {
         return info!=null;
     }
 
-    //scale image to fit the application window
-    private BufferedImage scaleImage(BufferedImage originalImage,int targetWidth,int targetHeight){
-        BufferedImage scaledImage = new BufferedImage(targetWidth,targetHeight,BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = scaledImage.createGraphics();
-        g.drawImage(originalImage,0,0,targetWidth,targetHeight,null);
-        g.dispose();
-        return scaledImage;
-    }
-
     //move right method
-    public ImageView moveRight(){
+    public Image moveRight(){
         if(info.getCurrentIndex() < info.getVideo().getTotalFrames()-1)
             info.setCurrentIndex(getCurrentIndex()+1);
         return displayCurrentFrame();
     }
 
     //move left method
-    public ImageView moveLeft(){
+    public Image moveLeft(){
         if(info.getCurrentIndex()>0)
             info.setCurrentIndex(getCurrentIndex()-1);
         return displayCurrentFrame();
@@ -215,9 +200,9 @@ public class MainViewService {
         @Getter
         @Setter
         private int currentIndex;
-        private Map<Integer, List<Tag>> tagsOnFrameOnVideo;
+        private final Map<Integer, List<Tag>> tagsOnFrameOnVideo;
 
-        public InformationContainer(Label label, Video video, File videoFile,FrameService frameService) {
+        public InformationContainer(Label label, Video video, File videoFile, FrameService frameService) {
             this.label = label;
             this.video = video;
             this.videoFile = videoFile;
@@ -225,7 +210,7 @@ public class MainViewService {
             tagsOnFrameOnVideo = new HashMap<>();
             List<Frame> frames = frameService.getAllByVideo(video);
             for(var f : frames)
-                tagsOnFrameOnVideo.put(f.getFrameNumber(),f.getTags());
+                tagsOnFrameOnVideo.put(f.getFrameNumber(),new ArrayList<>(f.getTags()));
 
             this.currentIndex = 0;
         }

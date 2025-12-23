@@ -208,25 +208,27 @@ public class ChartsController implements LanguageChangeListener {
 
         if(entries.isEmpty()) return;
 
-        Map<String,Number> valueMap;
+        Map<String,Number> valueMap = new HashMap<>();
         var ids = entries.stream().map(e -> e.id).toList();
 
         var option = yAxisOptions.getSelectionModel().getSelectedItem();
-        if(Dictionary.get("chart.complexity").equals(option)){
-            valueMap = viewService.getComplexity(ids);
-        }else if(Dictionary.get("chart.tags.unique").equals(option)){
-            valueMap = viewService.getUniqueTagsCount(ids);
-        }else if(Dictionary.get("chart.frame-count").equals(option)){
-            valueMap = viewService.getFrameCount(ids);
-        }else if(Dictionary.get("chart.duration").equals(option)){
-            valueMap = viewService.getRuntimes(ids);
-        }else if(Dictionary.get("chart.points").equals(option)){
-            valueMap = viewService.getTotalPoints(ids);
-        }else{
-            valueMap = viewService.getComplexity(entries.stream().map(e -> e.id).toList());
+        if(!entries.isEmpty()){
+            if (Dictionary.get("chart.complexity").equals(option)) {
+                valueMap = viewService.getComplexity(ids);
+            } else if (Dictionary.get("chart.tags.unique").equals(option)) {
+                valueMap = viewService.getUniqueTagsCount(ids);
+            } else if (Dictionary.get("chart.frame-count").equals(option)) {
+                valueMap = viewService.getFrameCount(ids);
+            } else if (Dictionary.get("chart.duration").equals(option)) {
+                valueMap = viewService.getRuntimes(ids);
+            } else if (Dictionary.get("chart.points").equals(option)) {
+                valueMap = viewService.getTotalPoints(ids);
+            } else {
+                valueMap = viewService.getComplexity(entries.stream().map(e -> e.id).toList());
+            }
         }
 
-        var maxValue = valueMap.values().stream().map(Number::doubleValue).max(Comparator.naturalOrder()).get();
+        var maxValue = valueMap.values().stream().map(Number::doubleValue).max(Comparator.naturalOrder()).orElse(0d);
 
         if(!meanCheckbox.isSelected())
             chartPane.getChildren().add(createBarChart(valueMap, maxValue,option));

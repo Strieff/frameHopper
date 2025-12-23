@@ -1,11 +1,10 @@
 package com.example.engineer.API.Controller;
 
 import com.example.engineer.API.Model.Tag.TagDTO;
-import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
-import com.google.gson.GsonBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,15 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/code")
 public class TagController {
-    @Autowired
-    private TagService tagService;
-    @Autowired
-    private VideoService videoService;
-    @Autowired
-    private FrameService frameService;
+    private final TagService tagService;
+    private final VideoService videoService;
+
+    public TagController(TagService tagService, VideoService videoService) {
+        this.tagService = tagService;
+        this.videoService = videoService;
+    }
 
     @GetMapping
-    public ResponseEntity<String> getAll(){
+    public ResponseEntity<String> getAll() throws JsonProcessingException {
         var tags = tagService.getAllEnriched();
 
         if(tags.isEmpty())
@@ -32,11 +32,11 @@ public class TagController {
 
         var tagDTOs = tags.stream().map(TagDTO::new).toList();
 
-        return new ResponseEntity<>(new GsonBuilder().create().toJson(tagDTOs), HttpStatus.OK);
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(tagDTOs), HttpStatus.OK);
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<String> getById(@PathVariable("id") int id){
+    public ResponseEntity<String> getById(@PathVariable int id) throws JsonProcessingException {
         var tag = tagService.getById(id);
 
         if (tag == null)
@@ -44,11 +44,11 @@ public class TagController {
 
         var tagDTO = new TagDTO(tag);
 
-        return new ResponseEntity<>(new GsonBuilder().create().toJson(tagDTO), HttpStatus.OK);
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(tagDTO), HttpStatus.OK);
     }
 
     @GetMapping("name/{name}")
-    public ResponseEntity<String> getByName(@PathVariable("name") String name){
+    public ResponseEntity<String> getByName(@PathVariable String name) throws JsonProcessingException {
         var tag = tagService.getTag(name);
 
         if(tag == null)
@@ -56,24 +56,20 @@ public class TagController {
 
         var tagDTO = new TagDTO(tag);
 
-        return new ResponseEntity<>(new GsonBuilder().create().toJson(tagDTO), HttpStatus.OK);
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(tagDTO), HttpStatus.OK);
     }
 
-    @GetMapping("/video/{video}")
-    public ResponseEntity<String> getUsedOnVideo(@PathVariable("video") String video){
-        var videos = videoService.getAllByName(video);
-
-        if(videos.isEmpty())
+    @GetMapping("/video/{id}")
+    public ResponseEntity<String> getUsedOnVideo(@PathVariable int id) throws JsonProcessingException {
+        if (!videoService.exists(id))
             return ResponseEntity.notFound().build();
 
-        if(videos.size() == 1){
-            var tagDTOs = tagService.getAllEnriched(videos.getFirst()).stream()
-                    .map(TagDTO::new)
-                    .toList();
+        var videos = videoService.getById(id);
 
-            return new ResponseEntity<>(new GsonBuilder().create().toJson(tagDTOs), HttpStatus.OK);
-        }
+        var tagDTOs = tagService.getAllEnriched(videos).stream()
+                .map(TagDTO::new)
+                .toList();
 
-        return null;
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(tagDTOs), HttpStatus.OK);
     }
 }

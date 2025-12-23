@@ -5,15 +5,17 @@ import com.example.engineer.Service.TagService;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TagDetailsService {
-    @Autowired
-    private TagService tagService;
-    @Autowired
-    private TagListManager tagList;
+    private final TagService tagService;
+    private final TagListManager tagList;
+
+    public TagDetailsService(TagService tagService, TagListManager tagList) {
+        this.tagService = tagService;
+        this.tagList = tagList;
+    }
 
     public Tag getTag(int id) {
         return tagService.getTag(id);

@@ -3,8 +3,8 @@ package com.example.engineer.API.Controller;
 import com.example.engineer.API.Model.VideoDTO;
 import com.example.engineer.Service.FrameService;
 import com.example.engineer.Service.VideoService;
-import com.google.gson.GsonBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,13 +12,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/video")
 public class VideoController {
-    @Autowired
-    VideoService videoService;
-    @Autowired
-    FrameService frameService;
+    private final VideoService videoService;
+    private final FrameService frameService;
+
+    public VideoController(VideoService videoService, FrameService frameService) {
+        this.videoService = videoService;
+        this.frameService = frameService;
+    }
 
     @GetMapping
-    public ResponseEntity<String> getAllVideos() {
+    public ResponseEntity<String> getAllVideos() throws JsonProcessingException {
         var videos = videoService.getAllData();
 
         if(videos.isEmpty())
@@ -26,23 +29,20 @@ public class VideoController {
 
         var videoDTOs = videos.stream().map(VideoDTO::new).toList();
 
-        return new ResponseEntity<>(new GsonBuilder().create().toJson(videoDTOs), HttpStatus.OK);
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(videoDTOs), HttpStatus.OK);
     }
 
-    @GetMapping("/name/{name}")
-    public ResponseEntity<String> getVideo(@PathVariable String name) {
-        var videos = videoService.getAllByName(name.replace("%20"," "));
+    @GetMapping("/id/{id}")
+    public ResponseEntity<String> getVideo(@PathVariable int id) throws JsonProcessingException {
+        var video = videoService.getById(id);
 
-        if(videos.isEmpty())
+        if(video == null)
             return ResponseEntity.notFound().build();
 
-        videos.forEach(v -> frameService.getAllVideoData(v));
+        frameService.getAllVideoData(video);
 
-        var videoDTOs = videos.stream().map(VideoDTO::new).toList();
+        var videoDTO = new VideoDTO(video);
 
-        if(videoDTOs.size() == 1)
-            return ResponseEntity.status(HttpStatus.OK).body(videoDTOs.getFirst().toString());
-
-        return new ResponseEntity<>(new GsonBuilder().create().toJson(videoDTOs), HttpStatus.OK);
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(videoDTO), HttpStatus.OK);
     }
 }

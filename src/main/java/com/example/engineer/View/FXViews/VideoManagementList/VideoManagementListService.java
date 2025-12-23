@@ -4,13 +4,15 @@ import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VideoManagementListService {
-    @Autowired
-    private VideoService videoService;
+    private final VideoService videoService;
+
+    public VideoManagementListService(VideoService videoService) {
+        this.videoService = videoService;
+    }
 
     public ObservableList<TableEntry> getAllVideos() {
         ObservableList<TableEntry> data = FXCollections.observableArrayList();

@@ -1,28 +1,20 @@
 package com.example.engineer.View.Elements.Actions;
 
-import com.example.engineer.DBActions.TagManagerAction;
+import com.example.engineer.Service.DataBaseManagementService;
 import com.example.engineer.Model.Tag;
-import com.example.engineer.Service.FrameService;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
-import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 
 @Component
-public class UndoRedoAction extends ActionHandler implements ApplicationContextAware {
-    private static ApplicationContext ctx;
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        ctx = applicationContext;
-    }
+public class UndoRedoAction extends ActionHandler{
+    Boolean undid;
+    Integer id;
 
-    boolean undid;
-    String videoPath;
+    private final DataBaseManagementService dbService;
 
     @Getter
     int currentFrameIndex;
@@ -31,16 +23,15 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
     @Getter
     List<Tag> currentTags;
 
-    @PostConstruct
-    public void init() {
+    public UndoRedoAction(DataBaseManagementService dbService) {
+        this.dbService = dbService;
         undid = false;
-        frameService = ctx.getBean(FrameService.class);
     }
 
-    public void setUp(List<Tag> originalTags, List<Tag> currentTags, int currentFrameIndex, String videoPath){
+    public void setUp(List<Tag> originalTags, List<Tag> currentTags, int currentFrameIndex, int id){
         this.originalTags = originalTags;
         this.currentFrameIndex = currentFrameIndex;
-        this.videoPath = videoPath;
+        this.id = id;
         this.currentTags = currentTags;
         undid = false;
     }
@@ -48,7 +39,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
     public void undoAction(){
         if(!undid){
             UpdateTableEventDispatcher.fireEvent();
-            new TagManagerAction(frameService,originalTags,currentFrameIndex, videoPath).run();
+            dbService.modifyTagsOfFrame(originalTags, currentFrameIndex, id);
 
             flipState();
         }
@@ -57,7 +48,7 @@ public class UndoRedoAction extends ActionHandler implements ApplicationContextA
      public void redoAction(){
          if(undid){
              UpdateTableEventDispatcher.fireEvent();
-             new TagManagerAction(frameService,currentTags,currentFrameIndex, videoPath).run();
+             dbService.modifyTagsOfFrame(currentTags, currentFrameIndex, id);
 
              flipState();
          }

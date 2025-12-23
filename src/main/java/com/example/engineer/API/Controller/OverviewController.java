@@ -6,8 +6,8 @@ import com.example.engineer.API.Model.Overview.VideoOverviewDTO;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.TagService;
 import com.example.engineer.Service.VideoService;
-import com.google.gson.GsonBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,34 +19,40 @@ import java.util.List;
 @RestController
 @RequestMapping("api/overview")
 public class OverviewController {
-    @Autowired
-    private VideoService videoService;
-    @Autowired
-    private TagService tagService;
+    private final VideoService videoService;
+    private final TagService tagService;
+
+    public OverviewController(VideoService videoService, TagService tagService) {
+        this.videoService = videoService;
+        this.tagService = tagService;
+    }
 
     @RequestMapping
-    public ResponseEntity<String> getOverview() {
+    public ResponseEntity<String> getOverview() throws JsonProcessingException {
         var videos = videoService.getAllData();
 
         return collectData(videos);
     }
 
-    @RequestMapping("/{video}")
-    public ResponseEntity<String> getOverview(@PathVariable String video) {
-        var videos = videoService.getAllData(video);
+    @RequestMapping("/{id}")
+    public ResponseEntity<String> getOverview(@PathVariable int id) throws JsonProcessingException {
+        if (!videoService.exists(id))
+            return ResponseEntity.notFound().build();
+
+        var videos = videoService.getAllData(id);
 
         return collectData(videos);
     }
 
-    private ResponseEntity<String> collectData(List<Video> videos){
+    private ResponseEntity<String> collectData(List<Video> videos) throws JsonProcessingException {
         if(videos.isEmpty())
             return ResponseEntity.notFound().build();
 
         var videoDTOs = videos.stream()
                 .map(v -> new VideoOverviewDTO(
                         v,
-                        videoService.getComplexity(v),
-                        videoService.getTotalPoints(v)
+                        videoService.getTotalPoints(v),
+                        videoService.getComplexity(v)
                 ))
                 .toList();
 
@@ -55,6 +61,6 @@ public class OverviewController {
                 .map(e -> new TagOverviewDTO(e.getKey(),e.getValue().getValue(),e.getValue().getKey()))
                 .toList();
 
-        return new ResponseEntity<>(new GsonBuilder().create().toJson(new OverviewDTO(videoDTOs,tagDTOs)), HttpStatus.OK);
+        return new ResponseEntity<>(new ObjectMapper().writeValueAsString(new OverviewDTO(videoDTOs,tagDTOs)), HttpStatus.OK);
     }
 }

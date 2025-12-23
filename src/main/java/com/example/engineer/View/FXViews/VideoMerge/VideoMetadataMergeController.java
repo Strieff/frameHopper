@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 
 @Component
 @Scope("prototype")
@@ -77,7 +78,7 @@ public class VideoMetadataMergeController implements LanguageChangeListener {
         });
     }
 
-    public void init(int id,File newFile,VideoManagementListController parent){
+    public void init(int id, File newFile, VideoManagementListController parent) throws IOException, InterruptedException {
         oldVideo = viewService.getVideo(id);
         newVideo = viewService.getVideoFromFile(newFile);
         this.parent = parent;

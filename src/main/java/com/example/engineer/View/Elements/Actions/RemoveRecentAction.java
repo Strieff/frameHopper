@@ -1,32 +1,28 @@
 package com.example.engineer.View.Elements.Actions;
 
+import com.example.engineer.Service.DataBaseManagementService;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
-import com.example.engineer.Service.FrameService;
-import com.example.engineer.DBActions.TagManagerAction;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
-import jakarta.annotation.PostConstruct;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class RemoveRecentAction extends ActionHandler implements ApplicationContextAware {
-    private static ApplicationContext ctx;
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        ctx = applicationContext;
-    }
+public class RemoveRecentAction extends ActionHandler{
+    private final UndoRedoAction undoRedoAction;
+    private final DataBaseManagementService dbService;
 
-    @PostConstruct
-    public void init(){
-        this.tagList =  ctx.getBean(TagListManager.class);
+    public RemoveRecentAction(TagListManager tagList,
+                              UndoRedoAction undoRedoAction,
+                              DataBaseManagementService dbService
+    ) {
+        this.undoRedoAction = undoRedoAction;
+        this.dbService = dbService;
+        this.tagList = tagList;
         this.tagIdList = new ArrayList<>();
-        this.frameService = ctx.getBean(FrameService.class);
     }
 
     @Override
@@ -36,10 +32,12 @@ public class RemoveRecentAction extends ActionHandler implements ApplicationCont
 
         if(!removeTags.isEmpty()) {
             List<Tag> temp = new ArrayList<>(existingTags);
+            var existingTagsTemp = new ArrayList<>(existingTags);
+            existingTagsTemp.removeAll(removeTags);
+            undoRedoAction.setUp(temp,existingTags,currentFrameIndex, video.getId());
+            dbService.modifyTagsOfFrame(existingTagsTemp, existingTags,currentFrameIndex, video.getId());
             existingTags.removeAll(removeTags);
-            ctx.getBean(UndoRedoAction.class).setUp(temp,existingTags,currentFrameIndex, video.getName());
             UpdateTableEventDispatcher.fireEvent();
-            new TagManagerAction(frameService,existingTags,currentFrameIndex,video.getName()).run();
         }
     }
 

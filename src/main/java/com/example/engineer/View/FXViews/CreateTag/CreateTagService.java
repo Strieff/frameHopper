@@ -4,13 +4,15 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CreateTagService {
-    @Autowired
-    TagListManager tagList;
+    private final TagListManager tagList;
+
+    public CreateTagService(TagListManager tagList) {
+        this.tagList = tagList;
+    }
 
     public void createTag(String tagName, String value,String tagDescription) {
         try{

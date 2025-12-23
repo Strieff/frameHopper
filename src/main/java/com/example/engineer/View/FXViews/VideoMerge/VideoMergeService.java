@@ -1,6 +1,6 @@
 package com.example.engineer.View.FXViews.VideoMerge;
 
-import com.example.engineer.FrameProcessor.FrameProcessor;
+import com.example.engineer.FfmpegService.VideoDataProvider;
 import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
@@ -10,19 +10,23 @@ import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Service
 public class VideoMergeService {
-    @Autowired
-    private VideoService videoService;
-    @Autowired
-    private FrameService frameService;
+    private final VideoService videoService;
+    private final FrameService frameService;
+    private final VideoDataProvider videoDataProvider;
+
+    public VideoMergeService(VideoService videoService, FrameService frameService, VideoDataProvider videoDataProvider) {
+        this.videoService = videoService;
+        this.frameService = frameService;
+        this.videoDataProvider = videoDataProvider;
+    }
 
     //METADATA COMPARISON
 
@@ -30,21 +34,22 @@ public class VideoMergeService {
         return videoService.getById(id);
     }
 
-    public Video getVideoFromFile(File file){
+    public Video getVideoFromFile(File file) throws IOException, InterruptedException {
         if(videoService.exists(file.getAbsolutePath()))
             return videoService.getByPath(file.getAbsolutePath());
 
-        var data = FrameProcessor.getInstance() != null ? FrameProcessor.getInstance().getInfo() : FrameProcessor.getTempData(file);
+
+        var data = videoDataProvider.getVideoData(file.getAbsolutePath());
 
         return Video.builder()
                 .id(-1)
                 .path(file.getAbsolutePath())
                 .name(file.getName())
-                .totalFrames(data.getTotalFrames())
-                .frameRate(data.getFramerate())
-                .duration(data.getDuration())
-                .videoHeight(data.getHeight())
-                .videoWidth(data.getWidth())
+                .totalFrames(data.totalFrames())
+                .frameRate(data.frameRate())
+                .duration(data.durationInSeconds())
+                .videoHeight(data.height())
+                .videoWidth(data.width())
                 .build();
     }
 
@@ -62,9 +67,6 @@ public class VideoMergeService {
 
         if(compareDimensions(oldVideo, newVideo))
             conflictAreas.add(Dictionary.get("conflict.dimensions"));
-
-        if(compareFileType(oldVideo, newVideo))
-            conflictAreas.add(Dictionary.get("conflict.fileType"));
 
         return String.join("/", conflictAreas);
     }
@@ -84,10 +86,6 @@ public class VideoMergeService {
     private boolean compareDimensions(Video oldVideo, Video newVideo){
         return  !(Objects.equals(oldVideo.getVideoHeight(), newVideo.getVideoHeight()))
                 || !(Objects.equals(oldVideo.getVideoWidth(), newVideo.getVideoWidth()));
-    }
-
-    private boolean compareFileType(Video oldVideo, Video newVideo){
-        return !Objects.equals(FilenameUtils.getExtension(oldVideo.getPath()), FilenameUtils.getExtension(newVideo.getPath()));
     }
 
     //FRAME DATA
@@ -162,7 +160,6 @@ public class VideoMergeService {
         List<String> data = new ArrayList<>();
 
         data.add(String.format(Dictionary.get("mv.video.path"),video.getPath()));
-        data.add(String.format(Dictionary.get("mv.video.type"),FilenameUtils.getExtension(video.getPath())));
         data.add(String.format(Dictionary.get("mv.video.total-frames"),video.getTotalFrames()));
         data.add(String.format(Dictionary.get("mv.video.framerate"),video.getFrameRate()));
         data.add(String.format(Dictionary.get("mv.video.duration"),video.getDuration()));
@@ -222,7 +219,7 @@ public class VideoMergeService {
                 .toList();
     }
 
-    private List<Frame> getUnifiedFrameList(int total,List<Frame> oldFrames,List<Frame> newFrames){
+    private List<Frame> getUnifiedFrameList(int total, List<Frame> oldFrames, List<Frame> newFrames){
         Map<Integer,Set<Tag>> frameData = new HashMap<>();
 
         for (int i = 0; i < total; i++) {
@@ -244,7 +241,7 @@ public class VideoMergeService {
 
         return frameData.entrySet().stream().map(e -> Frame.builder()
                 .frameNumber(e.getKey())
-                .tags(e.getValue().stream().toList())
+                .tags(new ArrayList<>(e.getValue()))
                 .build()).toList();
     }
 

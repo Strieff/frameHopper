@@ -1,8 +1,7 @@
 package com.example.engineer.View.FXViews.TagManager;
 
-import com.example.engineer.DBActions.TagManagerAction;
+import com.example.engineer.Service.DataBaseManagementService;
 import com.example.engineer.Model.Tag;
-import com.example.engineer.Service.FrameService;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
@@ -11,12 +10,10 @@ import com.example.engineer.View.Elements.Actions.PasteRecentAction;
 import com.example.engineer.View.Elements.Actions.RemoveRecentAction;
 import com.example.engineer.View.Elements.Actions.UndoRedoAction;
 import com.example.engineer.View.FXViews.MainView.MainViewService;
-import jakarta.annotation.PostConstruct;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,26 +21,28 @@ import java.util.List;
 
 @Component
 public class TagManagerService {
-    @Autowired
-    MainViewService mainViewService;
-    @Autowired
-    TagListManager tagList;
-    @Autowired
-    UserSettingsManager userSettings;
-    @Autowired
-    private FrameService frameService;
-    @Autowired
-    private PasteRecentAction pasteRecentAction;
-    @Autowired
-    private RemoveRecentAction removeRecentAction;
-    @Autowired
-    private UndoRedoAction undoRedoAction;
+    private final MainViewService mainViewService;
+    private final TagListManager tagList;
+    private final UserSettingsManager userSettings;
+    private final DataBaseManagementService dbService;
 
     private InformationContainer info;
-    private ActionContainer actions;
+    private final ActionContainer actions;
 
-    @PostConstruct
-    public void init(){
+    public TagManagerService(
+            PasteRecentAction pasteRecentAction,
+            MainViewService mainViewService,
+            TagListManager tagList,
+            UserSettingsManager userSettings,
+            RemoveRecentAction removeRecentAction,
+            UndoRedoAction undoRedoAction,
+            DataBaseManagementService dbService
+    ) {
+        this.mainViewService = mainViewService;
+        this.tagList = tagList;
+        this.userSettings = userSettings;
+        this.dbService = dbService;
+
         actions = new ActionContainer(
                 pasteRecentAction,
                 removeRecentAction,
@@ -84,16 +83,15 @@ public class TagManagerService {
                 info.getOriginalTags(),
                 info.getCurrentTags(),
                 mainViewService.getCurrentIndex(),
-                mainViewService.getCurrentPath()
+                mainViewService.getCurrentId()
         );
 
-        new TagManagerAction(
-                frameService,
+        dbService.modifyTagsOfFrame(
                 info.getCurrentTags(),
                 info.getOriginalTags(),
                 mainViewService.getCurrentIndex(),
-                mainViewService.getCurrentPath()
-        ).run();
+                mainViewService.getCurrentId()
+        );
 
         mainViewService.setCurrentTags(info.getCurrentTags());
         close();
@@ -126,15 +124,12 @@ public class TagManagerService {
     }
 
     //class to hold necessary variables
+    @Getter
     private static class InformationContainer{
-        @Getter
         List<Tag> currentTags;
-        @Getter
         final List<Tag> originalTags;
-        @Getter
         @Setter
         boolean search;
-        @Getter
         @Setter
         String searchString;
 
@@ -155,12 +150,10 @@ public class TagManagerService {
     }
 
     //class to hold action objects
+    @Getter
     private static class ActionContainer{
-        @Getter
         PasteRecentAction pasteRecentAction;
-        @Getter
         RemoveRecentAction removeRecentAction;
-        @Getter
         UndoRedoAction undoRedoAction;
 
         public ActionContainer(PasteRecentAction pasteRecentAction, RemoveRecentAction removeRecentAction, UndoRedoAction undoRedoAction) {
@@ -177,12 +170,12 @@ public class TagManagerService {
             pasteRecentAction.addTag(i);
         }
 
-        public void setUp(List<Tag> originalTags,List<Tag> currentTags,int currentFrameIndex,String videoPath){
+        public void setUp(List<Tag> originalTags,List<Tag> currentTags,int currentFrameIndex,int id){
             undoRedoAction.setUp(
                     originalTags,
                     currentTags,
                     currentFrameIndex,
-                    videoPath
+                    id
             );
         }
     }

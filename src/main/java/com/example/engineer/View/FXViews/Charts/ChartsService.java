@@ -14,7 +14,6 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -26,14 +25,17 @@ import java.util.stream.Collectors;
 
 @Component
 public class ChartsService {
-    @Autowired
-    VideoService videoService;
-    @Autowired
-    TagService tagService;
-    @Autowired
-    private TagListManager tagList;
+    private final VideoService videoService;
+    private final TagService tagService;
+    private final TagListManager tagList;
 
     private final Map<Video, Map<String,Number>> videoProperties = new HashMap<>();
+
+    public ChartsService(VideoService videoService, TagService tagService, TagListManager tagList) {
+        this.videoService = videoService;
+        this.tagService = tagService;
+        this.tagList = tagList;
+    }
 
     public void loadData() {
         videoProperties.clear();
@@ -62,7 +64,7 @@ public class ChartsService {
 
             map.put("total frames",video.getTotalFrames());//total frame count
             try{//unique tags on video
-                map.put("unique tags",uniqueTagsOnVideo.get(uniqueTagsOnVideo.keySet().stream().filter(v->v.getId() == video.getId()).findFirst().get()));
+                map.put("unique tags",uniqueTagsOnVideo.get(uniqueTagsOnVideo.keySet().stream().filter(v->v.getId() == video.getId()).findFirst().orElse(null)));
             }catch (Exception e){
                 map.put("unique tags",0);
             }
