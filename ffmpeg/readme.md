@@ -1,0 +1,1 @@
+This app uses FFmpeg. If you have ffmpeg installed you can leave this folder empty, else please extract the ffmpeg build you are using here.

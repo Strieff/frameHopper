@@ -2,7 +2,6 @@ package com.example.engineer.API.Model;
 
 import com.example.engineer.API.Mapper.FrameMapper;
 import com.example.engineer.Model.Video;
-import com.google.gson.GsonBuilder;
 
 import java.util.List;
 
@@ -27,10 +26,5 @@ public record VideoDTO(
                 video.getVideoWidth(),
                 FrameMapper.mapFrames(video.getFrames())
         );
-    }
-
-    @Override
-    public String toString() {
-        return new GsonBuilder().create().toJson(this);
     }
 }

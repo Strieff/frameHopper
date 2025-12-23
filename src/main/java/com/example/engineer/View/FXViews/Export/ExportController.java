@@ -72,9 +72,9 @@ public class ExportController implements LanguageChangeListener {
                     entry.setSelected(checkBox.isSelected());
 
                     if(checkBox.isSelected())
-                        selectedIds.add(Integer.valueOf(entry.getId()));
+                        selectedIds.add(entry.getId());
                     else
-                        selectedIds.remove(Integer.valueOf(entry.getId()));
+                        selectedIds.remove(entry.getId());
 
                     if (event.isShiftDown() && lastSelectedIndex != null) {
                         int start = Math.min(lastSelectedIndex, currentIndex);
@@ -82,7 +82,7 @@ public class ExportController implements LanguageChangeListener {
                         for (int i = start; i <= end; i++) {
                             var rangeEntry = getTableView().getItems().get(i);
                             rangeEntry.setSelected(true);
-                            selectedIds.add(Integer.valueOf(rangeEntry.getId()));
+                            selectedIds.add(rangeEntry.getId());
                         }
                     }
                     lastSelectedIndex = currentIndex;
@@ -250,8 +250,10 @@ public class ExportController implements LanguageChangeListener {
             userSettings.setExportRecent(path);
             FXDialogProvider.messageDialog(Dictionary.get("message.export.complete"));
         }catch (RuntimeException e){
+            e.printStackTrace();
             FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
         }catch (Exception e) {
+            e.printStackTrace();
             FXDialogProvider.errorDialog(e.getMessage());
         }
 

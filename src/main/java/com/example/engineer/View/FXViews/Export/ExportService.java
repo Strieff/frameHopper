@@ -11,7 +11,6 @@ import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.poi.ss.usermodel.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
@@ -25,14 +24,17 @@ import java.util.stream.Collectors;
 
 @Component
 public class ExportService {
-    @Autowired
-    VideoService videoService;
-    @Autowired
-    private TagService tagService;
-    @Autowired
-    private TagListManager tagList;
-    @Autowired
-    private UserSettingsManager userSettings;
+    private final VideoService videoService;
+    private final TagService tagService;
+    private final TagListManager tagList;
+    private final UserSettingsManager userSettings;
+
+    public ExportService(VideoService videoService, TagService tagService, TagListManager tagList, UserSettingsManager userSettings) {
+        this.videoService = videoService;
+        this.tagService = tagService;
+        this.tagList = tagList;
+        this.userSettings = userSettings;
+    }
 
     public ObservableList<TableEntry> getVideos(){
         var videoDTOList = videoService.getAll();
@@ -51,7 +53,7 @@ public class ExportService {
     public ObservableList<TableEntry> getVideos(Set<Integer> selectedIds) {
         var data = getVideos();
         data.forEach(e -> {
-            if(selectedIds.contains(Integer.valueOf(e.getId())))
+            if(selectedIds.contains(e.getId()))
                 e.setSelected(true);
         });
 

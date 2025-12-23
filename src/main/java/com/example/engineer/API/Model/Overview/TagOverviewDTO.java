@@ -1,7 +1,6 @@
 package com.example.engineer.API.Model.Overview;
 
 import com.example.engineer.Model.Tag;
-import com.google.gson.GsonBuilder;
 
 public record TagOverviewDTO(
         String name,
@@ -16,10 +15,5 @@ public record TagOverviewDTO(
                 timesUsed,
                 totalPoints
         );
-    }
-
-    @Override
-    public String toString() {
-        return new GsonBuilder().create().toJson(this);
     }
 }

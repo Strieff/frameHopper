@@ -1,9 +1,8 @@
 package com.example.engineer.config;
 
-import com.example.engineer.Model.UserSettings;
 import com.example.engineer.View.Elements.Language.Dictionary;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -17,6 +16,7 @@ import java.nio.file.Path;
 public class UserSettingsConfig {
     private static final String SETTINGS_PATH = "settings/user settings.json";
 
+    @SneakyThrows
     @Bean(name = "UserSettings")
     public void getUserSettings() {
         String userSettings;
@@ -25,10 +25,7 @@ public class UserSettingsConfig {
 
             if(Files.notExists(path)){
                 try(FileWriter writer = new FileWriter(String.valueOf(path))){
-                    new GsonBuilder()
-                            .serializeNulls()
-                            .create()
-                            .toJson(new UserSettings(
+                    var settings = new UserSettings(
                             false,
                             false,
                             true,
@@ -36,7 +33,8 @@ public class UserSettingsConfig {
                             null,
                             null,
                             "en"
-                    ), writer);
+                    );
+                    writer.write(new ObjectMapper().writeValueAsString(settings));
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -46,7 +44,7 @@ public class UserSettingsConfig {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        UserSettings.setInstance(new Gson().fromJson(userSettings, UserSettings.class));
+        UserSettings.setInstance(new ObjectMapper().readValue(userSettings, UserSettings.class));
     }
 
     @Bean(name = "SetDictionary")

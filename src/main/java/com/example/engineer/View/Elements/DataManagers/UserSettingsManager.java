@@ -1,8 +1,8 @@
 package com.example.engineer.View.Elements.DataManagers;
 
-import com.example.engineer.Model.UserSettings;
+import com.example.engineer.config.UserSettings;
 import com.example.engineer.View.Elements.Language.LanguageManager;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +25,7 @@ public class UserSettingsManager{
 
     public void setShowHidden(boolean showHidden){
         userSettings.setShowDeleted(showHidden);
+        save();
     }
 
     public void setOpenRecent(boolean openRecent){
@@ -34,6 +35,7 @@ public class UserSettingsManager{
 
     public void setExportRecent(String path){
         userSettings.setRecentExportPath(path);
+        save();
     }
 
     public void setUseDefaultLanguage(boolean useDefaultLanguage){
@@ -80,10 +82,9 @@ public class UserSettingsManager{
         return userSettings.getSettingsWarnings();
     }
 
-    public void save(){
-        //save to file
+    private void save(){
         try(FileWriter writer = new FileWriter("settings/user settings.json")){
-            new Gson().toJson(userSettings, writer);
+            writer.write(new ObjectMapper().writeValueAsString(userSettings));
         }catch (Exception e){
             e.printStackTrace();
         }

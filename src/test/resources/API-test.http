@@ -3,19 +3,19 @@ GET http://localhost:8080/api/video
 Accept: application/json
 
 ###video API - name
-GET http://localhost:8080/api/video/name/Zabotest.mp4
+GET http://localhost:8080/api/video/id/1
 Accept: application/json
 
 ###frame API - id
-GET http://localhost:8080/api/frame/id/10
+GET http://localhost:8080/api/frame/id/17
 Accept: application/json
 
 ###frame API - video
-GET http://localhost:8080/api/frame/video/Zabotest.mp4
+GET http://localhost:8080/api/frame/video/1
 Accept: application/json
 
 ###frame API - video/frameNo
-GET  http://localhost:8080/api/frame/video/Zabotest.mp4/frame/1
+GET  http://localhost:8080/api/frame/video/1/frame/4
 Accept: application/json
 
 ###tag API - all
@@ -23,15 +23,15 @@ GET http://localhost:8080/api/code
 Accept: application/json
 
 ###tag API - id
-GET http://localhost:8080/api/code/id/1752
+GET http://localhost:8080/api/code/id/52
 Accept: application/json
 
 ###tag API - name
-GET http://localhost:8080/api/code/name/name%20test
+GET http://localhost:8080/api/code/name/a%20b%20c
 Accept: application/json
 
 ###tag API - video
-GET http://localhost:8080/api/code/video/Zabotest.mp4
+GET http://localhost:8080/api/code/video/1
 Accept: application/json
 
 ###overview API - all
@@ -39,5 +39,5 @@ GET localhost:8080/api/overview
 Accept: application/json
 
 ###overview API - video
-GET localhost:8080/api/overview/Zabotest.mp4
+GET localhost:8080/api/overview/1
 Accept: application/json

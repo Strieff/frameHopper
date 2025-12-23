@@ -1,7 +1,6 @@
 package com.example.engineer.API.Model.Tag;
 
 import com.example.engineer.Model.Tag;
-import com.google.gson.GsonBuilder;
 
 public record TagDTO(
         int id,
@@ -31,10 +30,5 @@ public record TagDTO(
                 (boolean) data[4],
                 ((Number) data[1]).intValue()
         );
-    }
-
-    @Override
-    public String toString() {
-        return new GsonBuilder().create().toJson(this);
     }
 }

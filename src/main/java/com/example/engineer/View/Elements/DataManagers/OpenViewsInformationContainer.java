@@ -3,19 +3,14 @@ package com.example.engineer.View.Elements.DataManagers;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
+@Getter
 @Component
 public class OpenViewsInformationContainer {
-    @Getter
     private Boolean tagManager = false;
-    @Getter
     private Boolean settings = false;
-    @Getter
     private Boolean export = false;
-    @Getter
     private Boolean videoList = false;
-    @Getter
     private Boolean createTag = false;
-    @Getter
     private Boolean charts = false;
 
     // Tag Manager

@@ -1,10 +1,8 @@
 package com.example.engineer.View.FXViews.MainView;
 
-import com.example.engineer.FrameProcessor.FrameProcessor;
 import com.example.engineer.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.example.engineer.View.Elements.FXElementsProviders.FXIconLoader;
 import com.example.engineer.View.Elements.FXElementsProviders.FXMLViewLoader;
-import com.example.engineer.View.Elements.FXElementsProviders.ViablePathProvider;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.DictionaryCreator;
 import com.example.engineer.View.Elements.Language.LanguageChangeListener;
@@ -20,11 +18,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -47,11 +46,15 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     @FXML
     private TableColumn<TableEntry,Double> valueColumn;
     @FXML
-    private ImageView addButtonIcon, settingsButtonIcon, exportButtonIcon,chartButtonIcon;
+    private ImageView addButtonIcon, settingsButtonIcon, exportButtonIcon, chartButtonIcon;
     @FXML
     private BorderPane mainView;
     @FXML
     private Button jumpButton;
+    @FXML
+    private ImageView frameView;
+    @FXML
+    private StackPane framePane;
 
     @Autowired
     MainViewService viewService;
@@ -65,8 +68,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         UpdateTableEventDispatcher.register(this);
         LanguageManager.register(this);
 
-        dropLabel.setOnDragOver(this::handleDragOver);
-        dropLabel.setOnDragDropped(this::handleDragDropped);
+        framePane.setOnDragOver(this::handleDragOver);
+        framePane.setOnDragDropped(this::handleDragDropped);
         dropLabel.setText(Dictionary.get("main.dropHere"));
 
         // Map each KeyCombination to an action
@@ -112,11 +115,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                FrameProcessor.onClose();
-                ViablePathProvider.clearFiles();
-                System.exit(0);
-            });
+            stage.setOnCloseRequest(e -> System.exit(0));
             mainView.requestFocus();
         });
     }
@@ -302,14 +301,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
         if(db.hasFiles()){
             success = true;
-            //get file
             var file = db.getFiles().getFirst();
 
             try {
-                if(isValidFile(file))
-                    prepareVideo(file);
-                else
-                    throw new Exception();
+                prepareVideo(file);
             }catch (Exception e){
                 FXDialogProvider.errorDialog(Dictionary.get("error.drag"));
                 e.printStackTrace();
@@ -320,38 +315,13 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         event.consume();
     }
 
-    private boolean isValidFile(File file) throws Exception{
-        if(new Tika().detect(file).equals("video/"))
-            return true;
-
-        var extensions = new String[]{
-                "gif", "webm", "mkv", "flv", "vob",
-                "ogv", "ogg", "rrc", "gifv", "mng",
-                "mov", "avi", "qt", "wmv", "yuv",
-                "rm", "asf", "amv", "mp4", "m4p",
-                "m4v", "mpg", "mp2", "mpeg", "mpe",
-                "mpv", "m4v", "svi", "3gp", "3g2",
-                "mxf", "roq", "nsv", "flv", "f4v",
-                "f4p", "f4a", "f4b", "mod"
-        };
-
-        for(String extension : extensions)
-            if(file.getName().endsWith(extension))
-                return true;
-
-        return false;
-    }
-
-    public void openRecent(String path){
+    public void openRecent(String path) {
         prepareVideo(new File(path));
     }
 
-    public void prepareVideo(File file){
+    public void prepareVideo(File file) {
         //get DB video
         var video = viewService.getVideo(file);
-
-        //prepare ffmpeg
-        viewService.prepareProcessor(file,video);
 
         //prepare necessary items
         viewService.prepareVideo(
@@ -360,8 +330,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 dropLabel
         );
 
+
         //display first frame and hide text
-        dropLabel.setGraphic(viewService.displayCurrentFrame());
+        updateFrameDisplay(viewService.displayCurrentFrame());
+
         dropLabel.setText("");
 
         //display tags
@@ -377,7 +349,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         if(isValidNumber()){
             var toJump = Integer.parseInt(frameInput.getText());
 
-            dropLabel.setGraphic(viewService.jump(toJump));
+            updateFrameDisplay(viewService.jump(toJump));
             tableView.setItems(viewService.displayCurrentTags());
             statusLabel.setText(viewService.displayCurrentInfo());
             System.out.println("Jump to frame: " + toJump);
@@ -400,14 +372,14 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
     //move right
     private void onCommaPressed() {
-        dropLabel.setGraphic(viewService.moveLeft());
+        updateFrameDisplay(viewService.moveLeft());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
     }
 
     //move left
     private void onPeriodPressed() {
-        dropLabel.setGraphic(viewService.moveRight());
+        updateFrameDisplay(viewService.moveRight());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
     }
@@ -496,6 +468,20 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         if(viewService.isOpen())
             viewService.undo();
         System.out.println("Ctrl + Z pressed!");
+    }
+
+    //update frame view
+    public void updateFrameDisplay(Image frame) {
+        frameView.setImage(frame);
+
+        frameView.setPreserveRatio(true);
+        frameView.setSmooth(true);
+
+        frameView.setManaged(true);
+        frameView.setPickOnBounds(true);
+
+        frameView.fitWidthProperty().bind(framePane.widthProperty());
+        frameView.fitHeightProperty().bind(framePane.heightProperty());
     }
 
     @Override

@@ -1,32 +1,29 @@
 package com.example.engineer.View.Elements.Actions;
 
+import com.example.engineer.Service.DataBaseManagementService;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
-import com.example.engineer.Service.FrameService;
-import com.example.engineer.DBActions.TagManagerAction;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
-import jakarta.annotation.PostConstruct;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class PasteRecentAction extends ActionHandler implements ApplicationContextAware{
-    private static ApplicationContext ctx;
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        ctx = applicationContext;
-    }
+public class PasteRecentAction extends ActionHandler{
+    private final UndoRedoAction undoRedoAction;
+    private final DataBaseManagementService dbService;
 
-    @PostConstruct
-    public void init(){
-        this.tagList =  ctx.getBean(TagListManager.class);
-        this.tagIdList = new ArrayList<>();
-        this.frameService = ctx.getBean(FrameService.class);
+    public PasteRecentAction(
+            TagListManager tagList,
+            UndoRedoAction undoRedoAction,
+            DataBaseManagementService dbService
+    ) {
+        this.undoRedoAction = undoRedoAction;
+        this.dbService = dbService;
+        this.tagList = tagList;
+        tagIdList = new ArrayList<>();
     }
 
     @Override
@@ -38,9 +35,11 @@ public class PasteRecentAction extends ActionHandler implements ApplicationConte
         if (!newTags.isEmpty()) {
             List<Tag> temp = new ArrayList<>(existingTags);
             existingTags.addAll(newTags);
-            ctx.getBean(UndoRedoAction.class).setUp(temp,existingTags,currentFrameIndex, video.getName());
+            existingTags.removeAll(temp);
+            undoRedoAction.setUp(temp,existingTags,currentFrameIndex, video.getId());
             UpdateTableEventDispatcher.fireEvent();
-            new TagManagerAction(frameService,existingTags,currentFrameIndex,video.getName()).run();
+            dbService.modifyTagsOfFrame(existingTags, currentFrameIndex, video.getId());
+
         }
     }
 

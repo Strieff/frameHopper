@@ -4,27 +4,23 @@ import com.example.engineer.Model.Frame;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Repository.FrameRepository;
-import com.example.engineer.Repository.TagRepository;
 import com.example.engineer.Repository.VideoRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class FrameService {
-    @Autowired
-    FrameRepository frameRepository;
-    @Autowired
-    TagRepository tagRepository;
-    @Autowired
-    VideoRepository videoRepository;
+    private final FrameRepository frameRepository;
+    private final VideoRepository videoRepository;
 
-    public void modifyTagsOfFrame(List<Tag> tags, int frameNumber, String videoPath){
-        Video video = videoRepository.findByPath(videoPath).orElse(null);
+    public FrameService(FrameRepository frameRepository, VideoRepository videoRepository) {
+        this.frameRepository = frameRepository;
+        this.videoRepository = videoRepository;
+    }
+
+    public void modifyTagsOfFrame(List<Tag> tags, int frameNumber, int id){
+        Video video = videoRepository.findById(id).orElse(null);
 
         if(tags.isEmpty()){
             Optional<Frame> frame = frameRepository.findFrameByFrameNumberAndVideo(frameNumber,video);

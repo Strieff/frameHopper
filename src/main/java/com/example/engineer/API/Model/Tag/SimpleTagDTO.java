@@ -1,7 +1,6 @@
 package com.example.engineer.API.Model.Tag;
 
 import com.example.engineer.Model.Tag;
-import com.google.gson.GsonBuilder;
 
 public record SimpleTagDTO(
         int id,
@@ -18,10 +17,5 @@ public record SimpleTagDTO(
                 tag.getDescription(),
                 tag.isDeleted()
         );
-    }
-
-    @Override
-    public String toString() {
-        return new GsonBuilder().create().toJson(this);
     }
 }

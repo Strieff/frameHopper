@@ -3,7 +3,6 @@ package com.example.engineer.View.FXViews.Settings;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Model.Video;
 import com.example.engineer.Service.VideoService;
-import com.example.engineer.View.Elements.DataManagers.OpenViewsInformationContainer;
 import com.example.engineer.View.Elements.DataManagers.TagListManager;
 import com.example.engineer.View.Elements.Language.Dictionary;
 import com.example.engineer.View.Elements.Language.LanguageEntry;
@@ -15,7 +14,6 @@ import jakarta.annotation.PostConstruct;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
@@ -25,21 +23,28 @@ import java.util.List;
 
 @Component
 public class SettingsService {
-    @Autowired
-    OpenViewsInformationContainer openViews;
-    @Autowired
-    TagListManager tagList;
-    @Autowired
-    UserSettingsManager userSettings;
-    @Autowired
-    MainViewService mainViewService;
-    @Autowired
-    private VideoService videoService;
-    @Autowired
-    LanguageManager languageManager;
+    private final TagListManager tagList;
+    private final UserSettingsManager userSettings;
+    private final MainViewService mainViewService;
+    private final VideoService videoService;
+    private final LanguageManager languageManager;
 
     @Getter
     private List<LanguageEntry> languages = new ArrayList<>();
+
+    public SettingsService(
+            TagListManager tagList,
+            UserSettingsManager userSettings,
+            MainViewService mainViewService,
+            VideoService videoService,
+            LanguageManager languageManager
+    ) {
+        this.tagList = tagList;
+        this.userSettings = userSettings;
+        this.mainViewService = mainViewService;
+        this.videoService = videoService;
+        this.languageManager = languageManager;
+    }
 
     @PostConstruct
     public void init() {

@@ -1,13 +1,9 @@
 package com.example.engineer.View.Elements.DataManagers;
 
+import com.example.engineer.Service.DataBaseManagementService;
 import com.example.engineer.Model.Tag;
 import com.example.engineer.Service.TagService;
-import com.example.engineer.DBActions.DeleteTagAction;
-import com.example.engineer.DBActions.HiddenStatusAction;
-import com.example.engineer.DBActions.TagSettingsAction;
-import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -17,13 +13,15 @@ import java.util.stream.IntStream;
 
 @Component
 public class TagListManager {
-    @Autowired
-    TagService tagService;
-    @Getter
-    List<Tag> tagList;
+    private final TagService tagService;
+    private final DataBaseManagementService dbService;
 
-    @PostConstruct
-    public void init() {
+    @Getter
+    private List<Tag> tagList;
+
+    public TagListManager(TagService tagService, DataBaseManagementService dbService) {
+        this.tagService = tagService;
+        this.dbService = dbService;
         tagList = Collections.synchronizedList(tagService.getAllTags());
     }
 
@@ -57,13 +55,13 @@ public class TagListManager {
 
         tagList.remove(t);
 
-        new DeleteTagAction(tagService,t).run();
+        dbService.deleteTag(t);
     }
 
     public void removeTags(List<Tag> toDelete){
         tagList.removeAll(toDelete);
 
-        new DeleteTagAction(tagService,toDelete).run();
+        dbService.deleteTags(toDelete);
     }
 
     public void addTag(String name, double value, String description){
@@ -81,7 +79,7 @@ public class TagListManager {
     }
 
     public void editTag(int id,String name, double value, String description,boolean hidden){
-        new TagSettingsAction(tagService,id,name,description,value).run();
+        dbService.editTag(id, name, description, value);
 
         tagList.set(getIndex(id), Tag.builder()
                         .id(id)
@@ -95,6 +93,6 @@ public class TagListManager {
     public void changeHideStatus(int id, boolean hide){
         tagList.get(getIndex(id)).setDeleted(hide);
 
-        new HiddenStatusAction(tagService,id,hide).run();
+        dbService.hiddenStatusChange(id, hide);
     }
 }
