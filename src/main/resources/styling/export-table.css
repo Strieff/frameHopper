@@ -1,0 +1,9 @@
+.list-cell:drop-above {
+    -fx-border-color: -fx-accent transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+}
+
+.list-cell:drop-below {
+    -fx-border-color: transparent transparent -fx-accent transparent;
+    -fx-border-width: 0 0 2 0;
+}
