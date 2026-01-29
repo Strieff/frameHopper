@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.TagDetails.TagDetailsController">
+<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.TagDetails.TagDetailsController">
 
     <!-- Top Section with NAME and VALUE Fields -->
     <top>

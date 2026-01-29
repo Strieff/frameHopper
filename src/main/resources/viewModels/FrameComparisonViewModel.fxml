@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane fx:id="frameDataComparisonView" prefHeight="580.0" prefWidth="580.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.VideoMerge.FrameDataMergeController">
+<BorderPane fx:id="frameDataComparisonView" prefHeight="580.0" prefWidth="580.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.VideoMerge.FrameDataMergeController">
    <top>
       <Label fx:id="titleLabel" alignment="CENTER" prefHeight="57.0" prefWidth="600.0" style=" -fx-border-color:black; -fx-border-width: 1; -fx-border-style: solid;" text="FRAME DATA" BorderPane.alignment="CENTER">
          <font>

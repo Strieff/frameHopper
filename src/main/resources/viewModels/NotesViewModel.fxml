@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="notesView" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.Notes.NotesController">
+
+    <!-- Left -->
+    <left>
+        <VBox maxWidth="320.0" minWidth="220.0" prefWidth="260.0" spacing="8.0" style="-fx-padding: 10;" BorderPane.alignment="CENTER">
+            <ListView fx:id="notesList" VBox.vgrow="ALWAYS" />
+        </VBox>
+    </left>
+
+    <!-- Right -->
+    <center>
+        <VBox spacing="8.0" style="-fx-padding: 10;" BorderPane.alignment="CENTER">
+
+            <!-- Top bar: tabs + actions -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+                <!-- Scrollable tabs -->
+                <ScrollPane fitToHeight="true" fitToWidth="true" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
+                    <HBox fx:id="noteTabsBar" alignment="CENTER_LEFT" prefWidth="462.0" spacing="8.0"
+                          style="-fx-padding: 6 4 6 4;">
+                        <!-- ToggleButtons (1..N) injected from controller -->
+                    </HBox>
+                </ScrollPane>
+
+                <!-- Right-side actions (fixed) -->
+                <HBox alignment="CENTER_RIGHT" spacing="6.0">
+                    <Button onAction="#onAddNote">
+                        <graphic>
+                            <ImageView fx:id="addNoteIcon" fitHeight="24.0" fitWidth="24.0" />
+                        </graphic>
+                    </Button>
+
+                    <Button onAction="#onDeleteNote">
+                        <graphic>
+                            <ImageView fx:id="deleteNoteIcon" fitHeight="24.0" fitWidth="24.0" />
+                        </graphic>
+                    </Button>
+                </HBox>
+            </HBox>
+
+            <!-- Editor -->
+            <TextArea fx:id="noteEditor" promptText="Write your note here..." style="-fx-font-size: 14;" wrapText="true" VBox.vgrow="ALWAYS" />
+        </VBox>
+    </center>
+</BorderPane>

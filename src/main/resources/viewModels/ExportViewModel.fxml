@@ -5,7 +5,7 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="exportView" prefHeight="521.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.engineer.View.FXViews.Export.ExportController">
+<BorderPane fx:id="exportView" prefHeight="521.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.Export.ExportController">
 
 <!-- Top Section with Search Field -->
 <top>
@@ -20,41 +20,15 @@
     </VBox>
 </top>
 
-<!-- Main Table Area -->
-<center>
-    <TableView fx:id="videoTable" editable="true" prefHeight="400" VBox.vgrow="ALWAYS">
-        <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-        </columnResizePolicy>
-        <columns>
-            <!-- Checkbox Column -->
-            <TableColumn fx:id="selectColumn" maxWidth="40.0" minWidth="20.0" prefWidth="40.0">
-                <cellValueFactory>
-                    <PropertyValueFactory property="selected" />
-                </cellValueFactory>
-            </TableColumn>
-
-            <!-- Video Name Column -->
-            <TableColumn fx:id="videoNameColumn" prefWidth="250" text="Video Name">
-                <cellValueFactory>
-                    <PropertyValueFactory property="videoName" />
-                </cellValueFactory>
-            </TableColumn>
-        </columns>
-    </TableView>
-</center>
-
 <!-- Bottom Section with Buttons -->
 <bottom>
     <VBox spacing="10">
-         <HBox alignment="CENTER" prefHeight="31.0" prefWidth="292.0">
-            <children>
-              <Button fx:id="clearButton" alignment="CENTER" prefWidth="100" text="CLEAR" />
-            </children>
+        <HBox alignment="CENTER" prefHeight="31.0" prefWidth="292.0">
             <padding>
-               <Insets bottom="-10.0" />
+                <Insets bottom="-10.0"/>
             </padding>
-         </HBox>
+            <Button fx:id="clearButton" alignment="CENTER" prefWidth="100" text="CLEAR"/>
+        </HBox>
         <HBox alignment="CENTER" prefHeight="33.0" prefWidth="292.0" spacing="20">
             <Button fx:id="cancelButton" prefWidth="100" text="CANCEL" />
             <Button fx:id="exportButton" prefWidth="100" text="EXPORT" />
@@ -67,5 +41,40 @@
         </HBox>
     </VBox>
 </bottom>
+   <center>
+      <Accordion fx:id="exportAccordion" BorderPane.alignment="CENTER">
+        <panes>
+            <TitledPane fx:id="videoPane" animated="false" text="Videos">
+                <TableView fx:id="videoTable" editable="true" prefHeight="400">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                    <columns>
+                        <!-- Checkbox Column -->
+                        <TableColumn fx:id="selectColumn" maxWidth="40.0" minWidth="20.0" prefWidth="40.0">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="selected" />
+                            </cellValueFactory>
+                        </TableColumn>
+
+                        <!-- Video Name Column -->
+                        <TableColumn fx:id="videoNameColumn" prefWidth="250" text="Video Name">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="videoName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </TitledPane>
+            <TitledPane fx:id="videoDataPane" animated="false" text="Video export data">
+                <ListView fx:id="videoFieldsList" />
+            </TitledPane>
+
+            <TitledPane fx:id="tagDataPane" animated="false" text="Tag export data">
+                <ListView fx:id="tagFieldsList" />
+            </TitledPane>
+        </panes>
+      </Accordion>
+   </center>
 
 </BorderPane>
