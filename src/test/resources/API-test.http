@@ -1,13 +1,21 @@
-###video API - all
-GET http://localhost:8080/api/video
+###video API - all with notes
+GET http://localhost:8080/api/video?getNotes=true
 Accept: application/json
 
-###video API - name
-GET http://localhost:8080/api/video/id/1
+###video API - all without notes
+GET http://localhost:8080/api/video?getNotes=false
+Accept: application/json
+
+###video API - name with notes
+GET http://localhost:8080/api/video/id/1?getNotes=true
+Accept: application/json
+
+###video API - name without notes
+GET http://localhost:8080/api/video/id/1?getNotes=false
 Accept: application/json
 
 ###frame API - id
-GET http://localhost:8080/api/frame/id/17
+GET http://localhost:8080/api/frame/id/5
 Accept: application/json
 
 ###frame API - video

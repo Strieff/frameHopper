@@ -1,5 +1,6 @@
 package com.FrameHopper.app.Service;
 
+import com.FrameHopper.app.Repository.CommentRepository;
 import com.FrameHopper.app.ffmpegService.FfmpegService;
 import com.FrameHopper.app.ffmpegService.VideoInfoDto;
 import com.FrameHopper.app.Model.Frame;
@@ -19,15 +20,18 @@ import java.util.stream.Collectors;
 public class VideoService {
     private final VideoRepository videoRepository;
     private final FrameRepository frameRepository;
+    private final CommentRepository commentRepository;
     private final FfmpegService ffmpegService;
 
     public VideoService(
             VideoRepository videoRepository,
             FrameRepository frameRepository,
+            CommentRepository commentRepository,
             FfmpegService ffmpegService
     ) {
         this.videoRepository = videoRepository;
         this.frameRepository = frameRepository;
+        this.commentRepository = commentRepository;
         this.ffmpegService = ffmpegService;
     }
 
@@ -75,7 +79,7 @@ public class VideoService {
         return videoRepository.findById(ids);
     }
 
-    public List<Video> getAllData(){
+    public List<Video> getAllData(boolean getNotes){
         var videos = getAll();
 
         if(videos.isEmpty())
@@ -91,15 +95,20 @@ public class VideoService {
         for (Video v : videos) {
             List<Frame> frames = framesByVideoId.getOrDefault(v.getId(), List.of());
 
+            if(frames == null || frames.isEmpty()) continue;
             frames.sort(Comparator.comparingInt(Frame::getFrameNumber)); // low -> high
             v.getFrames().addAll(frames);
         }
 
+        if(getNotes)
+            for(Video v : videos)
+                v.setComments(commentRepository.getCommentByVideo(v));
+
         return videos;
     }
 
-    public List<Video> getAllData(int id){
-        return getAllData().stream()
+    public List<Video> getVideoData(int id, boolean getNotes){
+        return getAllData(getNotes).stream()
                 .filter(v -> v.getId() == id)
                 .toList();
     }

@@ -76,6 +76,12 @@
             </graphic>
          </Button>
 
+         <Button onAction="#onVideoList">
+            <graphic>
+               <ImageView fx:id="videoListButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+            </graphic>
+         </Button>
+
          <Button onAction="#onChart">
             <graphic>
                <ImageView fx:id="chartButtonIcon" fitHeight="32.0" fitWidth="32.0" />

@@ -8,11 +8,11 @@
     <!-- Top toolbar with buttons -->
     <top>
         <ToolBar>
-            <Button fx:id="addCodeButton" onAction="#onAdd" text="Add Code" />
-            <Button fx:id="addCodesButton" onAction="#onMultiAdd" text="Add Codes" />
-            <Button fx:id="hideCodesButton" onAction="#onHide" text="Hide Codes" />
-            <Button fx:id="unhideCodesButton" onAction="#onUnhide" text="Unhide Codes" />
-            <Button fx:id="deleteCodesButton" onAction="#onDelete" text="Delete Codes" />
+            <Button fx:id="addCodeButton" onAction="#openTagCreation" text="Add Code" />
+            <Button fx:id="addCodesButton" onAction="#loadTags" text="Add Codes" />
+            <Button fx:id="hideCodesButton" onAction="#hideTags" text="Hide Codes" />
+            <Button fx:id="unhideCodesButton" onAction="#unhideTags" text="Unhide Codes" />
+            <Button fx:id="deleteCodesButton" onAction="#deleteTags" text="Delete Codes" />
         </ToolBar>
     </top>
 

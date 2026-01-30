@@ -147,7 +147,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
                     {
                         editButton.setOnAction(event -> {
                             TableEntry code = getTableView().getItems().get(getIndex());
-                            onEdit(code.getId());
+                            openTagDetails(code.getId());
                         });
                         editButton.setGraphic(new ImageView(FXIconLoader.getSmallIcon("edit.png")));
 
@@ -210,24 +210,20 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         deleteCodesButton.setText(Dictionary.get("settings.button.delete"));
 
         //kye binds
-        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onShiftSPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.SHIFT_DOWN), this::onShiftTPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.SHIFT_DOWN), this::onShiftAPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN), this::onCtrlMPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN), this::onCtrlUPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN), this::onCtrlHPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::close);
+        keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.SHIFT_DOWN), this::openMultipleTagDetails);
+        keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.SHIFT_DOWN), this::openTagCreation);
+        keyActions.put(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN), this::loadTags);
+        keyActions.put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN), this::unhideTags);
+        keyActions.put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN), this::hideTags);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::deleteTags);
 
         //add key binds
         tagManagerView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         Platform.runLater(() -> {
             var stage = (Stage) tagManagerView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                UpdateTableEventDispatcher.unregister(this);
-                LanguageManager.unregister(this);
-                viewContainer.close(ViewFlag.TAG_MANAGER);
-            });
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -240,14 +236,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     //OPEN TAG CREATION
     @FXML
-    protected void onAdd(){
-        openTagCreation();
-    }
-
-    private void onShiftAPressed() {
-        openTagCreation();
-    }
-
     private void openTagCreation(){
         if(viewContainer.isClosed(ViewFlag.CREATE_TAG)) {
             FXMLViewLoader.getView(
@@ -263,14 +251,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     //ADD MULTIPLE TAGS FROM FILE
     @FXML
-    protected void onMultiAdd(){
-        loadTags();
-    }
-
-    private void onCtrlMPressed() {
-        loadTags();
-    }
-
     private void loadTags(){
         try{
             var path = FileChooserProvider.textFileChooser((Stage)tagManagerView.getScene().getWindow());
@@ -282,14 +262,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     //HIDE TAGS
     @FXML
-    protected void onHide(){
-        hideTags();
-    }
-
-    private void onCtrlHPressed(){
-        hideTags();
-    }
-
     private void hideTags(){
         var selected = codeTable.getSelectionModel();
 
@@ -306,14 +278,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     //UNHIDE TAGS
     @FXML
-    protected void onUnhide(){
-        unhideTags();
-    }
-
-    private void onCtrlUPressed(){
-        unhideTags();
-    }
-
     private void unhideTags(){
         var selected = codeTable.getSelectionModel();
 
@@ -335,14 +299,6 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     }
 
     @FXML
-    protected void onDelete(){
-        deleteTags();
-    }
-
-    private void onCtrlXPressed(){
-        deleteTags();
-    }
-
     private void deleteTags(){
         var selected = codeTable.getSelectionModel();
 
@@ -357,12 +313,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         }
     }
 
-    //OPEN TAG EDIT
-    private void onEdit(int id){
-        openTagDetails(id);
-    }
-
-    private void onShiftTPressed() {
+    private void openMultipleTagDetails() {
         var selected = codeTable.getSelectionModel();
 
         if (selected.getSelectedItem() != null)
@@ -372,6 +323,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
             FXDialogProvider.errorDialog(Dictionary.get("error.settings.no-tags"));
     }
 
+    //OPEN TAG EDIT
     private void openTagDetails(int id){
         var loader = FXMLViewLoader.getView(
                 "TagDetailsViewModel",
@@ -393,7 +345,8 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
     }
 
     //CLOSE WINDOW
-    private void onShiftSPressed() {
+    private void close() {
+        UpdateTableEventDispatcher.unregister(this);
         LanguageManager.unregister(this);
         var stage = (Stage) tagManagerView.getScene().getWindow();
         stage.close();

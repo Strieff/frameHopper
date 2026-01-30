@@ -1,12 +1,10 @@
 package com.FrameHopper.app;
 
-import com.FrameHopper.app.Model.Video;
 import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXMLViewLoader;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
+import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
 import com.FrameHopper.app.settings.UserSettingsService;
-import com.FrameHopper.app.View.FXViews.MainView.MainViewController;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,7 +15,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -46,10 +43,8 @@ public class EngineerApplication extends Application {
             closeLoadingWindow();
 
             if (context.getBean(UserSettingsService.class).openRecent())
-                if (openRecent(context, primaryStage)) {
-                    MainViewController controller = loader.getController();
-                    controller.openRecent(context.getBean(UserSettingsService.class).getRecentPath());
-                }
+                openRecent(context);
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -64,47 +59,23 @@ public class EngineerApplication extends Application {
         launch(args);
     }
 
-    private static boolean openRecent(ConfigurableApplicationContext context,Stage stage){
+    private static void openRecent(ConfigurableApplicationContext context){
         UserSettingsService userSettingsService = context.getBean(UserSettingsService.class);
+        VideoService videoService = context.getBean(VideoService.class);
+        var video = videoService.getById(userSettingsService.getRecentId());
 
-        if(userSettingsService.getRecentPath() == null)
-            return false;
+        if(userSettingsService.getRecentId() == -1)
+            return;
 
-        var openRecent = FXDialogProvider.yesNoDialog(
-                String.format("Recently opened: %s\nOpen recent?",userSettingsService.getRecentPath()),
-                "Open recent video"
-        );
+        //TODO: change to dictionary
+        if(
+                !FXDialogProvider.yesNoDialog(
+                "Open recent video",
+                String.format("Recently opened: %s\nOpen recent?", video.getName().replace("%20", " ")))
+        )
+            return;
 
-        if(openRecent){
-            var recentFile = new File(userSettingsService.getRecentPath());
-            if(!recentFile.exists()) {
-                if (FXDialogProvider.yesNoDialog(String.format("No file found: %s\nSet new path?", userSettingsService.getRecentPath())))
-                    reelPath(context, userSettingsService.getRecentPath(), stage);
-                else
-                    return false;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private static void reelPath(ConfigurableApplicationContext context,String oldPath,Stage stage){
-        try {
-            var newPath = FileChooserProvider.videoFileChooser(stage);
-            if(newPath.isBlank())
-                throw new RuntimeException("No file selected");
-
-            VideoService videoService = context.getBean(VideoService.class);
-            Video video = videoService.getByPath(oldPath);
-            video.setPath(newPath);
-            video = videoService.saveVideo(video);
-            UserSettingsService userSettingsService = context.getBean(UserSettingsService.class);
-            userSettingsService.setRecentPath(video.getPath());
-        } catch (Exception e) {
-            FXDialogProvider.errorDialog(e.getMessage());
-        }
+        OpenVideoEventDispatcher.fireEvent(video.getId());
     }
 
     private static void closeLoadingWindow(){

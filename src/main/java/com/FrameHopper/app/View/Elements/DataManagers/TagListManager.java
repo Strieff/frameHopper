@@ -50,14 +50,6 @@ public class TagListManager {
                 .orElse(-1);
     }
 
-    public void removeTag(int id){
-        Tag t = getTag(id);
-
-        tagList.remove(t);
-
-        dbService.deleteTag(t);
-    }
-
     public void removeTags(List<Tag> toDelete){
         tagList.removeAll(toDelete);
 

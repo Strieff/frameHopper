@@ -1,6 +1,7 @@
 package com.FrameHopper.app.View.Elements.Language;
 
 import com.FrameHopper.app.settings.UserSettings;
+import lombok.NonNull;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.DependsOn;
@@ -15,7 +16,7 @@ import java.util.List;
 public class LanguageManager implements ApplicationContextAware {
     private static ApplicationContext ctx;
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
         ctx = applicationContext;
     }
 

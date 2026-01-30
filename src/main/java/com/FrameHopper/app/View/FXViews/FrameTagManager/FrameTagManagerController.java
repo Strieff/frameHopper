@@ -32,7 +32,7 @@ public class FrameTagManagerController implements LanguageChangeListener, Update
     @FXML
     private TextField searchField;
     @FXML
-    private Button searchButton;
+    private Button searchButton, cancelButton, saveButton;
     @FXML
     private TableView<TableEntry> codeTable;
     @FXML
@@ -41,10 +41,6 @@ public class FrameTagManagerController implements LanguageChangeListener, Update
     private TableColumn<TableEntry, String> codeColumn;
     @FXML
     private TableColumn<TableEntry, Double> valueColumn;
-    @FXML
-    private Button cancelButton;
-    @FXML
-    private Button saveButton;
     @FXML
     private Label frameLabel;
     @FXML
@@ -99,26 +95,21 @@ public class FrameTagManagerController implements LanguageChangeListener, Update
         valueColumn.setText(Dictionary.get("value"));
 
         // Set up button actions
-        cancelButton.setOnAction(event -> handleCancel());
+        cancelButton.setOnAction(event -> cancel());
         saveButton.setText(Dictionary.get("save"));
         saveButton.setOnAction(event -> handleSave());
         cancelButton.setText(Dictionary.get("cancel"));
         searchButton.setOnAction(event -> handleSearch());
 
         //kye bind
-        keyActions.put(new KeyCodeCombination(KeyCode.M, KeyCombination.SHIFT_DOWN), this::onShiftMPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.M, KeyCombination.SHIFT_DOWN), this::close);
 
         //add key binds
         frameTagManagerView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         Platform.runLater(() -> {
             var stage = (Stage) frameTagManagerView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                LanguageManager.unregister(this);
-                UpdateTableEventDispatcher.unregister(this);
-                viewContainer.close(ViewFlag.FRAME_TAG_MANAGER);
-                viewService.close();
-            });
+            stage.setOnCloseRequest(e -> close());
             frameTagManagerView.requestFocus();
         });
     }
@@ -142,33 +133,25 @@ public class FrameTagManagerController implements LanguageChangeListener, Update
     }
 
     //CLOSE TAG MANAGER
-    private void onShiftMPressed() {
+    private void close() {
+        LanguageManager.unregister(this);
+        UpdateTableEventDispatcher.unregister(this);
         var stage = (Stage) frameTagManagerView.getScene().getWindow();
         stage.close();
         viewContainer.close(ViewFlag.FRAME_TAG_MANAGER);
-        System.out.println("Shift + M pressed! Closing tag manager");
     }
 
-    //HANDLE CANCEL
-    private void handleCancel() {
-        UpdateTableEventDispatcher.unregister(this);
+    //CANCEL
+    private void cancel() {
         viewService.close();
-        LanguageManager.unregister(this);
-        var stage = (Stage) frameTagManagerView.getScene().getWindow();
-        stage.close();
-        viewContainer.close(ViewFlag.FRAME_TAG_MANAGER);
-        System.out.println("Cancel button clicked");
+        close();
     }
 
     //HANDLE SAVE
     private void handleSave() {
         viewService.save();
         viewService.close();
-        LanguageManager.unregister(this);
-        var stage = (Stage) frameTagManagerView.getScene().getWindow();
-        stage.close();
-        viewContainer.close(ViewFlag.FRAME_TAG_MANAGER);
-        System.out.println("Save button clicked");
+        close();
     }
 
     //HANDLE SEARCH

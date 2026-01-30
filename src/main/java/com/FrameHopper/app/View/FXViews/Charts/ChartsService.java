@@ -92,7 +92,10 @@ public class ChartsService {
 
     //returns amount of unique tags on each video
     public Map<Video, Number> getUniqueTagsCount(List<Video> videos) {
-        return tagService.getAmountOfUniqueTagsOnVideos(videos);
+        var data = tagService.getAmountOfUniqueTagsOnVideos(videos);
+        videos.forEach(v -> data.computeIfAbsent(v, n -> 0));
+
+        return data;
     }
 
     //returns mean

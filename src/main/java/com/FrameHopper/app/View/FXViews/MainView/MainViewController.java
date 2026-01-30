@@ -9,6 +9,8 @@ import com.FrameHopper.app.View.Elements.Language.DictionaryCreator;
 import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.OpenViewsInformationContainer;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
+import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
+import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoListener;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.FrameHopper.app.View.FXViews.FrameTagManager.FrameTagManagerController;
@@ -32,7 +34,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class MainViewController implements LanguageChangeListener, UpdateTableListener{
+public class MainViewController implements LanguageChangeListener, UpdateTableListener, OpenVideoListener {
     @FXML
     private TextField frameInput;
     @FXML
@@ -50,7 +52,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             exportButtonIcon,
             chartButtonIcon,
             tagManagerIcon,
-            notesButtonIcon;
+            notesButtonIcon,
+            videoListButtonIcon;
     @FXML
     private BorderPane mainView;
     @FXML
@@ -71,6 +74,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
         UpdateTableEventDispatcher.register(this);
         LanguageManager.register(this);
+        OpenVideoEventDispatcher.register(this);
     }
 
     @FXML
@@ -80,23 +84,23 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         dropLabel.setText(Dictionary.get("main.dropHere"));
 
         // Map each KeyCombination to an action
-        keyActions.put(new KeyCodeCombination(KeyCode.COMMA), this::onCommaPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.PERIOD), this::onPeriodPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.COMMA), this::moveRight);
+        keyActions.put(new KeyCodeCombination(KeyCode.PERIOD), this::moveLeft);
         keyActions.put(new KeyCodeCombination(KeyCode.M, KeyCombination.SHIFT_DOWN), this::onAdd);
         keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.SHIFT_DOWN), this::onManager);
         keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.SHIFT_DOWN), this::onManager);
         keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onSettings);
         keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::onExport);
-        keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onShiftLPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onVideoList);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onChart);
         keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::onNotes);
-        keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::onCtrlVPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::onCtrlYPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::onCtrlZPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), this::onAltShiftQPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), this::onAltShiftRPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::pasteRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redoAction);
+        keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undoAction);
+        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::reload);
+        keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::create);
 
         //jump section
         jumpButton.setText(Dictionary.get("main.jump.button"));
@@ -124,6 +128,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         exportButtonIcon.setImage(FXIconLoader.getLargeIcon("export.png"));
         tagManagerIcon.setImage(FXIconLoader.getLargeIcon("tag.png"));
         notesButtonIcon.setImage(FXIconLoader.getLargeIcon("notes.png"));
+        videoListButtonIcon.setImage(FXIconLoader.getLargeIcon("video-player.png"));
 
 
         Platform.runLater(() -> {
@@ -139,15 +144,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 .filter(k -> k.match(event))
                 .findFirst()
                 .ifPresent(k -> keyActions.get(k).run());
-    }
-
-    //DICTIONARY UPDATES
-    private void onAltShiftRPressed() {
-        DictionaryCreator.reload();
-    }
-
-    private void onAltShiftQPressed() {
-        DictionaryCreator.create();
     }
 
     //OPEN FRAME TAG MANAGER
@@ -169,7 +165,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             }
             else
                 FXDialogProvider.errorDialog(Dictionary.get("open.tm"));
-        }else
+        } else
             FXDialogProvider.errorDialog(Dictionary.get("error.main.not-open"));
     }
 
@@ -183,9 +179,22 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                     mainView
             );
             viewContainer.open(ViewFlag.SETTINGS);
-        }
-        else
+        } else
             FXDialogProvider.errorDialog(Dictionary.get("open.settings"));
+    }
+
+    //OPEN VIDEO LIST
+    @FXML
+    protected void onVideoList() {
+        if(viewContainer.isClosed(ViewFlag.VIDEO_LIST)) {
+            FXMLViewLoader.getView(
+                    "VideoManagementListViewModel",
+                    "Video Management",
+                    mainView
+            );
+            viewContainer.open(ViewFlag.VIDEO_LIST);
+        } else
+            FXDialogProvider.errorDialog(Dictionary.get("open.video-list"));
     }
 
     //OPEN EXPORT
@@ -198,8 +207,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                     mainView
             );
             viewContainer.open(ViewFlag.EXPORT);
-        }
-        else
+        } else
             FXDialogProvider.errorDialog(Dictionary.get("open.export"));
     }
 
@@ -212,8 +220,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                     mainView
             );
             viewContainer.open(ViewFlag.CHARTS);
-        }
-        else
+        } else
             FXDialogProvider.errorDialog(Dictionary.get("open.chart"));
     }
 
@@ -248,10 +255,6 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         event.consume();
     }
 
-    public void openRecent(String path) {
-        prepareVideo(new File(path));
-    }
-
     public void prepareVideo(File file) {
         //get DB video
         var video = viewService.getVideo(file);
@@ -263,7 +266,10 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 dropLabel
         );
 
+        prepareElements();
+    }
 
+    private void prepareElements() {
         //display first frame and hide text
         updateFrameDisplay(viewService.displayCurrentFrame());
 
@@ -279,8 +285,9 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     //jump frames
     @FXML
     protected void onJumpToFrame() {
-        if(isValidNumber()){
-            var toJump = Integer.parseInt(frameInput.getText());
+        var jumpInput = frameInput.getText();
+        if(viewService.isValidNumber(jumpInput)){
+            var toJump = Integer.parseInt(jumpInput);
 
             updateFrameDisplay(viewService.jump(toJump));
             tableView.setItems(viewService.displayCurrentTags());
@@ -290,44 +297,18 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
             FXDialogProvider.errorDialog(Dictionary.get("error.main.frame.invalid"));
     }
 
-    //check if number is valid
-    private boolean isValidNumber(){
-        int num;
-
-        try {
-            num = Integer.parseInt(frameInput.getText());
-        }catch (Exception e){
-            return false;
-        }
-
-        return num > 0;
-    }
-
     //move right
-    private void onCommaPressed() {
+    private void moveRight() {
         updateFrameDisplay(viewService.moveLeft());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
     }
 
     //move left
-    private void onPeriodPressed() {
+    private void moveLeft() {
         updateFrameDisplay(viewService.moveRight());
         tableView.setItems(viewService.displayCurrentTags());
         statusLabel.setText(viewService.displayCurrentInfo());
-    }
-
-    //OPEN VIDEO LIST
-    private void onShiftLPressed() {
-        if(viewContainer.isClosed(ViewFlag.VIDEO_LIST)) {
-            FXMLViewLoader.getView(
-                    "VideoManagementListViewModel",
-                    "Video Management",
-                    mainView
-            );
-            viewContainer.open(ViewFlag.VIDEO_LIST);
-        }
-        System.out.println("Shift + L pressed!");
     }
 
     //OPEN VIDEO DETAILS
@@ -344,7 +325,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 VideoManagementDetailsController videoController = loader.getController();
                 var vid = viewService.getCurrentVideo();
                 if(vid != null)
-                    videoController.init(vid,null);
+                    videoController.init(vid);
                 else
                     throw new Exception(Dictionary.get("error.main.not-open"));
             }catch (Exception e){
@@ -386,28 +367,28 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
     }
 
     //PASTE RECENT
-    private void onCtrlVPressed() {
+    private void pasteRecent() {
         if(viewService.isOpen())
             viewService.pasteRecent();
         System.out.println("Ctrl + V pressed!");
     }
 
     //REMOVE RECENT
-    private void onCtrlXPressed() {
+    private void removeRecent() {
         if(viewService.isOpen())
             viewService.removeRecent();
         System.out.println("Ctrl + X pressed!");
     }
 
     //REDO ACTION
-    private void onCtrlYPressed() {
+    private void redoAction() {
         if(viewService.isOpen())
             viewService.redo();
         System.out.println("Ctrl + Y pressed!");
     }
 
     //UNDO ACTION
-    private void onCtrlZPressed() {
+    private void undoAction() {
         if(viewService.isOpen())
             viewService.undo();
         System.out.println("Ctrl + Z pressed!");
@@ -445,5 +426,21 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
         nameColumn.setText(Dictionary.get("name"));
         valueColumn.setText(Dictionary.get("value"));
         tableView.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
+    }
+
+    @Override
+    public void openVideo(int id) {
+        //get DB video
+        var video = viewService.getVideo(id);
+        var file = new  File(video.getPath());
+
+        //prepare necessary items
+        viewService.prepareVideo(
+                video,
+                file,
+                dropLabel
+        );
+
+        prepareElements();
     }
 }

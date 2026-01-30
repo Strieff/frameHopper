@@ -45,17 +45,14 @@ public class CreateTagController implements LanguageChangeListener {
         descriptionLabel.setText(Dictionary.get("description")+":");
 
         // Button actions
-        cancelButton.setOnAction(event -> closeWindow());
+        cancelButton.setOnAction(event -> close());
         cancelButton.setText(Dictionary.get("cancel"));
         saveButton.setOnAction(event -> saveTag());
         saveButton.setText(Dictionary.get("save"));
 
         Platform.runLater(() -> {
             var stage = (Stage) nameField.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                LanguageManager.unregister(this);
-                viewContainer.close(ViewFlag.CREATE_TAG);
-            });
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -66,10 +63,10 @@ public class CreateTagController implements LanguageChangeListener {
             descriptionArea.getText()
         );
 
-        closeWindow();
+        close();
     }
 
-    private void closeWindow() {
+    private void close() {
         LanguageManager.unregister(this);
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();

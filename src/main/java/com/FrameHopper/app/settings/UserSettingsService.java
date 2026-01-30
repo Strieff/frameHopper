@@ -16,8 +16,8 @@ public class UserSettingsService {
         this.userSettings = UserSettings.getInstance();
     }
 
-    public void setRecentPath(String path){
-        userSettings.setRecentPath(path);
+    public void setRecentId(int id){
+        userSettings.setRecentId(id);
         save();
     }
 
@@ -64,8 +64,8 @@ public class UserSettingsService {
         return userSettings.getUseDefaultLanguage();
     }
 
-    public String getRecentPath(){
-        return userSettings.getRecentPath();
+    public int getRecentId(){
+        return userSettings.getRecentId();
     }
 
     public String getExportPath(){

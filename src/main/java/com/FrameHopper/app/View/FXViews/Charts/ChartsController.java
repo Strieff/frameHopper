@@ -205,10 +205,7 @@ public class ChartsController implements LanguageChangeListener {
 
         Platform.runLater(() -> {
             var stage = (Stage) videoTable.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                viewContainer.close(ViewFlag.CHARTS);
-                LanguageManager.unregister(this);
-            });
+            stage.setOnCloseRequest(e -> close());
         });
     }
 

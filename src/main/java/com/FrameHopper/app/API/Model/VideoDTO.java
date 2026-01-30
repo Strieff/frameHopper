@@ -1,5 +1,6 @@
 package com.FrameHopper.app.API.Model;
 
+import com.FrameHopper.app.API.Mapper.CommentMapper;
 import com.FrameHopper.app.API.Mapper.FrameMapper;
 import com.FrameHopper.app.Model.Video;
 
@@ -13,7 +14,8 @@ public record VideoDTO(
         double duration,
         int videoHeight,
         int videoWidth,
-        List<FrameDTO> frames
+        List<FrameDTO> frames,
+        List<CommentDTO> notes
 ) {
     public VideoDTO(Video video) {
         this(
@@ -24,7 +26,8 @@ public record VideoDTO(
                 video.getDuration(),
                 video.getVideoHeight(),
                 video.getVideoWidth(),
-                FrameMapper.mapFrames(video.getFrames())
+                FrameMapper.mapFrames(video.getFrames()),
+                CommentMapper.mapComments(video.getComments())
         );
     }
 }

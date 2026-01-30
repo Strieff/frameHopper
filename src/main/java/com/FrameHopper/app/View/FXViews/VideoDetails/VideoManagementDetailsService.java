@@ -12,7 +12,11 @@ public class VideoManagementDetailsService {
         this.videoService = videoService;
     }
 
-    public Video getVideo(int id) {
-        return videoService.getById(id);
+    public Video getVideoByPath(String path) {
+        return videoService.getByPath(path);
+    }
+
+    public void saveVideo(Video video) {
+        videoService.saveVideo(video);
     }
 }
