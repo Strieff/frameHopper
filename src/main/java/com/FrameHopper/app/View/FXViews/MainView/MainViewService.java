@@ -59,8 +59,16 @@ public class MainViewService {
     //get video from DB
     public Video getVideo(File videoFile){
         videoDataProvider.clearCache();
-        userSettingsService.setRecentPath(videoFile.getAbsolutePath());
-        return videoService.createOrGet(videoFile);
+        var video = videoService.createOrGet(videoFile);
+        userSettingsService.setRecentId(video.getId());
+        return video;
+    }
+
+    public Video getVideo(int id) {
+        videoDataProvider.clearCache();
+        var video = videoService.getById(id);
+        userSettingsService.setRecentId(video.getId());
+        return video;
     }
 
     //set up information container
@@ -191,6 +199,18 @@ public class MainViewService {
     public void redo(){
         undoRedoAction.redoAction();
         info.setTagsOnFrameOnVideo(undoRedoAction.getCurrentTags(),undoRedoAction.getCurrentFrameIndex());
+    }
+
+    public boolean isValidNumber(String toParse) {
+        int num;
+
+        try {
+            num = Integer.parseInt(toParse);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return num > 0;
     }
 
     public boolean isFfmpegAvailable() {

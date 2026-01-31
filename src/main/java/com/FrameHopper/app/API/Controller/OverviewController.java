@@ -29,7 +29,7 @@ public class OverviewController {
 
     @RequestMapping
     public ResponseEntity<String> getOverview() throws JsonProcessingException {
-        var videos = videoService.getAllData();
+        var videos = videoService.getAllData(false);
 
         return collectData(videos);
     }
@@ -39,7 +39,7 @@ public class OverviewController {
         if (!videoService.exists(id))
             return ResponseEntity.notFound().build();
 
-        var videos = videoService.getAllData(id);
+        var videos = videoService.getVideoData(id, false);
 
         return collectData(videos);
     }

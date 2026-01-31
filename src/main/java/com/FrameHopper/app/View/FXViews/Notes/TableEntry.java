@@ -7,7 +7,7 @@ import lombok.Getter;
 
 public class TableEntry {
     @Getter
-    Video video;
+    private final Video video;
 
     private final SimpleStringProperty name;
     private final SimpleIntegerProperty notesCount;

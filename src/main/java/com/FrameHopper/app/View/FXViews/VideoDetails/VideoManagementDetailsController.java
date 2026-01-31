@@ -2,13 +2,11 @@ package com.FrameHopper.app.View.FXViews.VideoDetails;
 
 import com.FrameHopper.app.Model.Video;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
-import com.FrameHopper.app.View.FXViews.VideoManagementList.VideoManagementListController;
-import com.FrameHopper.app.View.FXViews.VideoMerge.VideoMetadataMergeController;
+import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,16 +33,14 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
     @FXML
     private Label pathLabel,dataLabel,frameAmountLabel,frameRateLabel,durationLabel;
     @FXML
-    private Button changeButton,closeButton;
+    private Button changeButton, closeButton;
     @FXML
     private BorderPane videoDetailsView;
 
     private final VideoManagementDetailsService viewService;
-
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    private int id;
-    private VideoManagementListController parent;
+    private Video video;
 
     public VideoManagementDetailsController(VideoManagementDetailsService viewService) {
         this.viewService = viewService;
@@ -60,17 +56,17 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
         // Set button actions
         changeButton.setOnAction(event -> changePath());
         changeButton.setText(Dictionary.get("vd.change"));
-        closeButton.setOnAction(event -> closeWindow());
+        closeButton.setOnAction(event -> close());
         closeButton.setText(Dictionary.get("close"));
 
-        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::close);
 
         //add key binds
         videoDetailsView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         Platform.runLater(() -> {
             var stage = (Stage) videoDetailsView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> LanguageManager.unregister(this));
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -82,9 +78,8 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
                 .ifPresent(k -> keyActions.get(k).run());
     }
 
-    public void init(Video video,VideoManagementListController parent){
-        this.parent=parent;
-        id = video.getId();
+    public void init(Video video){
+        this.video = video;
         frameAmountLabel.setText(Dictionary.get("vd.frameAmount")+video.getTotalFrames());
         frameRateLabel.setText(Dictionary.get("vd.framerate")+video.getFrameRate());
         durationLabel.setText(Dictionary.get("vd.duration")+video.getDuration());
@@ -93,30 +88,26 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
 
     private void changePath() {
         try {
-            var file = new File(FileChooserProvider.videoFileChooser((Stage)closeButton.getScene().getWindow()));
+            var file = new File(FileChooserProvider.videoFileChooser((Stage) videoDetailsView.getScene().getWindow()));
+            var pathExists = viewService.getVideoByPath(file.getPath()) != null;
 
-            var loader = FXMLViewLoader.getView(
-                    "MetadataComparisonViewModel",
-                    "Path Change",
-                    videoDetailsView
-            );
+            if(pathExists)
+                throw new Exception(Dictionary.get("warning.path.exists"));
 
-            VideoMetadataMergeController controller = loader.getController();
-            controller.init(id,file,parent);
+            video.setPath(file.getPath());
+            video.setName(file.getName().replace(" ", "%20"));
+            viewService.saveVideo(video);
+
+            filePathField.setText(video.getPath());
+
+            UpdateTableEventDispatcher.fireEvent();
         } catch (Exception e) {
             FXDialogProvider.errorDialog(e.getMessage());
             e.printStackTrace();
         }
-
-
     }
 
-    private void onShiftDPressed() {
-        var stage = (Stage)closeButton.getScene().getWindow();
-        stage.close();
-    }
-
-    private void closeWindow() {
+    public void close() {
         LanguageManager.unregister(this);
         Stage stage = (Stage) closeButton.getScene().getWindow();
         stage.close();
@@ -129,9 +120,8 @@ public class VideoManagementDetailsController implements LanguageChangeListener 
         changeButton.setText(Dictionary.get("vd.change"));
         closeButton.setText(Dictionary.get("close"));
 
-        var video = viewService.getVideo(id);
-        frameAmountLabel.setText(Dictionary.get("vd.frameAmount")+video.getTotalFrames());
-        frameRateLabel.setText(Dictionary.get("vd.framerate")+video.getFrameRate());
-        durationLabel.setText(Dictionary.get("vd.duration")+video.getDuration());
+        frameAmountLabel.setText(Dictionary.get("vd.frameAmount") + video.getTotalFrames());
+        frameRateLabel.setText(Dictionary.get("vd.framerate") + video.getFrameRate());
+        durationLabel.setText(Dictionary.get("vd.duration") + video.getDuration());
     }
 }

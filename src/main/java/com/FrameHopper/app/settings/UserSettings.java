@@ -16,7 +16,7 @@ public class UserSettings {
     private Boolean openRecent = false;
     private Boolean useDefaultLanguage = true;
     private Boolean settingsWarnings = true;
-    private String recentPath = null;
+    private int recentId = -1;
     private String recentExportPath = null;
     private String language = "en";
 }

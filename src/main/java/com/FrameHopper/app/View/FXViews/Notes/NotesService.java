@@ -26,8 +26,10 @@ public class NotesService {
         this.dbService = dbService;
     }
 
-    public List<Video> getVideosWithNotes() {
-        return videoService.getAllWithNotes();
+    public List<TableEntry> getVideosWithNotes() {
+        return videoService.getAllWithNotes().stream()
+                .map(TableEntry::new)
+                .toList();
     }
 
     public Comment save(Comment comment) {

@@ -14,7 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import lombok.Getter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +50,7 @@ public class TagDetailsController implements LanguageChangeListener {
         descriptionLabel.setText(Dictionary.get("description")+":");
 
         // Button actions
-        cancelButton.setOnAction(event -> closeWindow());
+        cancelButton.setOnAction(event -> close());
         cancelButton.setText(Dictionary.get("cancel"));
         hideButton.setOnAction(event -> toggleHide());
         saveButton.setOnAction(event -> {
@@ -66,7 +65,7 @@ public class TagDetailsController implements LanguageChangeListener {
 
         Platform.runLater(() -> {
             var stage = (Stage) saveButton.getScene().getWindow();
-            stage.setOnCloseRequest(e -> LanguageManager.unregister(this));
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -97,10 +96,10 @@ public class TagDetailsController implements LanguageChangeListener {
                 description
         );
 
-        closeWindow();
+        close();
     }
 
-    private void closeWindow() {
+    private void close() {
         LanguageManager.unregister(this);
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();

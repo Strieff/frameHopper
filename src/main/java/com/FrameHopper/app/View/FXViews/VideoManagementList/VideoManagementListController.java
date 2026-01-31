@@ -1,6 +1,5 @@
 package com.FrameHopper.app.View.FXViews.VideoManagementList;
 
-import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.OpenViewsInformationContainer;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.ViewFlag;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
@@ -10,21 +9,22 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.RestartResolver;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
+import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
+import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
+import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableListener;
 import com.FrameHopper.app.View.FXViews.MainView.MainViewService;
 import com.FrameHopper.app.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.springframework.context.annotation.Scope;
@@ -32,142 +32,40 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 @Component
 @Scope("prototype")
-public class VideoManagementListController implements LanguageChangeListener {
+public class VideoManagementListController implements LanguageChangeListener, UpdateTableListener {
     @FXML
-    private TableView<TableEntry> codeTable;
-    @FXML
-    private TableColumn<TableEntry, String> pathColumn;
-    @FXML
-    private TableColumn<TableEntry, Void> editColumn;
-    @FXML
-    private TableColumn<TableEntry, Void> deleteColumn;
+    private ListView<TableEntry> videoList;
     @FXML
     private BorderPane listView;
 
     private final VideoManagementListService viewService;
     private final MainViewService mainViewService;
     private final OpenViewsInformationContainer viewContainer;
-    private final VideoService videoService;
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
     public VideoManagementListController(
             VideoManagementListService viewService,
             MainViewService mainViewService,
-            OpenViewsInformationContainer viewContainer,
-            VideoService videoService
+            OpenViewsInformationContainer viewContainer
     ) {
         this.viewService = viewService;
         this.mainViewService = mainViewService;
         this.viewContainer = viewContainer;
-        this.videoService = videoService;
 
         LanguageManager.register(this);
+        UpdateTableEventDispatcher.register(this);
     }
 
     public void initialize() {
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
-
-        // Set up columns
-        pathColumn.setCellValueFactory(new PropertyValueFactory<>("path"));
-        pathColumn.setText(Dictionary.get("vl.path"));
-        pathColumn.setCellFactory(new Callback<>() {
-            @Override
-            public TableCell<TableEntry, String> call(TableColumn<TableEntry, String> param) {
-                return new TableCell<>() {
-                    private final Text text = new Text();
-
-                    {
-                        text.wrappingWidthProperty().bind(pathColumn.widthProperty());
-                        setGraphic(text);
-                    }
-
-                    @Override
-                    protected void updateItem(String item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item == null) {
-                            text.setText(null);
-                        }else{
-                            text.setText(item);
-                        }
-                    }
-                };
-            }
-        });
-
-        // Set up edit column
-        editColumn.setCellFactory(new Callback<>() {
-            @Override
-            public TableCell<TableEntry, Void> call(final TableColumn<TableEntry, Void> param) {
-                return new TableCell<>() {
-                    private final Button editButton = new Button();
-                    private final HBox centeredBox = new HBox(editButton);
-
-                    {
-                        editButton.setOnAction(event -> {
-                            TableEntry video = getTableView().getItems().get(getIndex());
-                            onEdit(video.getId());
-                        });
-                        editButton.setGraphic(new ImageView(FXIconLoader.getSmallIcon("edit.png")));
-
-                        // Center-align the button within the HBox
-                        centeredBox.setAlignment(Pos.CENTER);
-                    }
-
-                    @Override
-                    protected void updateItem(Void item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setGraphic(null);
-                        } else {
-                            setGraphic(centeredBox);
-                        }
-                    }
-                };
-            }
-        });
-
-        // Set up delete button
-        deleteColumn.setCellFactory(new Callback<>() {
-            @Override
-            public TableCell<TableEntry, Void> call(final TableColumn<TableEntry, Void> param) {
-                return new TableCell<>() {
-                    private final Button editButton = new Button();
-                    private final HBox centeredBox = new HBox(editButton);
-
-                    {
-                        editButton.setOnAction(event -> {
-                            TableEntry video = getTableView().getItems().get(getIndex());
-                            onDelete(video.getId());
-                        });
-                        editButton.setGraphic(new ImageView(FXIconLoader.getSmallIcon("bin.png")));
-
-                        // Center-align the button within the HBox
-                        centeredBox.setAlignment(Pos.CENTER);
-                    }
-
-                    @Override
-                    protected void updateItem(Void item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setGraphic(null);
-                        } else {
-                            setGraphic(centeredBox);
-                        }
-                    }
-                };
-            }
-        });
-
-        // Add data to the TableView
-        codeTable.setItems(viewService.getAllVideos());
+        videoList.setCellFactory(createVideoListCellFactory());
+        videoList.getItems().addAll(viewService.getAllVideos());
 
         //kye binds
-        keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onShiftLPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::close);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::onCtrlXPressed);
 
@@ -175,16 +73,88 @@ public class VideoManagementListController implements LanguageChangeListener {
         listView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         Platform.runLater(() -> {
-            var stage = (Stage) codeTable.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                LanguageManager.unregister(this);
-                close();
-            });
+            var stage = (Stage) listView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
+    private Callback<ListView<TableEntry>, ListCell<TableEntry>> createVideoListCellFactory() {
+        return lv -> new ListCell<>() {
+
+            private final Label nameLabel = new Label();
+            private final Label pathLabel = new Label();
+
+            private final Button openButton = new Button();
+            private final Button deleteButton = new Button();
+            private final Button editButton = new Button();
+
+            private final VBox textBox = new VBox(2, nameLabel, pathLabel);
+            private final Region spacer = new Region();
+            private final HBox buttons = new HBox(3, openButton, deleteButton, editButton);
+            private final HBox root = new HBox(10, textBox, spacer, buttons);
+
+            private TableEntry bound;
+
+            {
+                // Layout
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                root.setAlignment(Pos.CENTER_LEFT);
+                root.setPadding(new Insets(6, 8, 6, 8));
+
+                // Styling
+                nameLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold;");
+                pathLabel.setStyle("-fx-font-size: 11; -fx-text-fill: -fx-text-inner-color;");
+                pathLabel.setWrapText(true);
+                pathLabel.setPrefWidth(300);
+
+                // Optional hover cue
+                root.setStyle("""
+                        -fx-background-radius: 6;
+                """);
+
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
+                //button icons
+                openButton.setGraphic(new ImageView(FXIconLoader.getSmallIcon("open-folder.png")));
+                deleteButton.setGraphic(new ImageView(FXIconLoader.getSmallIcon("bin.png")));
+                editButton.setGraphic(new ImageView(FXIconLoader.getSmallIcon("edit.png")));
+
+                //button functionality
+                openButton.setOnAction(e -> OpenVideoEventDispatcher.fireEvent(bound.getId()));
+                deleteButton.setOnAction(e -> deleteVideo(bound));
+                editButton.setOnAction(e -> edit(bound));
+            }
+
+            @Override
+            protected void updateItem(TableEntry item, boolean empty) {
+                super.updateItem(item, empty);
+
+                // Unbind previous
+                if (bound != null) {
+                    nameLabel.textProperty().unbind();
+                    pathLabel.textProperty().unbind();
+                    bound = null;
+                }
+
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    bound = item;
+
+                    nameLabel.textProperty().bind(item.nameProperty());
+                    pathLabel.textProperty().bind(item.pathProperty());
+
+                    setGraphic(root);
+                }
+            }
+        };
+    }
+
     public void close(){
-        var stage = (Stage) codeTable.getScene().getWindow();
+        LanguageManager.unregister(this);
+        UpdateTableEventDispatcher.unregister(this);
+
+        var stage = (Stage) listView.getScene().getWindow();
         viewContainer.close(ViewFlag.VIDEO_LIST);
         stage.close();
     }
@@ -196,32 +166,21 @@ public class VideoManagementListController implements LanguageChangeListener {
                 .ifPresent(k -> keyActions.get(k).run());
     }
 
-    //CLOSE VIDEO LIST
-    private void onShiftLPressed() {
-        LanguageManager.unregister(this);
-        var stage = (Stage) listView.getScene().getWindow();
-        stage.close();
-        viewContainer.close(ViewFlag.VIDEO_LIST);
+    private void onShiftDPressed(){
+        var selected = videoList.getSelectionModel().getSelectedItem();
+
+        if(selected != null)
+            edit(selected);
     }
 
-    //OPEN CURRENT OR SELECTED
-    private void onShiftDPressed() {
-        if (mainViewService.isOpen())
-            openDetails(mainViewService.getCurrentId());
-        else {
-            var selected = codeTable.getSelectionModel();
-            if (selected.getSelectedItem() != null)
-                openDetails(selected.getSelectedItem().getId());
-            else
-                FXDialogProvider.errorDialog(Dictionary.get("error.vl.current"));
-        }
+    private void onCtrlXPressed() {
+        var selected = videoList.getSelectionModel().getSelectedItem();
+
+        if(selected != null)
+            deleteVideo(selected);
     }
 
-    private void onEdit(int id){
-        openDetails(id);
-    }
-
-    private void openDetails(int id){
+    private void edit(TableEntry entry){
         var loader = FXMLViewLoader.getView(
                 "VideoManagementDetailsViewModel",
                 "Video Details",
@@ -230,38 +189,29 @@ public class VideoManagementListController implements LanguageChangeListener {
 
         //get controller
         VideoManagementDetailsController videoController = loader.getController();
-        videoController.init(viewService.getVideo(id),this);
+        videoController.init(entry.getVideo());
     }
 
-    //DELETE VIDEO
-    private void onCtrlXPressed() {
-        var selected = codeTable.getSelectionModel().getSelectedItem();
-
-        if(selected!=null){
-            deleteVideo(selected.getId());
-        }else
-            FXDialogProvider.errorDialog(Dictionary.get("error.vl.selected"));
-    }
-
-    private void onDelete(int id){
-        deleteVideo(id);
-    }
-
-    private void deleteVideo(int id){
-        if(FXDialogProvider.yesNoDialog(String.format(Dictionary.get("message.vl.delete"),videoService.getById(id).getName()))) {
-            videoService.deleteVideo(id);
-            codeTable.getItems().remove(IntStream.range(0, codeTable.getItems().size()).filter(i -> codeTable.getItems().get(i).getId() == id).findFirst().orElse(-1));
+    private void deleteVideo(TableEntry entry){
+        if(FXDialogProvider.yesNoDialog(String.format(Dictionary.get("warning.video.delete"), entry.getName()))) {
+            viewService.deleteVideo(entry.getId());
+            videoList.getItems().remove(entry);
         }else
             return;
 
-        if(id == mainViewService.getCurrentId())
+        if(entry.getId() == mainViewService.getCurrentId())
             RestartResolver.reset();
     }
 
     @Override
     public void changeLanguage() {
-        pathColumn.setText(Dictionary.get("vl.path"));
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
+        //codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
+    }
+
+    @Override
+    public void updateTable() {
+        videoList.getItems().clear();
+        videoList.getItems().addAll(viewService.getAllVideos());
     }
 }
 

@@ -3,13 +3,10 @@ package com.FrameHopper.app.View.FXViews.Settings;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.OpenViewsInformationContainer;
 import com.FrameHopper.app.settings.UserSettingsService;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.ViewFlag;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXMLViewLoader;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.Language.LanguageEntry;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
-import com.FrameHopper.app.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -31,11 +28,9 @@ public class SettingsController implements LanguageChangeListener {
     @FXML
     private BorderPane settingsView;
     @FXML
-    private CheckBox showHiddenTagsCheckBox,openRecentCheckBox,languageExportCheckBox,settingsWarningCheckbox;
+    private CheckBox showHiddenTagsCheckBox, openRecentCheckBox, languageExportCheckBox, settingsWarningCheckbox;
     @FXML
     private ComboBox<LanguageEntry> languageBox;
-    @FXML
-    private Button manageButton;
 
     private final SettingsService viewService;
     private final OpenViewsInformationContainer viewContainer;
@@ -85,22 +80,16 @@ public class SettingsController implements LanguageChangeListener {
             }
         });
 
-        manageButton.setText(Dictionary.get("settings.button.list"));
 
         //kye binds
-        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onShiftSPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onShiftLPressed);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::close);
 
         //add key binds
         settingsView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         Platform.runLater(() -> {
             var stage = (Stage) settingsView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                LanguageManager.unregister(this);
-                viewContainer.close(ViewFlag.SETTINGS);
-            });
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -112,56 +101,11 @@ public class SettingsController implements LanguageChangeListener {
     }
 
     //CLOSE WINDOW
-    private void onShiftSPressed() {
+    private void close() {
         LanguageManager.unregister(this);
         var stage = (Stage) settingsView.getScene().getWindow();
         stage.close();
         viewContainer.close(ViewFlag.SETTINGS);
-    }
-
-    //OPEN VIDEO MANAGEMENT LIST
-    @FXML
-    protected void onManage(){
-        openVideoManagement();
-    }
-
-    private void onShiftLPressed(){
-        openVideoManagement();
-    }
-
-    private void openVideoManagement(){
-        if(viewContainer.isClosed(ViewFlag.VIDEO_LIST)) {
-            FXMLViewLoader.getView(
-                    "VideoManagementListViewModel",
-                    "Video Management",
-                    settingsView
-            );
-            viewContainer.open(ViewFlag.VIDEO_LIST);
-        }
-        else
-            FXDialogProvider.errorDialog(Dictionary.get("open.video-list"));
-    }
-
-    //OPEN CURRENT VIDEO DETAILS
-    private void onShiftDPressed() {
-        try{
-            var loader = FXMLViewLoader.getView(
-                    "VideoManagementDetailsViewModel",
-                    "Video Details",
-                    settingsView
-            );
-
-            //get controller
-            VideoManagementDetailsController videoController = loader.getController();
-            var vid = viewService.getCurrentVideo();
-            if(vid!=null)
-                videoController.init(vid,null);
-            else
-                throw new Exception("No video is open");
-        }catch (Exception e){
-            e.printStackTrace();
-            FXDialogProvider.errorDialog(e.getMessage());
-        }
     }
 
     //HANDLE SHOW HIDDEN TAGS
@@ -195,9 +139,6 @@ public class SettingsController implements LanguageChangeListener {
         openRecentCheckBox.setText(Dictionary.get("settings.user.recent"));
         languageExportCheckBox.setText(Dictionary.get("settings.user.export"));
         settingsWarningCheckbox.setText(Dictionary.get("settings.user.warning"));
-
-        //buttons
-        manageButton.setText(Dictionary.get("settings.button.list"));
     }
 }
 

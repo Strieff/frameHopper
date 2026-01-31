@@ -155,7 +155,7 @@ public class ExportController implements LanguageChangeListener {
         clearButton.setText(Dictionary.get("export.clear"));
 
         //cancel button
-        cancelButton.setOnAction(event -> handleClose());
+        cancelButton.setOnAction(event -> close());
         cancelButton.setText(Dictionary.get("cancel"));
 
         //search button
@@ -201,13 +201,13 @@ public class ExportController implements LanguageChangeListener {
 
         //add key binds
         keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN), this::onCtrlAPressed);
-        keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::handleClose);
+        keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::close);
 
         exportView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
 
         Platform.runLater(() -> {
             var stage = (Stage) cancelButton.getScene().getWindow();
-            stage.setOnCloseRequest(e -> handleClose());
+            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -221,7 +221,6 @@ public class ExportController implements LanguageChangeListener {
 
     //ENABLE REORDERING FOR EXPORT ACTIONS
     private <T> void setupList(ListView<T> listView) {
-
         // Simple style for drop indicator
         listView.getStylesheets().add(
                 getClass().getClassLoader().getResource("styling/export-table.css").toExternalForm()
@@ -377,7 +376,7 @@ public class ExportController implements LanguageChangeListener {
                 selectedIds.add(e.getId());
                 e.setSelected(true);
             }
-        allSelected = !allSelected;
+        allSelected ^= allSelected;
     }
 
     private void deselectAll(){
@@ -386,7 +385,7 @@ public class ExportController implements LanguageChangeListener {
     }
 
     //HANDLE CLOSE
-    private void handleClose(){
+    private void close(){
         LanguageManager.unregister(this);
         var stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();

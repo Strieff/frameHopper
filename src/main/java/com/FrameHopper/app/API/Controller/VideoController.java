@@ -21,8 +21,8 @@ public class VideoController {
     }
 
     @GetMapping
-    public ResponseEntity<String> getAllVideos() throws JsonProcessingException {
-        var videos = videoService.getAllData();
+    public ResponseEntity<String> getAllVideos(@RequestParam boolean getNotes) throws JsonProcessingException {
+        var videos = videoService.getAllData(getNotes);
 
         if(videos.isEmpty())
             return ResponseEntity.notFound().build();
@@ -33,13 +33,13 @@ public class VideoController {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<String> getVideo(@PathVariable int id) throws JsonProcessingException {
+    public ResponseEntity<String> getVideo(@PathVariable int id, @RequestParam boolean getNotes) throws JsonProcessingException {
         var video = videoService.getById(id);
 
         if(video == null)
             return ResponseEntity.notFound().build();
 
-        frameService.getAllVideoData(video);
+        frameService.getAllVideoData(video, getNotes);
 
         var videoDTO = new VideoDTO(video);
 

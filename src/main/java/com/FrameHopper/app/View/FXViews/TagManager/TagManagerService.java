@@ -47,10 +47,7 @@ public class TagManagerService {
     }
 
     public void removeTag(int id){
-        var tag = tagList.getTag(id);
-        mainViewService.deleteTag(tag);
-        tagList.removeTag(id);
-        UpdateTableEventDispatcher.fireEvent();
+        removeTags(List.of(id));
     }
 
     public void removeTags(List<Integer> ids){

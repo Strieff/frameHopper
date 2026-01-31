@@ -3,6 +3,7 @@ package com.FrameHopper.app.Service;
 import com.FrameHopper.app.Model.Frame;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
+import com.FrameHopper.app.Repository.CommentRepository;
 import com.FrameHopper.app.Repository.FrameRepository;
 import com.FrameHopper.app.Repository.VideoRepository;
 import org.springframework.stereotype.Service;
@@ -13,10 +14,16 @@ import java.util.*;
 public class FrameService {
     private final FrameRepository frameRepository;
     private final VideoRepository videoRepository;
+    private final CommentRepository commentRepository;
 
-    public FrameService(FrameRepository frameRepository, VideoRepository videoRepository) {
+    public FrameService(
+            FrameRepository frameRepository,
+            VideoRepository videoRepository,
+            CommentRepository commentRepository
+    ) {
         this.frameRepository = frameRepository;
         this.videoRepository = videoRepository;
+        this.commentRepository = commentRepository;
     }
 
     public void modifyTagsOfFrame(List<Tag> tags, int frameNumber, int id){
@@ -65,8 +72,9 @@ public class FrameService {
         return frameRepository.findFrameOnVideo(video,frameNumber).orElse(null);
     }
 
-    public void getAllVideoData(Video video){
+    public void getAllVideoData(Video video, boolean getNotes){
         video.setFrames(getAllByVideo(video));
+        if(getNotes) video.setComments(commentRepository.getCommentByVideo(video));
     }
 
     public void save(Frame frame){

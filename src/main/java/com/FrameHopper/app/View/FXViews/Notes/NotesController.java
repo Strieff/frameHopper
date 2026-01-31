@@ -1,7 +1,6 @@
 package com.FrameHopper.app.View.FXViews.Notes;
 
 import com.FrameHopper.app.Model.Comment;
-import com.FrameHopper.app.Model.Video;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.OpenViewsInformationContainer;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.ViewFlag;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
@@ -47,11 +46,10 @@ public class NotesController implements LanguageChangeListener {
     private final NotesService viewService;
     private final OpenViewsInformationContainer viewContainer;
 
-    private final PauseTransition saveDebounce = new PauseTransition(Duration.millis(400));
+    private final PauseTransition saveDebounce = new PauseTransition(Duration.millis(300));
     private final ToggleGroup toggleGroup = new ToggleGroup();
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    private Video currentVideo;
     private Comment currentNote;
 
     public NotesController(NotesService noteService, OpenViewsInformationContainer viewContainer) {
@@ -76,16 +74,11 @@ public class NotesController implements LanguageChangeListener {
 
         //populate notes list
         notesList.setCellFactory(createNotesCellFactory());
-        notesList.getItems().addAll(
-                        viewService.getVideosWithNotes().stream()
-                        .map(TableEntry::new)
-                        .toList()
-        );
+        notesList.getItems().addAll(viewService.getVideosWithNotes());
 
         //load notes tabs
         notesList.getSelectionModel().selectedItemProperty().addListener((obs, old, entry) -> {
             if(entry == null) return;
-            currentVideo = entry.getVideo();
             currentNote = null;
             noteEditor.clear();
             loadCurrentTabs();
@@ -98,10 +91,7 @@ public class NotesController implements LanguageChangeListener {
         //handle closing
         Platform.runLater(() -> {
             var stage = (Stage) notesView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> {
-                viewContainer.close(ViewFlag.NOTES);
-                LanguageManager.unregister(this);
-            });
+            stage.setOnCloseRequest(e -> close());
         });
 
         //add key binds
@@ -195,7 +185,7 @@ public class NotesController implements LanguageChangeListener {
         noteTabsBar.getChildren().clear();
         toggleGroup.getToggles().clear();
 
-        var notes = currentVideo.getComments();
+        var notes = notesList.getSelectionModel().getSelectedItem().getVideo().getComments();
         if(notes.isEmpty()) {
             currentNote = null;
             noteEditor.clear();
@@ -238,27 +228,34 @@ public class NotesController implements LanguageChangeListener {
 
     @FXML
     protected void onAddNote() {
-        if(currentVideo != null) {
-            var notes = currentVideo.getComments();
-            var notesCount = (currentVideo.getComments() == null || currentVideo.getComments().isEmpty()) ? 0 : notes.size();
-            viewService.save("", notesCount + 1, currentVideo);
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected != null) {
+            var notes = selected.getVideo().getComments();
+
+            var notesCount = selected.getNotesCount();
+            viewService.save("", notesCount + 1, selected.getVideo());
             loadCurrentTabs();
             openNote(notes.getLast());
+
+            selected.updateNotesCount();
         }
     }
 
     @FXML
     protected void onDeleteNote() {
-        if(currentNote != null) {
-            viewService.delete(currentNote, currentVideo);
-            currentVideo.getComments().remove(currentNote);
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected != null) {
+            viewService.delete(currentNote, selected.getVideo());
+            selected.getVideo().getComments().remove(currentNote);
 
-            if(!currentVideo.getComments().isEmpty())
-                currentVideo.getComments().stream()
+            if(!selected.getVideo().getComments().isEmpty())
+                selected.getVideo().getComments().stream()
                     .filter(n -> n.getListingOrder() > currentNote.getListingOrder())
                     .forEach(n -> n.setListingOrder(n.getListingOrder()-1));
 
             currentNote = null;
+
+            selected.updateNotesCount();
             loadCurrentTabs();
         }
     }
