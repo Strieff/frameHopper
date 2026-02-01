@@ -10,9 +10,9 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.example</groupId>
-    <artifactId>engineer</artifactId>
-    <version>2.7</version>
+    <groupId>com.FrameHopper.app</groupId>
+    <artifactId>FrameHopper</artifactId>
+    <version>3.0</version>
 
     <name>FrameHopper</name>
     <description>FrameHopper app</description>

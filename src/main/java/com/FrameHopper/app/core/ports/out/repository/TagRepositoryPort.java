@@ -1,0 +1,16 @@
+package com.FrameHopper.app.core.ports.out.repository;
+
+import com.FrameHopper.app.core.domain.Tag;
+import com.FrameHopper.app.core.domain.Video;
+
+import java.util.List;
+
+public interface TagRepositoryPort {
+    Tag getById(int id);
+    Tag getByName(String name);
+    List<Tag> getAllByVideo(Video video);
+    List<Tag> getAll();
+    Tag create(Tag tag);
+    Tag update(Tag tag);
+    void delete(Tag tag);
+}
