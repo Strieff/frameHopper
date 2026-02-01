@@ -1,13 +1,21 @@
 package com.FrameHopper.app.core.ports.out;
 
-import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
-
 public interface UserSettingsPort {
-    UserSettingsAdapter getUserSettingsService();
     void setLanguage(String code);
+    String getLanguage();
+
     void setOpenRecent(boolean openRecent);
+    boolean openRecent();
+
     void setRecentExportPath(String path);
+    String getRecentExportPath();
+
     void setRecentlyOpenId(int id);
-    void showHidden(boolean showHidden);
+    int getRecentlyOpenId();
+
+    void changeShowHidden(boolean showHidden);
+    boolean showHidden();
+
     void setUseDefaultLanguageForExport(boolean useDefaultLanguageForExport);
+    boolean useDefaultLanguageForExport();
 }

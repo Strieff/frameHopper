@@ -1,16 +1,18 @@
 package com.FrameHopper.app.adapters.settings;
 
 import com.FrameHopper.app.core.ports.out.UserSettingsPort;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserSettingsAdapter implements UserSettingsPort {
-    @Override
-    public UserSettingsAdapter getUserSettingsService() {
-        return null;
-    }
-
     @Override
     public void setLanguage(String code) {
 
+    }
+
+    @Override
+    public String getLanguage() {
+        return "";
     }
 
     @Override
@@ -19,8 +21,18 @@ public class UserSettingsAdapter implements UserSettingsPort {
     }
 
     @Override
+    public boolean openRecent() {
+        return false;
+    }
+
+    @Override
     public void setRecentExportPath(String path) {
 
+    }
+
+    @Override
+    public String getRecentExportPath() {
+        return "";
     }
 
     @Override
@@ -29,12 +41,27 @@ public class UserSettingsAdapter implements UserSettingsPort {
     }
 
     @Override
-    public void showHidden(boolean showHidden) {
+    public int getRecentlyOpenId() {
+        return 0;
+    }
 
+    @Override
+    public void changeShowHidden(boolean showHidden) {
+
+    }
+
+    @Override
+    public boolean showHidden() {
+        return false;
     }
 
     @Override
     public void setUseDefaultLanguageForExport(boolean useDefaultLanguageForExport) {
 
+    }
+
+    @Override
+    public boolean useDefaultLanguageForExport() {
+        return false;
     }
 }

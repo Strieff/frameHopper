@@ -10,5 +10,5 @@ public interface VideoRepositoryPort {
     List<Video> getAll();
     Video create(Video video);
     Video update(Video video);
-    void delete(Video video);
+    void delete(int id);
 }

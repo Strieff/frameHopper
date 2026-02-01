@@ -12,5 +12,6 @@ public interface TagRepositoryPort {
     List<Tag> getAll();
     Tag create(Tag tag);
     Tag update(Tag tag);
-    void delete(Tag tag);
+    Tag updateStatus(int id);
+    void delete(int id);
 }

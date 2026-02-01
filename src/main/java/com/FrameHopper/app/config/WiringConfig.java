@@ -1,11 +1,21 @@
 package com.FrameHopper.app.config;
 
+import com.FrameHopper.app.adapters.ffmpeg.FfmpegAdapter;
+import com.FrameHopper.app.adapters.persistence.jpa.JpaCommentRepositoryAdapter;
 import com.FrameHopper.app.adapters.persistence.jpa.JpaTagRepositoryAdapter;
+import com.FrameHopper.app.adapters.persistence.jpa.JpaVideoRepositoryAdapter;
+import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.core.application.FrameQueryService;
+import com.FrameHopper.app.core.application.comment.CommentCommandService;
+import com.FrameHopper.app.core.application.comment.CommentQueryService;
 import com.FrameHopper.app.core.application.tag.TagCommandService;
 import com.FrameHopper.app.core.application.tag.TagQueryService;
+import com.FrameHopper.app.core.application.video.VideoCommandService;
+import com.FrameHopper.app.core.application.video.VideoQueryService;
 import com.FrameHopper.app.core.ports.in.FrameQuery;
+import com.FrameHopper.app.core.ports.in.comment.*;
 import com.FrameHopper.app.core.ports.in.tag.*;
+import com.FrameHopper.app.core.ports.in.video.*;
 import com.FrameHopper.app.core.ports.out.FfmpegPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +26,7 @@ public class WiringConfig {
     // --------------------
     // Inbound ports (core)
     // --------------------
+
     @Bean
     public FrameQuery frameQuery(FfmpegPort ffmpegPort) {
         return new FrameQueryService(ffmpegPort);
@@ -24,8 +35,11 @@ public class WiringConfig {
     // TAGS
 
     @Bean
-    public TagsQuery tagsQuery(JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
-        return new TagQueryService(jpaTagRepositoryAdapter);
+    public TagsQuery tagsQuery(
+            JpaTagRepositoryAdapter jpaTagRepositoryAdapter,
+            UserSettingsAdapter userSettingsAdapter
+    ) {
+        return new TagQueryService(jpaTagRepositoryAdapter, userSettingsAdapter);
     }
 
     @Bean
@@ -50,11 +64,55 @@ public class WiringConfig {
 
     // VIDEOS
 
+    @Bean
+    public VideoQuery videoQuery(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoQueryService(ffmpegAdapter, jpaVideoRepositoryAdapter);
+    }
 
+    @Bean
+    public VideoMetadataQuery videoMetadataQuery(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoQueryService(ffmpegAdapter, jpaVideoRepositoryAdapter);
+    }
+
+    @Bean
+    public UpdateVideoPathCommand updateVideoPathCommand(JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter);
+    }
+
+    @Bean
+    public CreateVideoCommand createVideoCommand(JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter);
+    }
+
+    @Bean
+    public DeleteVideoCommand deleteVideoCommand(JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter);
+    }
 
     // COMMENTS
 
+    @Bean
+    public CommentsQuery commentsQuery(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
+        return new CommentQueryService(jpaCommentRepositoryAdapter);
+    }
 
+    @Bean
+    public ChangeCommentContentCommand changeCommentContentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    }
 
+    @Bean
+    public ChangeCommentListingOrderCommand changeCommentListingOrderCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    }
 
+    @Bean
+    public CreateCommentCommand createCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    }
+
+    @Bean
+    public DeleteCommentCommand deleteCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    }
 }

@@ -18,21 +18,27 @@ public class TagCommandService implements
 
     @Override
     public Tag ChangeTagStatus(int id) {
-        return null;
+        return tagRepositoryPort.updateStatus(id);
     }
 
     @Override
     public Tag CreateTag(Tag tag) {
-        return null;
+        if (tag.getName() == null || tag.getName().isBlank())
+            throw new IllegalArgumentException(); //TODO
+
+        return tagRepositoryPort.create(tag);
     }
 
     @Override
-    public void DeleteTag(Tag tag) {
-
+    public void DeleteTag(int id) {
+        tagRepositoryPort.delete(id);
     }
 
     @Override
     public Tag UpdateTag(Tag tag) {
-        return null;
+        if (tag.getName() == null || tag.getName().isBlank())
+            throw new IllegalArgumentException(); //TODO
+
+        return tagRepositoryPort.update(tag);
     }
 }

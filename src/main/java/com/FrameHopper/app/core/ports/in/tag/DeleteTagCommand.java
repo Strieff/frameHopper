@@ -3,5 +3,5 @@ package com.FrameHopper.app.core.ports.in.tag;
 import com.FrameHopper.app.core.domain.Tag;
 
 public interface DeleteTagCommand {
-    void DeleteTag(Tag tag);
+    void DeleteTag(int id);
 }

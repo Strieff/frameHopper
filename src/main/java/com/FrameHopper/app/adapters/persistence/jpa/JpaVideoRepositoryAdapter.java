@@ -35,7 +35,7 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
     }
 
     @Override
-    public void delete(Video video) {
+    public void delete(int id) {
 
     }
 }

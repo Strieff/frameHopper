@@ -24,8 +24,8 @@ public class TagEntity {
     private Double value;
     @Column(name = "description", length = 1500)
     private String description;
-    @Column(name = "deleted")
-    private boolean deleted;
+    @Column(name = "visible")
+    private boolean visible;
     @ManyToMany(mappedBy = "tags")
     private List<FrameEntity> frameEntities;
 
@@ -40,16 +40,5 @@ public class TagEntity {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Tag{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", value=" + value +
-                ", description='" + description + '\'' +
-                ", deleted=" + deleted +
-                '}';
     }
 }

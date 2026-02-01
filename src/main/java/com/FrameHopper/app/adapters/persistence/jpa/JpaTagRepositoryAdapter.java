@@ -1,46 +1,75 @@
 package com.FrameHopper.app.adapters.persistence.jpa;
 
+import com.FrameHopper.app.adapters.persistence.mappers.TagMapper;
+import com.FrameHopper.app.adapters.persistence.mappers.VideoMapper;
+import com.FrameHopper.app.adapters.persistence.repository.TagRepository;
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.out.repository.TagRepositoryPort;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class JpaTagRepositoryAdapter implements TagRepositoryPort {
+    private final TagRepository tagRepository;
+
     @Override
     public Tag getById(int id) {
-        return null;
+        var entity = tagRepository.findTagEntityById((id));
+
+        return TagMapper.toDomain(entity);
     }
 
     @Override
     public Tag getByName(String name) {
-        return null;
+        var entity = tagRepository.findTagEntityByName(name);
+
+        return TagMapper.toDomain(entity);
     }
 
     @Override
     public List<Tag> getAllByVideo(Video video) {
-        return null;
+        var videoEntity = VideoMapper.fromDomain(video);
+
+        return null;//TODO: join on frames
     }
 
     @Override
     public List<Tag> getAll() {
-        return null;
+        var entities = tagRepository.findAll();
+
+        return entities.stream().map(TagMapper::toDomain).toList();
     }
 
     @Override
     public Tag create(Tag tag) {
-        return null;
+        var savedEntity = tagRepository.save(TagMapper.fromDomain(tag));
+
+        return TagMapper.toDomain(savedEntity);
     }
 
     @Override
     public Tag update(Tag tag) {
-        return null;
+        var updatedEntity = tagRepository.save(TagMapper.fromDomain(tag));
+
+        return TagMapper.toDomain(updatedEntity);
     }
 
     @Override
-    public void delete(Tag tag) {
+    public Tag updateStatus(int id) {
+        var entity = tagRepository.findTagEntityById(id);
+        entity.setVisible(!entity.isVisible());
 
+        var updatedEntity = tagRepository.save(entity);
+
+        return TagMapper.toDomain(updatedEntity);
+    }
+
+    @Override
+    public void delete(int id) {
+        tagRepository.deleteById(id);
     }
 }

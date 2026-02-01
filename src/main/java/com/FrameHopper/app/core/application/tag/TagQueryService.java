@@ -2,6 +2,7 @@ package com.FrameHopper.app.core.application.tag;
 
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
+import com.FrameHopper.app.core.ports.out.UserSettingsPort;
 import com.FrameHopper.app.core.ports.out.repository.TagRepositoryPort;
 import lombok.RequiredArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TagQueryService implements TagsQuery {
     private final TagRepositoryPort tagRepositoryPort;
+    private final UserSettingsPort userSettingsPort;
 
     @Override
     public List<Tag> getAllTags() {
@@ -23,9 +25,12 @@ public class TagQueryService implements TagsQuery {
 
     @Override
     public List<Tag> getAllVisible() {
-        return tagRepositoryPort.getAll().stream()
-                .filter(Tag::isVisible)
-                .toList();
+        var tags = tagRepositoryPort.getAll();
+
+        if(userSettingsPort.showHidden())
+            tags = tags.stream().filter(Tag::isVisible).toList();
+
+        return tags;
     }
 
     @Override
