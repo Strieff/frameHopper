@@ -9,6 +9,7 @@ public interface TagRepositoryPort {
     Tag getById(int id);
     Tag getByName(String name);
     List<Tag> getAllByVideo(Video video);
+    List<Tag> getTagsOnVideoFrame(Video video, int frame);
     List<Tag> getAll();
     Tag create(Tag tag);
     Tag update(Tag tag);

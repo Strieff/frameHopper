@@ -5,13 +5,16 @@ import com.FrameHopper.app.core.domain.Video;
 
 public class VideoMapper {
     public static Video toDomain(VideoEntity videoEntity) {
-        var metadata = new Video.VideoMetadata(
-                videoEntity.getTotalFrames(),
-                videoEntity.getFrameRate(),
-                videoEntity.getDuration(),
-                videoEntity.getVideoHeight(),
-                videoEntity.getVideoWidth()
-        );
+        Video.VideoMetadata metadata = null;
+
+        if(videoEntity.getTotalFrames() != null)
+            metadata = new Video.VideoMetadata(
+                    videoEntity.getTotalFrames(),
+                    videoEntity.getFrameRate(),
+                    videoEntity.getDuration(),
+                    videoEntity.getVideoHeight(),
+                    videoEntity.getVideoWidth()
+            );
 
         return new Video(
                 videoEntity.getId(),
@@ -29,11 +32,14 @@ public class VideoMapper {
 
         videoEntity.setPath(video.getPath());
         videoEntity.setName(video.getName());
-        videoEntity.setTotalFrames(video.getMetadata().totalFrames());
-        videoEntity.setFrameRate(video.getMetadata().frameRate());
-        videoEntity.setDuration(video.getMetadata().duration());
-        videoEntity.setVideoHeight(video.getMetadata().height());
-        videoEntity.setVideoWidth(video.getMetadata().width());
+
+        if(video.getMetadata() != null) {
+            videoEntity.setTotalFrames(video.getMetadata().totalFrames());
+            videoEntity.setFrameRate(video.getMetadata().frameRate());
+            videoEntity.setDuration(video.getMetadata().duration());
+            videoEntity.setVideoHeight(video.getMetadata().height());
+            videoEntity.setVideoWidth(video.getMetadata().width());
+        }
 
         return videoEntity;
     }

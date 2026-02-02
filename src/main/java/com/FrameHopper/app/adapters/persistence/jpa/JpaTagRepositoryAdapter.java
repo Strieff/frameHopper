@@ -2,6 +2,7 @@ package com.FrameHopper.app.adapters.persistence.jpa;
 
 import com.FrameHopper.app.adapters.persistence.mappers.TagMapper;
 import com.FrameHopper.app.adapters.persistence.mappers.VideoMapper;
+import com.FrameHopper.app.adapters.persistence.repository.FrameRepository;
 import com.FrameHopper.app.adapters.persistence.repository.TagRepository;
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.domain.Video;
@@ -9,12 +10,14 @@ import com.FrameHopper.app.core.ports.out.repository.TagRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JpaTagRepositoryAdapter implements TagRepositoryPort {
     private final TagRepository tagRepository;
+    private final FrameRepository frameRepository;
 
     @Override
     public Tag getById(int id) {
@@ -35,6 +38,22 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
         var videoEntity = VideoMapper.fromDomain(video);
 
         return null;//TODO: join on frames
+    }
+
+    @Override
+    public List<Tag> getTagsOnVideoFrame(Video video, int frame) {
+        var videoEntity = VideoMapper.fromDomain(video);
+        var frameEntity = frameRepository.getFrameEntityByFrameNumberAndVideoEntity(frame, videoEntity);
+
+        if (frameEntity == null)
+            return new ArrayList<>();
+
+        if (frameEntity.getTagEntities() == null || frameEntity.getTagEntities().isEmpty())
+            return new ArrayList<>();
+
+        return frameEntity.getTagEntities().stream()
+                .map(TagMapper::toDomain)
+                .toList();
     }
 
     @Override

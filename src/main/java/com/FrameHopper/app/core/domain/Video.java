@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
+import java.util.Objects;
 
 @Getter
 public class Video {
@@ -40,6 +41,17 @@ public class Video {
         this.path = path;
         if(!new File(path).getName().equals(this.name))
             this.name = new File(path).getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Video video)) return false;
+        return id == video.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     public record VideoMetadata(int totalFrames, double frameRate, double duration, int height, int width) {}

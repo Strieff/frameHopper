@@ -23,6 +23,9 @@ public class CommentCommandService implements
 
     @Override
     public void changeCommentListingOrder(Comment comment) {
+        if(comment.getListingOrder() < 0)
+            throw new IllegalArgumentException("Comment listing order must be greater than or equal to 0");
+
         commentRepositoryPort.update(comment);
     }
 

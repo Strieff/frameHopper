@@ -75,18 +75,23 @@ public class WiringConfig {
     }
 
     @Bean
-    public UpdateVideoPathCommand updateVideoPathCommand(JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter);
+    public UpdateVideoPathCommand updateVideoPathCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter, ffmpegAdapter);
     }
 
     @Bean
-    public CreateVideoCommand createVideoCommand(JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter);
+    public CreateVideoCommand createVideoCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter, ffmpegAdapter);
     }
 
     @Bean
-    public DeleteVideoCommand deleteVideoCommand(JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter);
+    public DeleteVideoCommand deleteVideoCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
+    }
+
+    @Bean
+    public LoadVideoCommand loadVideoCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
     }
 
     // COMMENTS
