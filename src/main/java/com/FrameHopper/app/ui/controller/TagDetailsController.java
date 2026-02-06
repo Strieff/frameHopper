@@ -1,0 +1,136 @@
+package com.FrameHopper.app.ui.controller;
+
+import com.FrameHopper.app.View.Elements.Language.Dictionary;
+import com.FrameHopper.app.boundry.dto.TagDTO;
+import com.FrameHopper.app.core.ports.in.tag.ChangeTagStatusCommand;
+import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
+import com.FrameHopper.app.core.ports.in.tag.UpdateTagCommand;
+import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+@Component
+@Scope("prototype")
+public class TagDetailsController implements UiView {
+    @FXML
+    private TextField nameField,valueField;
+    @FXML
+    private TextArea descriptionArea;
+    @FXML
+    private Label nameLabel,valueLabel,descriptionLabel;
+    @FXML
+    private HBox buttonBox;
+
+    private final CreateTagCommand createTagCommand;
+    private final ChangeTagStatusCommand changeTagStatusCommand;
+    private final UpdateTagCommand updateTagCommand;
+
+    private final Button cancelButton, changeStatusButton, saveButton;
+    private TagDTO cachedTag;
+
+    public TagDetailsController(
+            CreateTagCommand createTagCommand,
+            ChangeTagStatusCommand changeTagStatusCommand,
+            UpdateTagCommand updateTagCommand
+    ) {
+        this.createTagCommand = createTagCommand;
+        this.changeTagStatusCommand = changeTagStatusCommand;
+        this.updateTagCommand = updateTagCommand;
+
+        cancelButton =  new Button();
+        changeStatusButton =  new Button();
+        saveButton =  new Button();
+    }
+
+    @FXML
+    private void initialize() {
+        //labels
+        nameLabel.setText(Dictionary.get("name")+":");
+        valueLabel.setText(Dictionary.get("value")+":");
+        descriptionLabel.setText(Dictionary.get("description")+":");
+
+        setUpButton(cancelButton, "cancel", e -> close());
+        setUpButton(saveButton, "save", e -> {
+            try {
+                Double.parseDouble(valueField.getText());
+            }  catch (Exception ex) {
+                //TODO exception
+                return;
+            }
+
+            var name = nameField.getText();
+            var value = Double.parseDouble(valueField.getText());
+            var description = descriptionArea.getText().isBlank() ? "" : descriptionArea.getText();
+
+            if(cachedTag==null) {
+                cachedTag = createTagCommand.CreateTag(new TagDTO(
+                        name,
+                        value,
+                        description
+                ));
+
+                TagUpdatedEventDispatcher.createTag(cachedTag);
+            }
+            else {
+                cachedTag.setName(name);
+                cachedTag.setValue(value);
+                cachedTag.setDescription(description);
+
+                updateTagCommand.UpdateTag(cachedTag);
+
+                TagUpdatedEventDispatcher.updateTag(cachedTag);
+            }
+
+            close();
+        });
+        setUpButton(
+                changeStatusButton,
+                "",
+                e -> {
+                    cachedTag.changeStatus();
+                    changeTagStatusCommand.ChangeTagStatus(cachedTag.getId());
+                    changeStatusButton.setText(Dictionary.get(cachedTag.isVisible() ? "td.hide" : "td.unhide"));
+
+                    TagUpdatedEventDispatcher.updateTag(cachedTag);
+                }
+        );
+    }
+
+    private void setUpButton(Button button, String label, EventHandler<ActionEvent> event) {
+        button.setPrefHeight(25);
+        button.setPrefWidth(120);
+        button.setText(Dictionary.get(label));
+        button.setOnAction(event);
+    }
+
+    public void init(TagDTO tag) {
+        cachedTag = tag;
+
+        changeStatusButton.setText(Dictionary.get(cachedTag.isVisible() ? "td.hide" : "td.unhide"));
+        buttonBox.getChildren().addAll(cancelButton, changeStatusButton, saveButton);
+
+        nameField.textProperty().setValue(cachedTag.getName());
+        valueField.textProperty().setValue(String.valueOf(cachedTag.getValue()));
+        descriptionArea.textProperty().setValue(cachedTag.getDescription());
+    }
+
+    public void init() {
+        buttonBox.getChildren().addAll(cancelButton, saveButton);
+    }
+
+    @Override
+    public void close() {
+        Stage stage = (Stage) cancelButton.getScene().getWindow();
+        stage.close();
+    }
+}

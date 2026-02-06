@@ -18,4 +18,7 @@ public interface UserSettingsPort {
 
     void setUseDefaultLanguageForExport(boolean useDefaultLanguageForExport);
     boolean useDefaultLanguageForExport();
+
+    void setShowWarnings(boolean showWarnings);
+    boolean showWarnings();
 }

@@ -2,9 +2,9 @@ package com.FrameHopper.app;
 
 import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXMLViewLoader;
+import com.FrameHopper.app.adapters.settings.UserSettings;
+import com.FrameHopper.app.ui.FXMLViewLoader;
 import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
-import com.FrameHopper.app.settings.UserSettingsService;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = "com.FrameHopper.app.Repository")
-@EntityScan(basePackages = {"com.FrameHopper.app.Model"})
+@EnableJpaRepositories(basePackages = "com.FrameHopper.app.adapters.persistence.repository")
+@EntityScan(basePackages = {"com.FrameHopper.app.adapters.persistence.entities"})
 public class EngineerApplication extends Application {
     private ConfigurableApplicationContext context;
 
@@ -42,7 +42,7 @@ public class EngineerApplication extends Application {
 
             closeLoadingWindow();
 
-            if (context.getBean(UserSettingsService.class).openRecent())
+            if (UserSettings.getInstance().getOpenRecent())
                 openRecent(context);
 
         }catch (Exception e){
@@ -60,12 +60,11 @@ public class EngineerApplication extends Application {
     }
 
     private static void openRecent(ConfigurableApplicationContext context){
-        UserSettingsService userSettingsService = context.getBean(UserSettingsService.class);
-        VideoService videoService = context.getBean(VideoService.class);
-        var video = videoService.getById(userSettingsService.getRecentId());
-
-        if(userSettingsService.getRecentId() == -1)
+        if(UserSettings.getInstance().getRecentlyOpenedId() == -1)
             return;
+
+        VideoService videoService = context.getBean(VideoService.class);
+        var video = videoService.getById(UserSettings.getInstance().getRecentlyOpenedId());
 
         //TODO: change to dictionary
         if(

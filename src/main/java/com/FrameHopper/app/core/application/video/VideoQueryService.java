@@ -7,6 +7,7 @@ import com.FrameHopper.app.core.ports.out.FfmpegPort;
 import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
     }
 
     @Override
-    public Video.VideoMetadata getVideoMetadataByPath(String path) {
+    public Video.VideoMetadata getVideoMetadataByPath(String path) throws IOException, InterruptedException {
         return ffmpegPort.getVideoMetadata(path);
     }
 }

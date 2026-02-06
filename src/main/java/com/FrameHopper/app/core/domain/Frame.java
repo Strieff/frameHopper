@@ -1,5 +1,6 @@
 package com.FrameHopper.app.core.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
+@AllArgsConstructor
 public class Frame {
     @Setter
     int id;

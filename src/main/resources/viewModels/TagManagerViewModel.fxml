@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="tagManagerView" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.TagManager.TagManagerController">
+<BorderPane fx:id="tagManagerView" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.TagManagerController">
 
     <!-- Top toolbar with buttons -->
     <top>

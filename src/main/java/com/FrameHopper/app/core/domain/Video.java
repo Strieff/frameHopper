@@ -16,8 +16,8 @@ public class Video {
 
     public Video(
             int id,
-            String name,
             String path,
+            String name,
             VideoMetadata metadata
     ) {
         this.id = id;

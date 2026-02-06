@@ -1,5 +1,7 @@
 package com.FrameHopper.app.core.application.tag;
 
+import com.FrameHopper.app.boundry.dto.TagDTO;
+import com.FrameHopper.app.boundry.mappers.TagMapper;
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
@@ -16,8 +18,8 @@ public class TagQueryService implements TagsQuery {
     private final UserSettingsPort userSettingsPort;
 
     @Override
-    public List<Tag> getAllTags() {
-        return tagRepositoryPort.getAll();
+    public List<TagDTO> getAllTags() {
+        return tagRepositoryPort.getAll().stream().map(TagMapper::fromDomain).toList();
     }
 
     @Override

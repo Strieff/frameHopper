@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.TagDetails.TagDetailsController">
+<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.TagDetailsController">
 
     <!-- Top Section with NAME and VALUE Fields -->
     <top>
@@ -44,10 +44,7 @@
 
     <!-- Bottom Section with Buttons -->
     <bottom>
-        <HBox alignment="CENTER" prefHeight="39.0" prefWidth="320.0" spacing="20" VBox.vgrow="NEVER">
-            <Button fx:id="cancelButton" prefHeight="25.0" prefWidth="120.0" text="Cancel" />
-            <Button fx:id="hideButton" prefHeight="25.0" prefWidth="120.0" text="Hide" />
-            <Button fx:id="saveButton" prefHeight="25.0" prefWidth="120.0" text="Save" />
+        <HBox fx:id="buttonBox" alignment="CENTER" prefHeight="39.0" prefWidth="320.0" spacing="20" VBox.vgrow="NEVER">
             <padding>
                 <Insets left="10.0" right="10.0" />
             </padding>

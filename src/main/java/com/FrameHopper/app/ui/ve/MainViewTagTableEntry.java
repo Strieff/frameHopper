@@ -1,19 +1,18 @@
 package com.FrameHopper.app.ui.ve;
 
-import com.FrameHopper.app.core.domain.Tag;
+import com.FrameHopper.app.boundry.dto.TagDTO;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import lombok.Getter;
 
+@Getter
 public class MainViewTagTableEntry {
-    Tag entry;
+    private final TagDTO entry;
 
-    @Getter
     private final SimpleStringProperty name;
-    @Getter
     private final SimpleDoubleProperty value;
 
-    public MainViewTagTableEntry(Tag entry) {
+    public MainViewTagTableEntry(TagDTO entry) {
         this.entry = entry;
 
         this.name = new SimpleStringProperty(entry.getName());
@@ -21,10 +20,10 @@ public class MainViewTagTableEntry {
     }
 
     public String getName() {
-        return entry.getName();
+        return name.get();
     }
 
     public double getValue() {
-        return entry.getValue();
+        return value.get();
     }
 }

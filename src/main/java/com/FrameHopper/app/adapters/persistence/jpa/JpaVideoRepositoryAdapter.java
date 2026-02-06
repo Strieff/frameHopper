@@ -1,13 +1,18 @@
 package com.FrameHopper.app.adapters.persistence.jpa;
 
+import com.FrameHopper.app.adapters.persistence.mappers.VideoMapper;
+import com.FrameHopper.app.adapters.persistence.repository.VideoRepository;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
+    private final VideoRepository videoRepository;
 
     @Override
     public Video getById(int id) {
@@ -16,7 +21,12 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
 
     @Override
     public Video getByPath(String path) {
-        return null;
+        var entity = videoRepository.getVideoEntityByPath(path);
+
+        var test = entity.map(VideoMapper::toDomain).orElse(null);
+
+
+        return test;
     }
 
     @Override
@@ -26,7 +36,9 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
 
     @Override
     public Video create(Video video) {
-        return null;
+        var entity = videoRepository.save(VideoMapper.fromDomain(video));
+
+        return VideoMapper.toDomain(entity);
     }
 
     @Override

@@ -22,6 +22,7 @@ public class TagMapper {
                 tagEntity.getId(),
                 tagEntity.getName(),
                 tagEntity.getValue(),
+                tagEntity.getDescription(),
                 tagEntity.isVisible()
         );
     }

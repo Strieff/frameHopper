@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.CreateTag.CreateTagController">
+<BorderPane prefHeight="320.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.CreateTagController">
 
     <top>
         <VBox spacing="8.0" style="-fx-padding: 10;">

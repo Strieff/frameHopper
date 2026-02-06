@@ -1,7 +1,8 @@
 package com.FrameHopper.app.core.ports.in.tag;
 
-import com.FrameHopper.app.core.domain.Tag;
+import java.util.List;
 
 public interface DeleteTagCommand {
     void DeleteTag(int id);
+    void DeleteTags(List<Integer> ids);
 }

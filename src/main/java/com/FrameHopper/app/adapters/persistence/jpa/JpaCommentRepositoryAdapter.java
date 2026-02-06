@@ -7,6 +7,7 @@ import com.FrameHopper.app.core.domain.Comment;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.out.repository.CommentRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

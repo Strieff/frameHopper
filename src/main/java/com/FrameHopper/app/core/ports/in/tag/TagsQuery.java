@@ -1,12 +1,13 @@
 package com.FrameHopper.app.core.ports.in.tag;
 
+import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.domain.Video;
 
 import java.util.List;
 
 public interface TagsQuery {
-    List<Tag> getAllTags();
+    List<TagDTO> getAllTags();
     List<Tag> getAllVisible();
     List<Tag> getTagsOnVideoFrame(Video video, int frame);
     Tag getTagByName(String name);

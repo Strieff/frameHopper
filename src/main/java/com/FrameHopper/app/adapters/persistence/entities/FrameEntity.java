@@ -7,7 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "Frame",
+        name = "FrameEntity",
         uniqueConstraints = @UniqueConstraint(columnNames = {"frame_number", "video_id"})
 )
 @Getter

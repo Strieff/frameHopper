@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.ports.in.tag;
 
-import com.FrameHopper.app.core.domain.Tag;
+import com.FrameHopper.app.boundry.dto.TagDTO;
 
 public interface CreateTagCommand {
-    Tag CreateTag(Tag tag);
+    TagDTO CreateTag(TagDTO tag);
 }

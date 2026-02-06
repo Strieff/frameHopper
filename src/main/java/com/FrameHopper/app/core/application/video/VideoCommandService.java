@@ -1,5 +1,7 @@
 package com.FrameHopper.app.core.application.video;
 
+import com.FrameHopper.app.boundry.dto.VideoDTO;
+import com.FrameHopper.app.boundry.mappers.VideoMapper;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.in.video.CreateVideoCommand;
 import com.FrameHopper.app.core.ports.in.video.DeleteVideoCommand;
@@ -38,7 +40,7 @@ public class VideoCommandService implements
     }
 
     @Override
-    public Video loadVideo(String path) throws IOException, InterruptedException {
+    public VideoDTO loadVideo(String path) throws IOException, InterruptedException {
         if (!new File(path).exists())
             throw new FileNotFoundException(path);
 
@@ -52,11 +54,11 @@ public class VideoCommandService implements
                     new File(path).getName(),
                     metadata
             );
-            loadedVideo = createVideo(loadedVideo);
+            loadedVideo = videoRepositoryPort.create(loadedVideo);
         }
 
         ffmpegPort.loadVideo(loadedVideo);
-        return loadedVideo;
+        return VideoMapper.fromDomain(loadedVideo);
     }
 
     @Override

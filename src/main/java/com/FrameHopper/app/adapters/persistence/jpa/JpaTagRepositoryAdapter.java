@@ -30,7 +30,7 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
     public Tag getByName(String name) {
         var entity = tagRepository.findTagEntityByName(name);
 
-        return TagMapper.toDomain(entity);
+        return entity != null ? TagMapper.toDomain(entity) : null;
     }
 
     @Override
@@ -78,17 +78,20 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
     }
 
     @Override
-    public Tag updateStatus(int id) {
+    public void updateStatus(int id) {
         var entity = tagRepository.findTagEntityById(id);
         entity.setVisible(!entity.isVisible());
 
-        var updatedEntity = tagRepository.save(entity);
-
-        return TagMapper.toDomain(updatedEntity);
+        tagRepository.save(entity);
     }
 
     @Override
     public void delete(int id) {
         tagRepository.deleteById(id);
+    }
+
+    @Override
+    public void delete(List<Integer> ids) {
+        tagRepository.deleteAllById(ids);
     }
 }

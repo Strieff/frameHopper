@@ -1,7 +1,7 @@
 package com.FrameHopper.app.config;
 
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.settings.UserSettings;
+import com.FrameHopper.app.adapters.settings.UserSettings;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;

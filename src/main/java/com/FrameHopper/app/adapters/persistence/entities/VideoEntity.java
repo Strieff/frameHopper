@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "Video")
+@Table(name = "VideoEntity")
 @Getter
 @Setter
 @Builder
@@ -22,9 +22,9 @@ public class VideoEntity {
     private String name;
     @Column(name = "path")
     private String path;
-    @OneToMany(mappedBy = "video")
+    @OneToMany(mappedBy = "videoEntity")
     private List<FrameEntity> frameEntities;
-    @OneToMany(mappedBy = "video", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "videoEntity", cascade = CascadeType.ALL)
     private List<CommentEntity> commentEntities;
     private Integer totalFrames;
     private Double frameRate;

@@ -1,12 +1,15 @@
 package com.FrameHopper.app.core.application.tag;
 
-import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.ports.in.tag.ChangeTagStatusCommand;
 import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.DeleteTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.UpdateTagCommand;
 import com.FrameHopper.app.core.ports.out.repository.TagRepositoryPort;
+import com.FrameHopper.app.boundry.dto.TagDTO;
+import com.FrameHopper.app.boundry.mappers.TagMapper;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 public class TagCommandService implements
@@ -17,16 +20,28 @@ public class TagCommandService implements
     private final TagRepositoryPort tagRepositoryPort;
 
     @Override
-    public Tag ChangeTagStatus(int id) {
-        return tagRepositoryPort.updateStatus(id);
+    public void ChangeTagStatus(int id) {
+        tagRepositoryPort.updateStatus(id);
     }
 
     @Override
-    public Tag CreateTag(Tag tag) {
-        if (tag.getName() == null || tag.getName().isBlank())
-            throw new IllegalArgumentException(); //TODO
+    public TagDTO CreateTag(TagDTO tagDto) {
+        if (tagDto.getName() == null || tagDto.getName().isBlank())
+            throw new IllegalArgumentException("name is required");
 
-        return tagRepositoryPort.create(tag);
+        if(tagRepositoryPort.getByName(tagDto.getName()) != null)
+            throw new IllegalArgumentException("Tag with that name already exists");
+
+        if (tagDto.getValue() == null)
+            throw new IllegalArgumentException("value is required");
+
+        if (tagDto.getValue().isNaN())
+            throw new IllegalArgumentException("Value must be a number");
+
+        var tag = TagMapper.toDomain(tagDto);
+        var savedTag = tagRepositoryPort.create(tag);
+
+        return TagMapper.fromDomain(savedTag);
     }
 
     @Override
@@ -35,10 +50,24 @@ public class TagCommandService implements
     }
 
     @Override
-    public Tag UpdateTag(Tag tag) {
-        if (tag.getName() == null || tag.getName().isBlank())
-            throw new IllegalArgumentException(); //TODO
+    public TagDTO UpdateTag(TagDTO tagDto) {
+        if (tagDto.getName() == null || tagDto.getName().isBlank())
+            throw new IllegalArgumentException("name is required");
 
-        return tagRepositoryPort.update(tag);
+        if(tagDto.getValue() == null || tagDto.getValue().isNaN())
+            throw new IllegalArgumentException("Value must be a number");
+
+        var tag = TagMapper.toDomain(tagDto);
+        var updatedTag = tagRepositoryPort.update(tag);
+
+        return TagMapper.fromDomain(updatedTag);
+    }
+
+    @Override
+    public void DeleteTags(List<Integer> ids) {
+        if (ids == null || ids.isEmpty())
+            throw new IllegalArgumentException("ids is required"); //TODO
+
+        tagRepositoryPort.delete(ids);
     }
 }

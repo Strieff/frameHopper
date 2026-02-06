@@ -2,7 +2,7 @@ package com.FrameHopper.app.Service;
 
 import com.FrameHopper.app.Model.Comment;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.Repository.CommentRepository;
+import com.FrameHopper.app.Repository.CommentRepositoryOld;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,37 +10,33 @@ import java.util.List;
 @Service
 public class CommentService {
 
-    private final CommentRepository commentRepository;
-
-    public CommentService(CommentRepository commentRepository) {
-        this.commentRepository = commentRepository;
-    }
+    private final CommentRepositoryOld commentRepositoryOld = null;
 
     public List<Comment> getAll() {
-        return commentRepository.findAllOrdered();
+        return commentRepositoryOld.findAllOrdered();
     }
 
     public Comment get(int id) {
-        return commentRepository.findById((long) id).orElse(null);
+        return commentRepositoryOld.findById((long) id).orElse(null);
     }
 
     public List<Comment> getAllByVideo(Video video) {
-        return commentRepository.getCommentByVideo(video);
+        return commentRepositoryOld.getCommentByVideo(video);
     }
 
     public Comment createOrUpdate(Comment comment) {
-        return commentRepository.save(comment);
+        return commentRepositoryOld.save(comment);
     }
 
     public void delete(Comment comment) {
-        commentRepository.delete(comment);
+        commentRepositoryOld.delete(comment);
     }
 
     public void saveAll(List<Comment> comments) {
-        commentRepository.saveAll(comments);
+        commentRepositoryOld.saveAll(comments);
     }
 
     public Comment findById(int commentId) {
-        return commentRepository.findById((long) commentId).orElse(null);
+        return commentRepositoryOld.findById((long) commentId).orElse(null);
     }
 }

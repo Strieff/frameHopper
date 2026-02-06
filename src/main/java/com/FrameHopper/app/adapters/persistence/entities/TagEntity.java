@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "Tag")
+@Table(name = "TagEntity")
 @Getter
 @Setter
 @Builder
@@ -26,7 +26,7 @@ public class TagEntity {
     private String description;
     @Column(name = "visible")
     private boolean visible;
-    @ManyToMany(mappedBy = "tags")
+    @ManyToMany(mappedBy = "tagEntities")
     private List<FrameEntity> frameEntities;
 
     @Override

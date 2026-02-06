@@ -13,6 +13,7 @@ public interface TagRepositoryPort {
     List<Tag> getAll();
     Tag create(Tag tag);
     Tag update(Tag tag);
-    Tag updateStatus(int id);
+    void updateStatus(int id);
     void delete(int id);
+    void delete(List<Integer> ids);
 }

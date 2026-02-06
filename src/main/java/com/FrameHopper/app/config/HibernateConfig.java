@@ -30,7 +30,7 @@ public class HibernateConfig {
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource());
-        sessionFactory.setPackagesToScan("com.FrameHopper.app.Model");
+        sessionFactory.setPackagesToScan("com.FrameHopper.app.adapters.persistence.entities");
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
     }
