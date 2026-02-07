@@ -30,8 +30,17 @@ public class VideoCommandService implements
     }
 
     @Override
-    public Video updateVideoPath(Video video) {
-        return videoRepositoryPort.update(video);
+    public VideoDTO updateVideoPath(VideoDTO video, String newPath) {
+        var existingVideo = videoRepositoryPort.getByPath(newPath);
+
+        if(existingVideo != null)
+            throw new IllegalArgumentException("Video already exists");
+
+        var toChange = VideoMapper.toDomain(video);
+        toChange.changePath(newPath);
+        toChange = videoRepositoryPort.update(toChange);
+
+        return VideoMapper.fromDomain(toChange);
     }
 
     @Override
@@ -62,10 +71,13 @@ public class VideoCommandService implements
     }
 
     @Override
-    public Video loadVideo(int id) throws IOException, InterruptedException {
+    public VideoDTO loadVideo(int id) {
         var loadedVideo = videoRepositoryPort.getById(id);
 
+        if(loadedVideo == null)
+            throw new IllegalArgumentException("Video with id " + id + " not found");
+
         ffmpegPort.loadVideo(loadedVideo);
-        return loadedVideo;
+        return VideoMapper.fromDomain(loadedVideo);
     }
 }

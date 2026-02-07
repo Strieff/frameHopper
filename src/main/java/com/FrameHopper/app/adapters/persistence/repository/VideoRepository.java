@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface VideoRepository extends JpaRepository<VideoEntity,Integer> {
     Optional<VideoEntity> getVideoEntityByPath(String path);
+
+    Optional<VideoEntity> findVideoEntitiesById(int id);
 }

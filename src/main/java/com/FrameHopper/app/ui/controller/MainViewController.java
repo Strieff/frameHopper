@@ -9,11 +9,9 @@ import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.FrameBytesQuery;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.LoadVideoCommand;
+import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
-import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher;
-import com.FrameHopper.app.ui.eventing.FrameUpdatedListener;
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher;
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventListener;
+import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.ve.MainViewTagTableEntry;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -40,7 +38,14 @@ import java.util.Map;
 //TODO: move to dictionary adapter
 @Component
 @Scope("prototype")
-public class MainViewController implements FrameUpdatedListener, TagUpdatedEventListener {
+public class MainViewController implements
+        FrameUpdatedListener,
+        TagUpdatedEventListener,
+        OpenVideoEventListener,
+        DeleteVideoEventListener,
+        VideoPathUpdatedListener
+{
+    private final VideoQuery videoQuery;
     @FXML
     private TextField frameInput;
     @FXML
@@ -83,13 +88,18 @@ public class MainViewController implements FrameUpdatedListener, TagUpdatedEvent
     public MainViewController(
             LoadVideoCommand loadVideoCommand,
             FrameBytesQuery frameBytesQuery,
-            FrameQuery frameQuery) {
+            FrameQuery frameQuery,
+            VideoQuery videoQuery
+    ) {
         this.loadVideoCommand = loadVideoCommand;
         this.frameBytesQuery = frameBytesQuery;
         this.frameQuery = frameQuery;
+        this.videoQuery = videoQuery;
 
         FrameUpdatedEventDispatcher.register(this);
         TagUpdatedEventDispatcher.register(this);
+        OpenVideoEventDispatcher.register(this);
+        DeleteVideoEventDispatcher.register(this);
     }
 
     @FXML
@@ -288,7 +298,11 @@ public class MainViewController implements FrameUpdatedListener, TagUpdatedEvent
 
     @FXML
     protected void onVideoList() {
-
+        FXMLViewLoader.getView(
+            "VideoManagementListViewModel",
+            "Video Management",
+            mainView
+        );
     }
 
     @FXML
@@ -394,4 +408,31 @@ public class MainViewController implements FrameUpdatedListener, TagUpdatedEvent
     }
 
     //endregion
+
+    @Override
+    public void openVideo(int id) {
+        cachedVideo = loadVideoCommand.loadVideo(id);
+        openVideo();
+    }
+
+    @Async
+    @Override
+    public void onDeleteVideo(VideoDTO videoDTO) {
+        if(cachedVideo == null) return;
+
+        if(cachedVideo.equals(videoDTO)) return;
+
+        cachedVideo = null;
+        cachedTags.clear();
+        tableView.getItems().clear();
+
+        frameView.setImage(null);
+        statusLabel.setText("NO VIDEO OPEN"); //TODO
+    }
+
+    @Override
+    public void onVideoPathUpdated(VideoDTO video) {
+        if(cachedVideo.equals(video))
+            cachedVideo = video;
+    }
 }

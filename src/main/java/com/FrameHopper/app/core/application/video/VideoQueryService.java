@@ -1,5 +1,7 @@
 package com.FrameHopper.app.core.application.video;
 
+import com.FrameHopper.app.boundry.dto.VideoDTO;
+import com.FrameHopper.app.boundry.mappers.VideoMapper;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.in.video.VideoMetadataQuery;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
@@ -8,6 +10,7 @@ import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -16,13 +19,26 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
     private final VideoRepositoryPort videoRepositoryPort;
 
     @Override
-    public List<Video> getAllVideos() {
-        return videoRepositoryPort.getAll();
+    public List<VideoDTO> getAllVideos() {
+        var videos = videoRepositoryPort.getAll();
+
+        if(videos == null || videos.isEmpty())
+            return new ArrayList<>();
+
+        return videos.stream().map(VideoMapper::fromDomain).toList();
     }
 
     @Override
-    public Video getVideoById(int id) {
-        return videoRepositoryPort.getById(id);
+    public VideoDTO getVideoById(int id) {
+        if(id < 0)
+            throw new IllegalArgumentException("");
+
+        var video = videoRepositoryPort.getById(id);
+
+        if(video == null)
+            throw new IllegalArgumentException("Video with id " + id + " not found");
+
+        return VideoMapper.fromDomain(video);
     }
 
     @Override

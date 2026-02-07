@@ -22,7 +22,7 @@ public class VideoEntity {
     private String name;
     @Column(name = "path")
     private String path;
-    @OneToMany(mappedBy = "videoEntity")
+    @OneToMany(mappedBy = "videoEntity", cascade = CascadeType.ALL)
     private List<FrameEntity> frameEntities;
     @OneToMany(mappedBy = "videoEntity", cascade = CascadeType.ALL)
     private List<CommentEntity> commentEntities;

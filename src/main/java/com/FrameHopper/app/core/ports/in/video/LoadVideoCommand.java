@@ -7,5 +7,6 @@ import java.io.IOException;
 
 public interface LoadVideoCommand {
     VideoDTO loadVideo(String path) throws IOException, InterruptedException;
-    Video loadVideo(int id) throws IOException, InterruptedException;
+
+    VideoDTO loadVideo(int id);
 }

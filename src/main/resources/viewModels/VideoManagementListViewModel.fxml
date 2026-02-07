@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="listView" prefHeight="360.0" prefWidth="510.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.VideoManagementList.VideoManagementListController">
+<BorderPane fx:id="listView" prefHeight="360.0" prefWidth="510.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.VideoListController">
     <center>
         <VBox prefWidth="500.0" spacing="8.0" style="-fx-padding: 5;" BorderPane.alignment="CENTER">
             <ListView fx:id="videoList" VBox.vgrow="ALWAYS" />

@@ -16,15 +16,15 @@ public class TagUpdatedEventDispatcher {
         listeners.remove(listener);
     }
 
-    public static void updateTag(TagDTO tagDTO) {
+    public static void dispatchUpdate(TagDTO tagDTO) {
         listeners.forEach(listener -> listener.onTagUpdated(tagDTO));
     }
 
-    public static void createTag(TagDTO tagDTO) {
+    public static void dispatchCreate(TagDTO tagDTO) {
         listeners.forEach(listener -> listener.onTagCreated(tagDTO));
     }
 
-    public static void deleteTag(TagDTO tagDTO) {
+    public static void dispatchDelete(TagDTO tagDTO) {
         listeners.forEach(listener -> listener.onTagDeleted(tagDTO));
     }
 }

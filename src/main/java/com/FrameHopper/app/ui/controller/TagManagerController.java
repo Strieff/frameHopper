@@ -97,7 +97,7 @@ public class TagManagerController implements UiView, TagUpdatedEventListener {
                 "bin.png",
                 e -> {
                     deleteTagCommand.DeleteTag(e.getTag().getId());
-                    TagUpdatedEventDispatcher.deleteTag(e.getTag());
+                    TagUpdatedEventDispatcher.dispatchDelete(e.getTag());
                 });
 
         loadTagTable();

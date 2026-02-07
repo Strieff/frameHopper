@@ -7,6 +7,7 @@ import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -16,22 +17,26 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
 
     @Override
     public Video getById(int id) {
-        return null;
+        var entity = videoRepository.findVideoEntitiesById(id);
+
+        return entity.map(VideoMapper::toDomain).orElse(null);
     }
 
     @Override
     public Video getByPath(String path) {
         var entity = videoRepository.getVideoEntityByPath(path);
 
-        var test = entity.map(VideoMapper::toDomain).orElse(null);
-
-
-        return test;
+        return entity.map(VideoMapper::toDomain).orElse(null);
     }
 
     @Override
     public List<Video> getAll() {
-        return List.of();
+        var entities = videoRepository.findAll();
+
+        if(entities.isEmpty())
+            return new ArrayList<>();
+
+        return entities.stream().map(VideoMapper::toDomain).toList();
     }
 
     @Override
@@ -43,11 +48,13 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
 
     @Override
     public Video update(Video video) {
-        return null;
+        var updatedEntity = videoRepository.save(VideoMapper.fromDomain(video));
+
+        return VideoMapper.toDomain(updatedEntity);
     }
 
     @Override
     public void delete(int id) {
-
+        videoRepository.deleteById(id);
     }
 }

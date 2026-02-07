@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.ports.in.video;
 
-import com.FrameHopper.app.core.domain.Video;
+import com.FrameHopper.app.boundry.dto.VideoDTO;
 
 public interface UpdateVideoPathCommand {
-    Video updateVideoPath(Video video);
+    VideoDTO updateVideoPath(VideoDTO video, String newPath);
 }

@@ -1,6 +1,6 @@
 package com.FrameHopper.app.boundry.dto;
 
-import java.util.List;
+import java.util.Objects;
 
 public record VideoDTO(
         int id,
@@ -8,4 +8,14 @@ public record VideoDTO(
         String path,
         MetadataDto metadata
 ) {
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof VideoDTO videoDTO)) return false;
+        return id == videoDTO.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

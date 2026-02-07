@@ -79,7 +79,7 @@ public class TagDetailsController implements UiView {
                         description
                 ));
 
-                TagUpdatedEventDispatcher.createTag(cachedTag);
+                TagUpdatedEventDispatcher.dispatchCreate(cachedTag);
             }
             else {
                 cachedTag.setName(name);
@@ -88,7 +88,7 @@ public class TagDetailsController implements UiView {
 
                 updateTagCommand.UpdateTag(cachedTag);
 
-                TagUpdatedEventDispatcher.updateTag(cachedTag);
+                TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
             }
 
             close();
@@ -101,7 +101,7 @@ public class TagDetailsController implements UiView {
                     changeTagStatusCommand.ChangeTagStatus(cachedTag.getId());
                     changeStatusButton.setText(Dictionary.get(cachedTag.isVisible() ? "td.hide" : "td.unhide"));
 
-                    TagUpdatedEventDispatcher.updateTag(cachedTag);
+                    TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
                 }
         );
     }
