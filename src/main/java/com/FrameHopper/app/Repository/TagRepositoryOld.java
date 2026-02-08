@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TagRepository extends JpaRepository<Tag,Double> {
+public interface TagRepositoryOld extends JpaRepository<Tag,Double> {
     @Modifying(clearAutomatically = true)
     @Query("update Tag t set t.deleted = true where t.id=:id")
     void hideTag(@Param("id") Integer id);

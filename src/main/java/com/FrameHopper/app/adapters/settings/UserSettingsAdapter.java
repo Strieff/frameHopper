@@ -39,6 +39,18 @@ public class UserSettingsAdapter implements UserSettingsPort {
     }
 
     @Override
+    public void setUseRecentExportPath(boolean useRecentExportPath) {
+        settings.setUseRecentExportPath(useRecentExportPath);
+        save();
+    }
+
+    @Override
+    public boolean useRecentExportPath() {
+        return settings.getUseRecentExportPath();
+    }
+
+
+    @Override
     public void setRecentExportPath(String path) {
         settings.setRecentExportPath(path);
         save();

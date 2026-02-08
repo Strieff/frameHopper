@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane fx:id="chartView" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.Charts.ChartsController">
+<BorderPane fx:id="chartView" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.ChartsController">
     <top>
         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <Button onAction="#handleImport">
@@ -101,7 +101,7 @@
     <!-- Left: Table for Video Selection -->
     <left>
         <VBox prefWidth="300" BorderPane.alignment="CENTER">
-            <TableView fx:id="videoTable" prefHeight="603.0" prefWidth="300.0">
+            <TableView fx:id="videoTable" editable="true" prefHeight="603.0" prefWidth="300.0">
                 <columns>
                     <!-- Checkbox Column -->
                     <TableColumn fx:id="selectColumn" maxWidth="40.0" minWidth="20.0" prefWidth="40.0">
@@ -128,13 +128,13 @@
         <VBox prefWidth="200" BorderPane.alignment="CENTER">
             <VBox prefHeight="43.0" prefWidth="200.0">
                 <padding>
-                    <Insets bottom="5.0" top="10.0"/>
+                    <Insets bottom="5.0" top="10.0" />
                 </padding>
-                <Label fx:id="yAxisLabel" text="Y-Axis Options:"/>
+                <Label fx:id="yAxisLabel" text="Y-Axis Options:" />
                 <!-- ComboBox for Y-axis -->
                 <ComboBox fx:id="yAxisOptions" promptText="Choose Y-axis option">
                     <items>
-                        <FXCollections fx:factory="observableArrayList"/>
+                        <FXCollections fx:factory="observableArrayList" />
                     </items>
                 </ComboBox>
             </VBox>

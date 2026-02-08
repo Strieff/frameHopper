@@ -7,6 +7,9 @@ public interface UserSettingsPort {
     void setOpenRecent(boolean openRecent);
     boolean openRecent();
 
+    void setUseRecentExportPath(boolean useRecentExportPath);
+    boolean useRecentExportPath();
+
     void setRecentExportPath(String path);
     String getRecentExportPath();
 

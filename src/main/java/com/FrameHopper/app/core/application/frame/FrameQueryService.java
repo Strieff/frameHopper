@@ -8,6 +8,7 @@ import com.FrameHopper.app.boundry.mappers.VideoMapper;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -19,6 +20,16 @@ public class FrameQueryService implements FrameQuery {
         var coreVideo = VideoMapper.toDomain(video);
 
         var frames = jpaFrameRepositoryAdapter.getAllFramesOnVideo(coreVideo);
+
+        return frames.stream().map(FrameMapper::fromDomain).toList();
+    }
+
+    @Override
+    public List<FrameDTO> getAll() {
+        var frames = jpaFrameRepositoryAdapter.getAll();
+
+        if(frames.isEmpty())
+            return new ArrayList<>();
 
         return frames.stream().map(FrameMapper::fromDomain).toList();
     }

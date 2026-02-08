@@ -12,7 +12,7 @@ import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableListener;
-import com.FrameHopper.app.View.FXViews.TagDetails.TagDetailsController;
+import com.FrameHopper.app.View.FXViews.TagDetails.TagDetailsControllerOld;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class TagManagerController implements LanguageChangeListener, UpdateTableListener {
+public class TagManagerControllerOld implements LanguageChangeListener, UpdateTableListener {
     @FXML
     private TableView<TableEntry> codeTable;
     @FXML
@@ -63,7 +63,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    public TagManagerController(
+    public TagManagerControllerOld(
             TagManagerService viewService,
             OpenViewsInformationContainer viewContainer,
             UserSettingsService userSettingsService
@@ -332,7 +332,7 @@ public class TagManagerController implements LanguageChangeListener, UpdateTable
         );
 
         //get controller
-        TagDetailsController controller = loader.getController();
+        TagDetailsControllerOld controller = loader.getController();
         controller.init(id);
     }
 

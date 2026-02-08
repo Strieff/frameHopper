@@ -1,18 +1,12 @@
 package com.FrameHopper.app.View.FXViews.CreateTag;
 
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CreateTagService {
-    private final TagListManager tagList;
-
-    public CreateTagService(TagListManager tagList) {
-        this.tagList = tagList;
-    }
 
     public void createTag(String tagName, String value,String tagDescription) {
         try{
@@ -21,7 +15,7 @@ public class CreateTagService {
                 throw new Exception(Dictionary.get("tag.name.empty"));
 
             //check if tag name exists
-            if(tagList.getTag(tagName) != null)
+            if(/*tagList.getTag(tagName) != null*/true)
                 throw new Exception(String.format(Dictionary.get("tag.name.exists"),tagName));
 
             if(value.isBlank())
@@ -38,11 +32,11 @@ public class CreateTagService {
             if(Double.parseDouble(value)<0)
                 throw new Exception(Dictionary.get("tag.value.non-positive"));
 
-            tagList.addTag(
+            /*tagList.addTag(
                     tagName,
                     Double.parseDouble(value),
                     tagDescription == null ? "" : tagDescription
-            );
+            );*/
             UpdateTableEventDispatcher.fireEvent();
         }catch (Exception e){
             FXDialogProvider.errorDialog(e.getMessage());

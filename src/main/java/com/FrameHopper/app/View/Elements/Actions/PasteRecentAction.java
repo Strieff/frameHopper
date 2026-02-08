@@ -3,7 +3,6 @@ package com.FrameHopper.app.View.Elements.Actions;
 import com.FrameHopper.app.Service.DataBaseManagementService;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.stereotype.Component;
 
@@ -16,13 +15,11 @@ public class PasteRecentAction extends ActionHandler{
     private final DataBaseManagementService dbService;
 
     public PasteRecentAction(
-            TagListManager tagList,
             UndoRedoAction undoRedoAction,
             DataBaseManagementService dbService
     ) {
         this.undoRedoAction = undoRedoAction;
         this.dbService = dbService;
-        this.tagList = tagList;
         tagIdList = new ArrayList<>();
     }
 

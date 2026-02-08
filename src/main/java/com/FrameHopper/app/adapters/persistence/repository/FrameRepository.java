@@ -19,4 +19,8 @@ public interface FrameRepository extends JpaRepository<FrameEntity,Integer> {
 
     @EntityGraph(attributePaths = {"tagEntities", "videoEntity"})
     Optional<FrameEntity> findFrameEntityById(int id);
+
+    @Override
+    @EntityGraph(attributePaths = {"tagEntities", "videoEntity"})
+    List<FrameEntity> findAll();
 }

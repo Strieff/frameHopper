@@ -6,7 +6,6 @@ import com.FrameHopper.app.Service.TagService;
 import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Pair;
@@ -24,12 +23,10 @@ import java.util.stream.Collectors;
 public class ExportService {
     private final VideoService videoService;
     private final TagService tagService;
-    private final TagListManager tagList;
 
-    public ExportService(VideoService videoService, TagService tagService, TagListManager tagList) {
+    public ExportService(VideoService videoService, TagService tagService) {
         this.videoService = videoService;
         this.tagService = tagService;
-        this.tagList = tagList;
     }
 
     public ObservableList<TableEntry> getVideos(){
@@ -404,7 +401,7 @@ public class ExportService {
                 .mapToInt(o -> {
                     String tagName = (String) o[1];
                     long count = (Long) o[2];
-                    return (int) (tagList.getTag(tagName).getValue() * count);
+                    return (int) (/*tagList.getTag(tagName).getValue() * count*/1);
                 })
                 .sum();
     }

@@ -1,82 +1,56 @@
 package com.FrameHopper.app.Service;
 
-import com.FrameHopper.app.Repository.CommentRepository;
-import com.FrameHopper.app.ffmpegService.FfmpegService;
-import com.FrameHopper.app.ffmpegService.VideoInfoDto;
+import com.FrameHopper.app.Repository.CommentRepositoryOld;
 import com.FrameHopper.app.Model.Frame;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.Repository.FrameRepository;
-import com.FrameHopper.app.Repository.VideoRepository;
+import com.FrameHopper.app.Repository.FrameRepositoryOld;
+import com.FrameHopper.app.Repository.VideoRepositoryOld;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
-    private final VideoRepository videoRepository;
-    private final FrameRepository frameRepository;
-    private final CommentRepository commentRepository;
-    private final FfmpegService ffmpegService;
-
-    public VideoService(
-            VideoRepository videoRepository,
-            FrameRepository frameRepository,
-            CommentRepository commentRepository,
-            FfmpegService ffmpegService
-    ) {
-        this.videoRepository = videoRepository;
-        this.frameRepository = frameRepository;
-        this.commentRepository = commentRepository;
-        this.ffmpegService = ffmpegService;
-    }
+    private final VideoRepositoryOld videoRepositoryOld = null;
+    private final FrameRepositoryOld frameRepositoryOld = null;
+    private final CommentRepositoryOld commentRepositoryOld = null;
 
     public Video createOrGet(File video){
-        return videoRepository.findByPath(video.getPath()).orElseGet(() -> {
+        return videoRepositoryOld.findByPath(video.getPath()).orElseGet(() -> {
 
-            VideoInfoDto data;
-            try {
-                data = ffmpegService.getVideoInfo(video.getAbsolutePath());
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            Object data = null;
 
-            return videoRepository.save(
+            return videoRepositoryOld.save(
                     Video.builder()
                             .name(video.getName().replace(" ", "%20"))
                             .path(video.getAbsolutePath())
-                            .frameRate(data.frameRate())
-                            .duration(data.durationInSeconds())
-                            .totalFrames(data.totalFrames())
-                            .videoHeight(data.height())
-                            .videoWidth(data.width())
                             .build()
             );
         });
     }
 
     public Video getByPath(String path){
-        return videoRepository.findByPath(path).orElse(null);
+        return videoRepositoryOld.findByPath(path).orElse(null);
     }
 
     public Video getById(Integer id){
-        return videoRepository.findById(id).orElse(null);
+        return videoRepositoryOld.findById(id).orElse(null);
     }
 
     public List<Video> getById(ArrayList<Integer> ids){
-        return videoRepository.findById(ids);
+        return videoRepositoryOld.findById(ids);
     }
 
     public List<Video> getAll(){
-        return videoRepository.findAll();
+        return videoRepositoryOld.findAll();
     }
 
     public List<Video> getAll(List<Integer> ids){
-        return videoRepository.findById(ids);
+        return videoRepositoryOld.findById(ids);
     }
 
     public List<Video> getAllData(boolean getNotes){
@@ -87,7 +61,7 @@ public class VideoService {
 
         videos.forEach(v -> v.setFrames(new ArrayList<>()));
 
-        var allFrames = frameRepository.findAllWithVideos();
+        var allFrames = frameRepositoryOld.findAllWithVideos();
 
         Map<Integer, List<Frame>> framesByVideoId = allFrames.stream()
                 .collect(Collectors.groupingBy(f -> f.getVideo().getId()));
@@ -102,7 +76,7 @@ public class VideoService {
 
         if(getNotes)
             for(Video v : videos)
-                v.setComments(commentRepository.getCommentByVideo(v));
+                v.setComments(commentRepositoryOld.getCommentByVideo(v));
 
         return videos;
     }
@@ -114,7 +88,7 @@ public class VideoService {
     }
 
     public Video saveVideo(Video video){
-        return videoRepository.save(video);
+        return videoRepositoryOld.save(video);
     }
 
     public boolean exists(String pathOfNewPath) {
@@ -127,18 +101,18 @@ public class VideoService {
 
     @Transactional
     public void deleteVideo(Integer id){
-        var toDelete = videoRepository.findById(id).orElse(null);
+        var toDelete = videoRepositoryOld.findById(id).orElse(null);
         if(toDelete == null) return;
 
-        var frameIdList = frameRepository.findAllByVideo(toDelete).stream()
+        var frameIdList = frameRepositoryOld.findAllByVideo(toDelete).stream()
                 .map(Frame::getId)
                 .toList();
 
-        frameRepository.totalFrameDelete(frameIdList);
-        frameRepository.totalFrameDelete(toDelete.getId());
+        frameRepositoryOld.totalFrameDelete(frameIdList);
+        frameRepositoryOld.totalFrameDelete(toDelete.getId());
 
         toDelete.setFrames(null);
-        videoRepository.delete(toDelete);
+        videoRepositoryOld.delete(toDelete);
     }
 
     public double getTotalPoints(Video video) {
@@ -153,10 +127,10 @@ public class VideoService {
     }
 
     public List<Video> getAllWithNotes() {
-        return videoRepository.findAllWithNotes();
+        return videoRepositoryOld.findAllWithNotes();
     }
 
     public Video findById(int videoId) {
-        return videoRepository.findById(videoId).orElse(null);
+        return videoRepositoryOld.findById(videoId).orElse(null);
     }
 }

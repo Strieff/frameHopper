@@ -33,6 +33,16 @@ public class JpaFrameRepositoryAdapter implements FrameRepositoryPort {
     }
 
     @Override
+    public List<Frame> getAll() {
+        var entities = frameRepository.findAll();
+
+        if(entities.isEmpty())
+            return new ArrayList<>();
+
+        return entities.stream().map(FrameMapper::toDomain).toList();
+    }
+
+    @Override
     public Frame create(Frame frame) {
         var entity = frameRepository.save(FrameMapper.fromDomain(frame)) ;
 

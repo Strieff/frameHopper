@@ -2,7 +2,6 @@ package com.FrameHopper.app.View.FXViews.TagDetails;
 
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Service.TagService;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.stereotype.Component;
@@ -10,11 +9,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class TagDetailsService {
     private final TagService tagService;
-    private final TagListManager tagList;
 
-    public TagDetailsService(TagService tagService, TagListManager tagList) {
+    public TagDetailsService(TagService tagService) {
         this.tagService = tagService;
-        this.tagList = tagList;
     }
 
     public Tag getTag(int id) {
@@ -27,7 +24,7 @@ public class TagDetailsService {
             throw new Exception(Dictionary.get("tag.name.empty"));
 
         //check if tag name exists
-        if(tagList.getTag(name) != null)
+        if(false)
             throw new Exception(String.format(Dictionary.get("tag.name.exists"),name));
 
         if(value.isBlank())
@@ -44,13 +41,13 @@ public class TagDetailsService {
         if(Double.parseDouble(value)<0)
             throw new Exception(Dictionary.get("tag.value.non-positive"));
 
-        tagList.editTag(
+        /*tagList.editTag(
                 tag.getId(),
                 name,
                 Double.parseDouble(value),
                 description,
                 tag.isDeleted()
-        );
+        );*/
 
         UpdateTableEventDispatcher.fireEvent();
     }

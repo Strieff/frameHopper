@@ -16,19 +16,15 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class DataBaseManagementService {
-    private final TagService tagService;
-    private final FrameService frameService;
-    private final CommentService commentService;
+    private final TagService tagService = null;
+    private final FrameService frameService = null;
+    private final CommentService commentService = null;
 
     private final ExecutorService executor;
-    private final VideoService videoService;
+    private final VideoService videoService  = null;
 
-    public DataBaseManagementService(TagService tagService, FrameService frameService, CommentService commentService, VideoService videoService) {
-        this.tagService = tagService;
-        this.frameService = frameService;
-        this.commentService = commentService;
+    public DataBaseManagementService() {
         this.executor = Executors.newCachedThreadPool();
-        this.videoService = videoService;
     }
 
     @Async

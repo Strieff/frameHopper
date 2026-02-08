@@ -24,7 +24,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class SettingsController implements LanguageChangeListener {
+public class SettingsControllerOld implements LanguageChangeListener {
     @FXML
     private BorderPane settingsView;
     @FXML
@@ -38,7 +38,7 @@ public class SettingsController implements LanguageChangeListener {
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    public SettingsController(
+    public SettingsControllerOld(
             SettingsService viewService,
             OpenViewsInformationContainer viewContainer,
             UserSettingsService userSettingsService

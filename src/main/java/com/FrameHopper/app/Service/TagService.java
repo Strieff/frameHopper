@@ -3,7 +3,7 @@ package com.FrameHopper.app.Service;
 import com.FrameHopper.app.Model.Frame;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.Repository.TagRepository;
+import com.FrameHopper.app.Repository.TagRepositoryOld;
 import com.FrameHopper.app.View.FXViews.Export.TagOnVideoDto;
 import jakarta.transaction.Transactional;
 import javafx.util.Pair;
@@ -16,26 +16,22 @@ import java.util.stream.Collectors;
 
 @Service
 public class TagService {
-    private final TagRepository tagRepository;
-
-    public TagService(TagRepository tagRepository) {
-        this.tagRepository = tagRepository;
-    }
+    private final TagRepositoryOld tagRepositoryOld = null;
 
     public List<Tag> getAllTags(){
-        return tagRepository.findAll();
+        return tagRepositoryOld.findAll();
     }
 
     public List<Tag> getAllEnriched(){
-        return tagRepository.findAllEnriched();
+        return tagRepositoryOld.findAllEnriched();
     }
 
     public List<Object[]> getAllEnriched(Video video) {
-        return tagRepository.countTagOccurrencesInVideoFrames(video);
+        return tagRepositoryOld.countTagOccurrencesInVideoFrames(video);
     }
 
     public Tag createTag(String name,Double value,String description){
-        return tagRepository.save(Tag.builder()
+        return tagRepositoryOld.save(Tag.builder()
                 .name(name)
                 .value(value)
                 .description(description)
@@ -43,15 +39,15 @@ public class TagService {
     }
 
     public Tag getTag(int id){
-        return tagRepository.findById((double) id).orElse(null);
+        return tagRepositoryOld.findById((double) id).orElse(null);
     }
 
     public Tag getTag(String name) {
-        return tagRepository.findByNameEnriched(name).orElse(null);
+        return tagRepositoryOld.findByNameEnriched(name).orElse(null);
     }
 
     public Tag editTag(Integer id,String name,Double value,String description){
-        return tagRepository.save(Tag.builder()
+        return tagRepositoryOld.save(Tag.builder()
                 .id(id)
                 .name(name)
                 .value(value)
@@ -62,9 +58,9 @@ public class TagService {
     @Transactional
     public void setHiddenStatus(Integer id,boolean hide){
         if(hide)
-            tagRepository.hideTag(id);
+            tagRepositoryOld.hideTag(id);
         else
-            tagRepository.unHideTag(id);
+            tagRepositoryOld.unHideTag(id);
     }
 
     @Transactional
@@ -76,28 +72,28 @@ public class TagService {
         tag.setFrames(null);
 
         //delete tag
-        tagRepository.delete(tag);
+        tagRepositoryOld.delete(tag);
     }
 
     @Transactional
     public void deleteTag(List<Tag> tags){
         deleteTagRelations(tags);
 
-        tagRepository.batchTagDelete(tags.stream().map(Tag::getId).toList());
+        tagRepositoryOld.batchTagDelete(tags.stream().map(Tag::getId).toList());
     }
 
     @Transactional
     public void deleteTagRelations(List<Tag> tags){
         //delete entities in many-to-many table
-        tagRepository.totalDeleteTags(tags.stream().map(Tag::getId).toList());
+        tagRepositoryOld.totalDeleteTags(tags.stream().map(Tag::getId).toList());
     }
 
     public List<Object[]> countTagsOnFramesOfVideo(List<Integer> videoIds){
-        return tagRepository.countTagOccurrencesInVideoFrames(videoIds);
+        return tagRepositoryOld.countTagOccurrencesInVideoFrames(videoIds);
     }
 
     public Map<Video,Number> getAmountOfUniqueTagsOnVideos(List<Video> videos){
-        return tagRepository.countUniqueTagsByVideo(videos).stream()
+        return tagRepositoryOld.countUniqueTagsByVideo(videos).stream()
                 .collect(Collectors.toMap(
                         a -> (Video)a[0],
                         a -> (Number)a[1]
@@ -105,7 +101,7 @@ public class TagService {
     }
 
     public Tag getById(int id) {
-        return tagRepository.findByIdEnriched(id).orElse(null);
+        return tagRepositoryOld.findByIdEnriched(id).orElse(null);
     }
 
     public Map<Tag, Pair<Double,Integer>> getAllTagData(List<Video> videos) {
@@ -135,15 +131,15 @@ public class TagService {
     }
 
     public List<TagOnVideoDto> getTotalTagAmountOnVideos(Tag tag, List<Video> videos) {
-        return tagRepository.findTagAmountOnSelectedVideos(tag, videos);
+        return tagRepositoryOld.findTagAmountOnSelectedVideos(tag, videos);
     }
 
     public List<Tag> getTagsOnVideos(List<Video> videos) {
-        return tagRepository.findAllTagsOnSelectedVideos(videos);
+        return tagRepositoryOld.findAllTagsOnSelectedVideos(videos);
     }
 
     public List<Tag> getTagsOnVideo(Video video) {
-        return tagRepository.findAllTagsOnSelectedVideos(List.of(video));
+        return tagRepositoryOld.findAllTagsOnSelectedVideos(List.of(video));
     }
 
 }

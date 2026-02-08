@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class CreateTagController implements LanguageChangeListener {
+public class CreateTagControllerOld implements LanguageChangeListener {
     @FXML
     private TextField nameField,valueField;
     @FXML
@@ -30,7 +30,7 @@ public class CreateTagController implements LanguageChangeListener {
     private final CreateTagService viewService;
     private final  OpenViewsInformationContainer viewContainer;
 
-    public CreateTagController(CreateTagService viewService, OpenViewsInformationContainer viewContainer) {
+    public CreateTagControllerOld(CreateTagService viewService, OpenViewsInformationContainer viewContainer) {
         this.viewService = viewService;
         this.viewContainer = viewContainer;
 

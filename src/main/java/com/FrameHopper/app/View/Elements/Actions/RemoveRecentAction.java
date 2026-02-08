@@ -3,7 +3,6 @@ package com.FrameHopper.app.View.Elements.Actions;
 import com.FrameHopper.app.Service.DataBaseManagementService;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.stereotype.Component;
 
@@ -15,13 +14,12 @@ public class RemoveRecentAction extends ActionHandler{
     private final UndoRedoAction undoRedoAction;
     private final DataBaseManagementService dbService;
 
-    public RemoveRecentAction(TagListManager tagList,
+    public RemoveRecentAction(
                               UndoRedoAction undoRedoAction,
                               DataBaseManagementService dbService
     ) {
         this.undoRedoAction = undoRedoAction;
         this.dbService = dbService;
-        this.tagList = tagList;
         this.tagIdList = new ArrayList<>();
     }
 

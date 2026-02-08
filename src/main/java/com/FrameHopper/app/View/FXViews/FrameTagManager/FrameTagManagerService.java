@@ -3,7 +3,6 @@ package com.FrameHopper.app.View.FXViews.FrameTagManager;
 import com.FrameHopper.app.Service.DataBaseManagementService;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.FrameHopper.app.settings.UserSettingsService;
 import com.FrameHopper.app.View.Elements.Actions.PasteRecentAction;
@@ -22,7 +21,6 @@ import java.util.List;
 @Component
 public class FrameTagManagerService {
     private final MainViewService mainViewService;
-    private final TagListManager tagList;
     private final UserSettingsService userSettingsService;
     private final DataBaseManagementService dbService;
 
@@ -32,14 +30,12 @@ public class FrameTagManagerService {
     public FrameTagManagerService(
             PasteRecentAction pasteRecentAction,
             MainViewService mainViewService,
-            TagListManager tagList,
             UserSettingsService userSettingsService,
             RemoveRecentAction removeRecentAction,
             UndoRedoAction undoRedoAction,
             DataBaseManagementService dbService
     ) {
         this.mainViewService = mainViewService;
-        this.tagList = tagList;
         this.userSettingsService = userSettingsService;
         this.dbService = dbService;
 
@@ -58,7 +54,7 @@ public class FrameTagManagerService {
 
         ObservableList<TableEntry> data = FXCollections.observableArrayList();
 
-        var allTagsDTOList = tagList != null ? tagList.getTagList() : new ArrayList<Tag>();
+        var allTagsDTOList = /*tagList != null ? tagList.getTagList() :*/ new ArrayList<Tag>();
         if (!allTagsDTOList.isEmpty()) {
             for (var t : allTagsDTOList) {
                 if (userSettingsService.ShowHidden() || !t.isDeleted()) {
@@ -113,10 +109,11 @@ public class FrameTagManagerService {
     }
 
     private Tag getTagById(int id){
-        return tagList.getTagList().stream()
+        /*return tagList.getTagList().stream()
                 .filter(t -> t.getId() == id)
                 .findFirst()
-                .orElse(null);
+                .orElse(null);*/
+        return null;
     }
 
     public ObservableList<TableEntry> getFiltered(ObservableList<TableEntry> items, String text) {

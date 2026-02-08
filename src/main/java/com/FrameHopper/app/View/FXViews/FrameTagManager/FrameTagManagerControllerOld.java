@@ -28,7 +28,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class FrameTagManagerController implements LanguageChangeListener, UpdateTableListener {
+public class FrameTagManagerControllerOld implements LanguageChangeListener, UpdateTableListener {
     @FXML
     private TextField searchField;
     @FXML
@@ -54,7 +54,7 @@ public class FrameTagManagerController implements LanguageChangeListener, Update
 
     private boolean isSearching;
 
-    public FrameTagManagerController(FrameTagManagerService viewService, OpenViewsInformationContainer viewContainer) {
+    public FrameTagManagerControllerOld(FrameTagManagerService viewService, OpenViewsInformationContainer viewContainer) {
         this.viewService = viewService;
         this.viewContainer = viewContainer;
         isSearching = false;

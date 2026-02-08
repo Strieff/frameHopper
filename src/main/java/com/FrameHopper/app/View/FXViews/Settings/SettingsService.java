@@ -23,9 +23,9 @@ public class SettingsService {
     ) {
         this.userSettingsService = userSettingsService;
 
-        var languageMap = languageManager.getLanguageMap();
+        /*var languageMap = languageManager.getLanguageMap();
         for(var e : languageMap.keySet())
-            languages.add(new LanguageEntry(e, languageMap.get(e)));
+            languages.add(new LanguageEntry(e, languageMap.get(e)));*/
     }
 
     public void changeShowHidden(boolean checked){

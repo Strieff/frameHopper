@@ -2,7 +2,6 @@ package com.FrameHopper.app.View.FXViews.TagDetails;
 
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class TagDetailsController implements LanguageChangeListener {
+public class TagDetailsControllerOld implements LanguageChangeListener {
     @FXML
     private TextField nameField,valueField;
     @FXML
@@ -31,13 +30,11 @@ public class TagDetailsController implements LanguageChangeListener {
     private Label nameLabel,valueLabel,descriptionLabel;
 
     private final TagDetailsService viewService;
-    private final TagListManager tagList;
 
     private InformationContainer info;
 
-    public TagDetailsController(TagDetailsService viewService, TagListManager tagList) {
+    public TagDetailsControllerOld(TagDetailsService viewService) {
         this.viewService = viewService;
-        this.tagList = tagList;
 
         LanguageManager.register(this);
     }
@@ -80,7 +77,6 @@ public class TagDetailsController implements LanguageChangeListener {
     private void toggleHide() {
         info.tag().setDeleted(!info.tag().isDeleted());
         hideButton.setText(Dictionary.get(info.tag().isDeleted() ? "td.unhide" : "td.hide"));
-        tagList.changeHideStatus(info.tag().getId(),info.tag().isDeleted());
         UpdateTableEventDispatcher.fireEvent();
     }
 

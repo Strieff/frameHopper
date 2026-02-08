@@ -3,6 +3,8 @@ package com.FrameHopper.app.boundry.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 public class TagDTO {
     final int id;
@@ -33,5 +35,16 @@ public class TagDTO {
 
     public void changeStatus() {
         visible = !visible;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TagDTO tagDTO)) return false;
+        return id == tagDTO.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

@@ -1,7 +1,5 @@
 package com.FrameHopper.app.View.FXViews.MainView;
 
-import com.FrameHopper.app.ffmpegService.FfmpegService;
-import com.FrameHopper.app.ffmpegService.VideoDataProvider;
 import com.FrameHopper.app.Model.Frame;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
@@ -30,9 +28,7 @@ public class MainViewService {
     private final PasteRecentAction pasteRecentAction;
     private final RemoveRecentAction removeRecentAction;
     private final UndoRedoAction undoRedoAction;
-    private final VideoDataProvider videoDataProvider;
     private final UserSettingsService userSettingsService;
-    private final FfmpegService ffmpegService;
 
     private InformationContainer info;
 
@@ -42,30 +38,24 @@ public class MainViewService {
             PasteRecentAction pasteRecentAction,
             RemoveRecentAction removeRecentAction,
             UndoRedoAction undoRedoAction,
-            VideoDataProvider videoDataProvider,
-            UserSettingsService userSettingsService,
-            FfmpegService ffmpegService) {
+            UserSettingsService userSettingsService) {
         this.videoService = videoService;
         this.frameService = frameService;
         this.pasteRecentAction = pasteRecentAction;
         this.removeRecentAction = removeRecentAction;
         this.undoRedoAction = undoRedoAction;
-        this.videoDataProvider = videoDataProvider;
         this.userSettingsService = userSettingsService;
-        this.ffmpegService = ffmpegService;
     }
 
 
     //get video from DB
     public Video getVideo(File videoFile){
-        videoDataProvider.clearCache();
         var video = videoService.createOrGet(videoFile);
         userSettingsService.setRecentId(video.getId());
         return video;
     }
 
     public Video getVideo(int id) {
-        videoDataProvider.clearCache();
         var video = videoService.getById(id);
         userSettingsService.setRecentId(video.getId());
         return video;
@@ -90,10 +80,7 @@ public class MainViewService {
 
     public Image displayCurrentFrame(){
         try {
-            return videoDataProvider.getFrame(
-                    info.getVideo(),
-                    info.currentIndex
-            );
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -214,7 +201,7 @@ public class MainViewService {
     }
 
     public boolean isFfmpegAvailable() {
-        return ffmpegService.isFfmpegPresent();
+        return false;
     }
 
     //class to hold necessary variables

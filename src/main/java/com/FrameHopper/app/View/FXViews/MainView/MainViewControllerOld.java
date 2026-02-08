@@ -13,7 +13,7 @@ import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
 import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoListener;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableListener;
-import com.FrameHopper.app.View.FXViews.FrameTagManager.FrameTagManagerController;
+import com.FrameHopper.app.View.FXViews.FrameTagManager.FrameTagManagerControllerOld;
 import com.FrameHopper.app.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class MainViewController implements LanguageChangeListener, UpdateTableListener, OpenVideoListener {
+public class MainViewControllerOld implements LanguageChangeListener, UpdateTableListener, OpenVideoListener {
     @FXML
     private TextField frameInput;
     @FXML
@@ -68,7 +68,7 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
 
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    public MainViewController(MainViewService viewService, OpenViewsInformationContainer viewContainer) {
+    public MainViewControllerOld(MainViewService viewService, OpenViewsInformationContainer viewContainer) {
         this.viewService = viewService;
         this.viewContainer = viewContainer;
 
@@ -160,8 +160,8 @@ public class MainViewController implements LanguageChangeListener, UpdateTableLi
                 );
 
                 //get controller
-                FrameTagManagerController frameTagManagerController = loader.getController();
-                frameTagManagerController.init(viewService.getCurrentIndex());
+                FrameTagManagerControllerOld frameTagManagerControllerOld = loader.getController();
+                frameTagManagerControllerOld.init(viewService.getCurrentIndex());
             }
             else
                 FXDialogProvider.errorDialog(Dictionary.get("open.tm"));

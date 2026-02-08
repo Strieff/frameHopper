@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FrameRepository extends JpaRepository<Frame,Long> {
+public interface FrameRepositoryOld extends JpaRepository<Frame,Long> {
 
     @Query("select f from Frame f where f.frameNumber=:frameNumber and f.video=:video")
     Optional<Frame> findFrameByFrameNumberAndVideo(@Param("frameNumber") int frameNumber, @Param("video") Video video);

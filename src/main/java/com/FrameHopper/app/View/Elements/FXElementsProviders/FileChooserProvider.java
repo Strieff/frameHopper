@@ -44,10 +44,10 @@ public class FileChooserProvider {
             throw new Exception("File not selected");
     }
 
-    public static String locationFileChooser(Stage stage,String path) throws RuntimeException{
+    public static String locationFileChooser(Stage stage, String path) throws RuntimeException{
         var directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Get location");
-        if(!path.isBlank()) directoryChooser.setInitialDirectory(new File(path));
+        if(path != null && !path.isBlank()) directoryChooser.setInitialDirectory(new File(path));
 
         var selectedLocation = directoryChooser.showDialog(stage);
         if(selectedLocation != null)

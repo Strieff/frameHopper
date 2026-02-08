@@ -1,7 +1,6 @@
 package com.FrameHopper.app.View.FXViews.TagManager;
 
 import com.FrameHopper.app.Model.Tag;
-import com.FrameHopper.app.View.Elements.DataManagers.TagListManager;
 import com.FrameHopper.app.settings.UserSettingsService;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
@@ -17,16 +16,13 @@ import java.util.List;
 
 @Component
 public class TagManagerService {
-    private final TagListManager tagList;
     private final MainViewService mainViewService;
     private final UserSettingsService userSettingsService;
 
     public TagManagerService(
-            TagListManager tagList,
             MainViewService mainViewService,
             UserSettingsService userSettingsService
     ) {
-        this.tagList = tagList;
         this.mainViewService = mainViewService;
         this.userSettingsService = userSettingsService;
     }
@@ -34,14 +30,14 @@ public class TagManagerService {
     public ObservableList<TableEntry> getExistingTags(){
         ObservableList<TableEntry> data = FXCollections.observableArrayList();
 
-        for(var t : tagList.getTagList())
+        /*for(var t : tagList.getTagList())
             if(userSettingsService.ShowHidden() || !t.isDeleted())
                 data.add(new TableEntry(
                         t.getId(),
                         t.isDeleted() ? t.getName() + Dictionary.get("hidden") : t.getName(),
                         t.getValue(),
                         t.getDescription()
-                ));
+                ));*/
 
         return data;
     }
@@ -52,11 +48,11 @@ public class TagManagerService {
 
     public void removeTags(List<Integer> ids){
         var tags = new ArrayList<Tag>();
-        for(var id : ids)
-            tags.add(tagList.getTag(id));
+        /*for(var id : ids)
+            tags.add(tagList.getTag(id));*/
 
         mainViewService.deleteTags(tags);
-        tagList.removeTags(tags);
+        //tagList.removeTags(tags);
         UpdateTableEventDispatcher.fireEvent();
     }
 
@@ -77,8 +73,8 @@ public class TagManagerService {
                     throw new Exception(Dictionary.get("tag.name.empty"));
 
                 //check if tag name exists
-                if(tagList.getTag(data[0]) != null)
-                    throw new Exception(String.format(Dictionary.get("tag.name.exists"),data[0]));
+                /*if(tagList.getTag(data[0]) != null)
+                    throw new Exception(String.format(Dictionary.get("tag.name.exists"),data[0]));*/
 
                 //check if value is not empty
                 if(data[1].isBlank())
@@ -102,7 +98,7 @@ public class TagManagerService {
                         .build());
             }
 
-            tagList.addTags(list);
+            //tagList.addTags(list);
             UpdateTableEventDispatcher.fireEvent();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -118,8 +114,8 @@ public class TagManagerService {
     }
 
     private void changeHiddenStatus(List<Integer> ids, boolean hide){
-        for(var id : ids)
-            tagList.changeHideStatus(id,hide);
+        /*for(var id : ids)
+            tagList.changeHideStatus(id,hide);*/
         UpdateTableEventDispatcher.fireEvent();
     }
 }

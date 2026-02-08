@@ -3,45 +3,35 @@ package com.FrameHopper.app.Service;
 import com.FrameHopper.app.Model.Frame;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.Repository.CommentRepository;
-import com.FrameHopper.app.Repository.FrameRepository;
-import com.FrameHopper.app.Repository.VideoRepository;
+import com.FrameHopper.app.Repository.CommentRepositoryOld;
+import com.FrameHopper.app.Repository.FrameRepositoryOld;
+import com.FrameHopper.app.Repository.VideoRepositoryOld;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
 public class FrameService {
-    private final FrameRepository frameRepository;
-    private final VideoRepository videoRepository;
-    private final CommentRepository commentRepository;
-
-    public FrameService(
-            FrameRepository frameRepository,
-            VideoRepository videoRepository,
-            CommentRepository commentRepository
-    ) {
-        this.frameRepository = frameRepository;
-        this.videoRepository = videoRepository;
-        this.commentRepository = commentRepository;
-    }
+    private final FrameRepositoryOld frameRepositoryOld = null;
+    private final VideoRepositoryOld videoRepositoryOld = null;
+    private final CommentRepositoryOld commentRepositoryOld = null;
 
     public void modifyTagsOfFrame(List<Tag> tags, int frameNumber, int id){
-        Video video = videoRepository.findById(id).orElse(null);
+        Video video = videoRepositoryOld.findById(id).orElse(null);
 
         if(tags.isEmpty()){
-            Optional<Frame> frame = frameRepository.findFrameByFrameNumberAndVideo(frameNumber,video);
+            Optional<Frame> frame = frameRepositoryOld.findFrameByFrameNumberAndVideo(frameNumber,video);
 
             if(frame.isPresent()){
                 Frame f = frame.get();
                 f.setTags(new ArrayList<>());
-                frameRepository.delete(f);
+                frameRepositoryOld.delete(f);
             }
 
             return;
         }
 
-        Frame frame = frameRepository.findFrameByFrameNumberAndVideo(frameNumber,video).stream().findFirst().orElse(null);
+        Frame frame = frameRepositoryOld.findFrameByFrameNumberAndVideo(frameNumber,video).stream().findFirst().orElse(null);
 
         if(frame == null){
             frame = Frame.builder()
@@ -52,7 +42,7 @@ public class FrameService {
         }
 
         frame.setTags(null);
-        frameRepository.save(frame);
+        frameRepositoryOld.save(frame);
 
         if(frame.getTags()!=null) {
             frame.getTags().clear();
@@ -61,27 +51,27 @@ public class FrameService {
             frame.setTags(new ArrayList<>(tags));
         }
 
-        frameRepository.save(frame);
+        frameRepositoryOld.save(frame);
     }
 
     public List<Frame> getAllByVideo(Video video){
-        return frameRepository.findAllByVideo(video);
+        return frameRepositoryOld.findAllByVideo(video);
     }
 
     public Frame getFrame(Video video, int frameNumber){
-        return frameRepository.findFrameOnVideo(video,frameNumber).orElse(null);
+        return frameRepositoryOld.findFrameOnVideo(video,frameNumber).orElse(null);
     }
 
     public void getAllVideoData(Video video, boolean getNotes){
         video.setFrames(getAllByVideo(video));
-        if(getNotes) video.setComments(commentRepository.getCommentByVideo(video));
+        if(getNotes) video.setComments(commentRepositoryOld.getCommentByVideo(video));
     }
 
     public void save(Frame frame){
-        frameRepository.save(frame);
+        frameRepositoryOld.save(frame);
     }
 
     public Frame getById(int id){
-        return frameRepository.findById((long) id).orElse(null);
+        return frameRepositoryOld.findById((long) id).orElse(null);
     }
 }

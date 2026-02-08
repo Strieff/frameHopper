@@ -28,7 +28,7 @@ import java.util.Comparator;
 
 @Component
 @Scope("prototype")
-public class ImportChartController implements LanguageChangeListener {
+public class ImportChartControllerOld implements LanguageChangeListener {
     @FXML
     StackPane chartPane;
     @FXML
@@ -49,7 +49,7 @@ public class ImportChartController implements LanguageChangeListener {
 
     String title;
 
-    public ImportChartController(ChartsService viewService, UserSettingsService userSettingsService) {
+    public ImportChartControllerOld(ChartsService viewService, UserSettingsService userSettingsService) {
         this.viewService = viewService;
         this.userSettingsService = userSettingsService;
 

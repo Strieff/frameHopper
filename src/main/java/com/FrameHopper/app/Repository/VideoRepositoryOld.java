@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface VideoRepository extends JpaRepository<Video,Long> {
+public interface VideoRepositoryOld extends JpaRepository<Video,Long> {
     Optional<Video> findByPath(String path);
 
     Optional<Video> findById(Integer id);

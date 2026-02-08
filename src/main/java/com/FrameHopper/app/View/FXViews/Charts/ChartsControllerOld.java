@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class ChartsController implements LanguageChangeListener {
+public class ChartsControllerOld implements LanguageChangeListener {
     @FXML
     private BorderPane chartView;
     @FXML
@@ -76,7 +76,7 @@ public class ChartsController implements LanguageChangeListener {
     private final List<TableEntry> entries = new ArrayList<>();
     private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    public ChartsController(
+    public ChartsControllerOld(
             ChartsService viewService,
             OpenViewsInformationContainer viewContainer,
             UserSettingsService userSettingsService
@@ -408,7 +408,7 @@ public class ChartsController implements LanguageChangeListener {
                     "Imported chart",
                     saveArea
             );
-            ImportChartController controller = loader.getController();
+            ImportChartControllerOld controller = loader.getController();
             controller.init(
                     path,
                     meanCheckbox.isSelected(),

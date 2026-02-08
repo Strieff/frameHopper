@@ -312,7 +312,11 @@ public class MainViewController implements
 
     @FXML
     protected void onChart(){
-
+        FXMLViewLoader.getView(
+                "ChartsViewModel",
+                "Charts",
+                mainView
+        );
     }
 
     @FXML

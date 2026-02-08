@@ -7,6 +7,8 @@ import com.FrameHopper.app.adapters.persistence.jpa.JpaTagRepositoryAdapter;
 import com.FrameHopper.app.adapters.persistence.jpa.JpaVideoRepositoryAdapter;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.core.application.FrameBytesQueryService;
+import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
+import com.FrameHopper.app.core.application.analytics.VideoAnalyticsService;
 import com.FrameHopper.app.core.application.frame.FrameQueryService;
 import com.FrameHopper.app.core.application.comment.CommentCommandService;
 import com.FrameHopper.app.core.application.comment.CommentQueryService;
@@ -150,5 +152,12 @@ public class WiringConfig {
     @Bean
     public DeleteFrameCommand deleteFrameCommand(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
         return new FrameCommandService(jpaFrameRepositoryAdapter);
+    }
+
+    // ANALYTICS
+
+    @Bean
+    public VideoAnalyticsQuery videoAnalyticsQuery() {
+        return new VideoAnalyticsService();
     }
 }
