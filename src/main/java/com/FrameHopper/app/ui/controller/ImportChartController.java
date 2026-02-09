@@ -22,10 +22,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -193,49 +195,26 @@ public class ImportChartController implements UiView {
 
     //endregion
 
+    @Async
     @FXML
     public void handleSave() {
-        var dir = FileChooserProvider.locationFileChooser(
-                (Stage)chartPane.getScene().getWindow(),
-                userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
-        );
-        var name = FXDialogProvider.inputDialog();
-
-        if (name == null) return;
-        //TODO: ERROR
-
-        var fileDir = dir + File.separator + name + ".png";
-
-        while(new File(fileDir).exists()){
-            var res = FXDialogProvider.customDialog(
-                    Dictionary.get("dialog.export.exists"),
-                    0,
-                    Dictionary.get("cancel"),
-                    Dictionary.get("dialog.export.option.rename"),
-                    Dictionary.get("dialog.export.option.overwrite")
+        try {
+            var fileDir = com.FrameHopper.app.ui.dialog.FileChooserProvider.locationFileSaveChooser(
+                    (Stage)chartPane.getScene().getWindow(),
+                    ".png",
+                    userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
             );
 
-            switch (res) {
-                case 0:
-                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
-                    break;
-                case 1:
-                    name = FXDialogProvider.inputDialog();
-                    if(name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
-                    break;
-            }
+            var snapshot = new WritableImage((int) saveArea.getWidth(),(int) saveArea.getHeight());
+            saveArea.snapshot(new SnapshotParameters(), snapshot);
 
-            if(res == 2) break;
-        }
+            var file = new File(fileDir);
 
-        var snapshot = new WritableImage((int) saveArea.getWidth(),(int) saveArea.getHeight());
-        saveArea.snapshot(new SnapshotParameters(), snapshot);
-
-        var file = new File(fileDir);
-
-        try{
             ImageIO.write(SwingFXUtils.fromFXImage(snapshot,null),"png",file);
-        }catch (Exception e){
+        } catch (IOException e) {
+            e.printStackTrace();
+            //TODO
+        } catch (Exception e){
             FXDialogProvider.errorDialog(e.getMessage());
             e.printStackTrace();
         }

@@ -34,6 +34,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -391,68 +392,45 @@ public class ChartsController implements UiView {
                     separatorField.getText(),
                     tickField.getText()
             );
-
-
         } catch (Exception e) {
 
         }
     }
 
+    @Async
     @FXML
     public void handleExport() {
-        var dir = FileChooserProvider.locationFileChooser(
-                (Stage)chartView.getScene().getWindow(),
-                userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
-        );
-        var name = FXDialogProvider.inputDialog();
-
-        if (name == null) return;
-        //TODO: ERROR
-
-        var fileDir = dir + File.separator + name + ".csv";
-
-        //TODO: move to dialog provider
-        while(new File(fileDir).exists()){
-            var res = FXDialogProvider.customDialog(
-                    Dictionary.get("dialog.export.exists"),
-                    0,
-                    Dictionary.get("cancel"),
-                    Dictionary.get("dialog.export.option.rename"),
-                    Dictionary.get("dialog.export.option.overwrite")
+        try {
+            var fileDir = com.FrameHopper.app.ui.dialog.FileChooserProvider.locationFileSaveChooser(
+                    (Stage) chartPane.getScene().getWindow(),
+                    ".csv",
+                    userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
             );
 
-            switch (res) {
-                case 0:
-                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
-                    break;
-                case 1:
-                    name = FXDialogProvider.inputDialog();
-                    if(name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
-                    break;
-            }
+            var data = getSelectedForAnalytics();
+            var option = yAxisOptions.getSelectionModel().getSelectedItem();
+            var processedData = option.apply(data);
 
-            if(res == 2) break;
-        }
+            final StringBuilder output = new StringBuilder()
+                    .append("name;").append(option.getLabel()); //TODO: change to use dictionary
 
-        var data = getSelectedForAnalytics();
-        var option = yAxisOptions.getSelectionModel().getSelectedItem();
-        var processedData = option.apply(data);
+            processedData.forEach((key, value) -> output
+                    .append("\n")
+                    .append(key)
+                    .append(";")
+                    .append(value.doubleValue())
+            );
 
-        final StringBuilder output = new StringBuilder()
-                .append("name;").append(option.getLabel()); //TODO: change to use dictionary
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileDir), StandardCharsets.UTF_8));
 
-        processedData.forEach((key, value) -> output
-                .append("\n")
-                .append(key)
-                .append(";")
-                .append(value.doubleValue())
-        );
-
-        try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileDir), StandardCharsets.UTF_8))){
             writer.write('\uFEFF'); // UTF-8 BOM
             writer.write(output.toString());
             writer.flush();
-        }catch (Exception e){
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            //TODO
+        } catch (Exception e) {
             FXDialogProvider.errorDialog(e.getMessage());
             e.printStackTrace();
         }
@@ -464,49 +442,26 @@ public class ChartsController implements UiView {
         generateChart();
     }
 
+    @Async
     @FXML
     public void handleSave() {
-        var dir = FileChooserProvider.locationFileChooser(
-                (Stage)chartView.getScene().getWindow(),
-                userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
-        );
-        var name = FXDialogProvider.inputDialog();
-
-        if (name == null) return;
-        //TODO: ERROR
-
-        var fileDir = dir + File.separator + name + ".png";
-
-        while(new File(fileDir).exists()){
-            var res = FXDialogProvider.customDialog(
-                    Dictionary.get("dialog.export.exists"),
-                    0,
-                    Dictionary.get("cancel"),
-                    Dictionary.get("dialog.export.option.rename"),
-                    Dictionary.get("dialog.export.option.overwrite")
+        try {
+            var fileDir = com.FrameHopper.app.ui.dialog.FileChooserProvider.locationFileSaveChooser(
+                    (Stage)chartPane.getScene().getWindow(),
+                    ".png",
+                    userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
             );
 
-            switch (res) {
-                case 0:
-                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
-                    break;
-                case 1:
-                    name = FXDialogProvider.inputDialog();
-                    if(name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
-                    break;
-            }
+            var snapshot = new WritableImage((int) saveArea.getWidth(),(int) saveArea.getHeight());
+            saveArea.snapshot(new SnapshotParameters(), snapshot);
 
-            if(res == 2) break;
-        }
+            var file = new File(fileDir);
 
-        var snapshot = new WritableImage((int) saveArea.getWidth(),(int) saveArea.getHeight());
-        saveArea.snapshot(new SnapshotParameters(), snapshot);
-
-        var file = new File(fileDir);
-
-        try{
             ImageIO.write(SwingFXUtils.fromFXImage(snapshot,null),"png",file);
-        }catch (Exception e){
+        } catch (IOException e) {
+            e.printStackTrace();
+            //TODO
+        } catch (Exception e){
             FXDialogProvider.errorDialog(e.getMessage());
             e.printStackTrace();
         }
