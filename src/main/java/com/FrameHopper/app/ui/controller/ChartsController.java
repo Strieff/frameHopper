@@ -5,7 +5,7 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
-import com.FrameHopper.app.boundry.dto.VideoDataDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
 import com.FrameHopper.app.ui.ve.ChartsActionEntry;

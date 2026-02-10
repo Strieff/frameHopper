@@ -1,8 +1,7 @@
 package com.FrameHopper.app.ui.ve;
 
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.boundry.dto.VideoDTO;
-import com.FrameHopper.app.boundry.dto.VideoDataDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 
 import java.util.List;
 import java.util.Map;

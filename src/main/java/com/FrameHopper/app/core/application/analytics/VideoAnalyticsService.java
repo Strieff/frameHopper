@@ -2,16 +2,17 @@ package com.FrameHopper.app.core.application.analytics;
 
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
-import com.FrameHopper.app.boundry.dto.VideoAnalyticsDTO;
-import com.FrameHopper.app.boundry.dto.VideoDataDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoAnalyticsParameterDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class VideoAnalyticsService implements VideoAnalyticsQuery{
+public class VideoAnalyticsService implements VideoAnalyticsQuery {
     @Override
-    public VideoAnalyticsDTO getComplexity(VideoDataDTO videoData) {
-        if(videoData.frames().isEmpty()) return new VideoAnalyticsDTO(videoData.video(), 0);
+    public VideoAnalyticsParameterDTO getComplexity(VideoDataDTO videoData) {
+        if(videoData.frames().isEmpty()) return new VideoAnalyticsParameterDTO(videoData.video(), 0);
 
         double totalPoints = videoData.frames().stream()
                     .map(FrameDTO::tags)
@@ -22,11 +23,11 @@ public class VideoAnalyticsService implements VideoAnalyticsQuery{
         double raw = totalPoints / videoData.video().metadata().duration();
         double complexity = Math.round(raw * 1000.0) / 1000.0;
 
-        return new VideoAnalyticsDTO(videoData.video(), complexity);
+        return new VideoAnalyticsParameterDTO(videoData.video(), complexity);
     }
 
     @Override
-    public VideoAnalyticsDTO getUniqueTagsCount(VideoDataDTO videoData) {
+    public VideoAnalyticsParameterDTO getUniqueTagsCount(VideoDataDTO videoData) {
         double uniqueTags = 0;
 
         if(!videoData.frames().isEmpty())
@@ -36,30 +37,30 @@ public class VideoAnalyticsService implements VideoAnalyticsQuery{
                     .collect(Collectors.toSet())
                     .size();
 
-        return new VideoAnalyticsDTO(
+        return new VideoAnalyticsParameterDTO(
                 videoData.video(),
                 uniqueTags
         );
     }
 
     @Override
-    public VideoAnalyticsDTO getFrameCount(VideoDataDTO videoData) {
-        return new VideoAnalyticsDTO(
+    public VideoAnalyticsParameterDTO getFrameCount(VideoDataDTO videoData) {
+        return new VideoAnalyticsParameterDTO(
                 videoData.video(),
                 videoData.video().metadata().totalFrames()
         );
     }
 
     @Override
-    public VideoAnalyticsDTO getRuntime(VideoDataDTO videoData) {
-        return new  VideoAnalyticsDTO(
+    public VideoAnalyticsParameterDTO getRuntime(VideoDataDTO videoData) {
+        return new VideoAnalyticsParameterDTO(
                 videoData.video(),
                 videoData.video().metadata().duration()
         );
     }
 
     @Override
-    public VideoAnalyticsDTO getTotalPoints(VideoDataDTO videoData) {
+    public VideoAnalyticsParameterDTO getTotalPoints(VideoDataDTO videoData) {
         double totalPoints = 0;
 
         if(!videoData.frames().isEmpty())
@@ -69,9 +70,19 @@ public class VideoAnalyticsService implements VideoAnalyticsQuery{
                     .mapToDouble(TagDTO::getValue)
                     .sum();
 
-        return new VideoAnalyticsDTO(
+        return new VideoAnalyticsParameterDTO(
                 videoData.video(),
                 totalPoints
         );
+    }
+
+    @Override
+    public double getASL(List<VideoDataDTO> videoData) {
+        return 0;
+    }
+
+    @Override
+    public VideoDataAnalyticsDTO getAnalytics(List<VideoDataDTO> videoData) {
+        return null;
     }
 }

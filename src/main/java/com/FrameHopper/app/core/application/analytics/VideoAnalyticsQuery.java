@@ -1,13 +1,17 @@
 package com.FrameHopper.app.core.application.analytics;
 
-import com.FrameHopper.app.boundry.dto.VideoAnalyticsDTO;
-import com.FrameHopper.app.boundry.dto.VideoDataDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoAnalyticsParameterDTO;
+import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
+
+import java.util.List;
 
 public interface VideoAnalyticsQuery {
-    VideoAnalyticsDTO getComplexity(VideoDataDTO videoData);
-    VideoAnalyticsDTO getUniqueTagsCount(VideoDataDTO videoData);
-    VideoAnalyticsDTO getFrameCount(VideoDataDTO videoData);
-    VideoAnalyticsDTO getRuntime(VideoDataDTO videoData);
-    VideoAnalyticsDTO getTotalPoints(VideoDataDTO videoData);
-
+    VideoAnalyticsParameterDTO getComplexity(VideoDataDTO videoData);
+    VideoAnalyticsParameterDTO getUniqueTagsCount(VideoDataDTO videoData);
+    VideoAnalyticsParameterDTO getFrameCount(VideoDataDTO videoData);
+    VideoAnalyticsParameterDTO getRuntime(VideoDataDTO videoData);
+    VideoAnalyticsParameterDTO getTotalPoints(VideoDataDTO videoData);
+    double getASL(List<VideoDataDTO> videoData);
+    VideoDataAnalyticsDTO getAnalytics(List<VideoDataDTO> videoData);
 }
