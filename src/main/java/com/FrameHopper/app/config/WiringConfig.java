@@ -7,6 +7,8 @@ import com.FrameHopper.app.adapters.persistence.jpa.JpaTagRepositoryAdapter;
 import com.FrameHopper.app.adapters.persistence.jpa.JpaVideoRepositoryAdapter;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.core.application.FrameBytesQueryService;
+import com.FrameHopper.app.core.application.analytics.TagAnalyticsQuery;
+import com.FrameHopper.app.core.application.analytics.TagAnalyticsService;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsService;
 import com.FrameHopper.app.core.application.frame.FrameQueryService;
@@ -159,5 +161,10 @@ public class WiringConfig {
     @Bean
     public VideoAnalyticsQuery videoAnalyticsQuery() {
         return new VideoAnalyticsService();
+    }
+
+    @Bean
+    public TagAnalyticsQuery tagAnalyticsQuery() {
+        return new TagAnalyticsService();
     }
 }

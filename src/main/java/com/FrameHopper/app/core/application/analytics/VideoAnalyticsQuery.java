@@ -12,6 +12,7 @@ public interface VideoAnalyticsQuery {
     VideoAnalyticsParameterDTO getFrameCount(VideoDataDTO videoData);
     VideoAnalyticsParameterDTO getRuntime(VideoDataDTO videoData);
     VideoAnalyticsParameterDTO getTotalPoints(VideoDataDTO videoData);
+    VideoAnalyticsParameterDTO getFrameRate(VideoDataDTO videoData);
     double getASL(List<VideoDataDTO> videoData);
     VideoDataAnalyticsDTO getAnalytics(List<VideoDataDTO> videoData);
 }

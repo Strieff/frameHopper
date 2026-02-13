@@ -307,7 +307,11 @@ public class MainViewController implements
 
     @FXML
     protected void onExport() {
-
+        FXMLViewLoader.getView(
+            "ExportViewModel",
+            "Export",
+            mainView
+        );
     }
 
     @FXML
@@ -366,7 +370,7 @@ public class MainViewController implements
 
         int frame;
         try{
-            frame = Integer.parseInt(frameInput.getText());
+            frame = Integer.parseInt(frameInput.getText()) - 1;
         } catch (NumberFormatException e){
             return;
         }
@@ -380,6 +384,7 @@ public class MainViewController implements
 
     //endregion
 
+    @Async
     @Override
     public void onFrameUpdate(int index, FrameDTO frame) {
         if(frame == null)

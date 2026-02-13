@@ -32,7 +32,7 @@ import java.util.*;
 
 @Component
 @Scope("prototype")
-public class ExportController implements LanguageChangeListener {
+public class ExportControllerOld implements LanguageChangeListener {
     @FXML
     private TableView<TableEntry> videoTable;
     @FXML
@@ -65,7 +65,7 @@ public class ExportController implements LanguageChangeListener {
     private boolean allSelected;
     private boolean isSearching;
 
-    public ExportController(
+    public ExportControllerOld(
             ExportService viewService,
             OpenViewsInformationContainer viewContainer,
             UserSettingsService userSettingsService

@@ -5,7 +5,7 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="exportView" prefHeight="521.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.Export.ExportController">
+<BorderPane fx:id="exportView" prefHeight="521.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.ExportController">
 
 <!-- Top Section with Search Field -->
 <top>
@@ -27,11 +27,11 @@
             <padding>
                 <Insets bottom="-10.0"/>
             </padding>
-            <Button fx:id="clearButton" alignment="CENTER" prefWidth="100" text="CLEAR"/>
+            <Button fx:id="clearButton" alignment="CENTER" prefWidth="100" text="CLEAR" onAction="#onClear"/>
         </HBox>
         <HBox alignment="CENTER" prefHeight="33.0" prefWidth="292.0" spacing="20">
-            <Button fx:id="cancelButton" prefWidth="100" text="CANCEL" />
-            <Button fx:id="exportButton" prefWidth="100" text="EXPORT" />
+            <Button fx:id="cancelButton" prefWidth="100" text="CANCEL" onAction="#close" />
+            <Button fx:id="exportButton" prefWidth="100" text="EXPORT" onAction="#onExport"/>
             <padding>
                <Insets bottom="10.0" />
             </padding>
