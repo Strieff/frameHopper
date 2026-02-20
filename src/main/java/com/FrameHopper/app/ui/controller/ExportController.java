@@ -1,6 +1,8 @@
 package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
+import com.FrameHopper.app.adapters.DataExportAdapter;
+import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
@@ -8,10 +10,9 @@ import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.TagAnalyticsQuery;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
+import com.FrameHopper.app.ui.dialog.FileChooserProvider;
 import com.FrameHopper.app.ui.ve.ExportActionEntry;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
-import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
-import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.ve.ExportTableEntry;
 import javafx.application.Platform;
@@ -59,31 +60,32 @@ public class ExportController implements UiView {
     private TitledPane videoPane, videoDataPane, tagDataPane;
     @FXML
     private Accordion exportAccordion;
+    @FXML
+    private ComboBox<String> fileTypeBox;
 
-    private final VideoQuery videoQuery;
     private final FrameQuery frameQuery;
     private final VideoAnalyticsQuery videoAnalyticsQuery;
-    private final TagsQuery tagsQuery;
     private final TagAnalyticsQuery tagAnalyticsQuery;
+    private final UserSettingsAdapter userSettingsAdapter;
+    private final DataExportAdapter dataExportAdapter;
 
     private Integer lastSelectedIndex = null;
-    private boolean allSelected = false;
     private boolean isSearching = false;
 
     private final List<TagDTO> cachedTagData = new ArrayList<>();
 
     public ExportController(
-            VideoQuery videoQuery,
             FrameQuery frameQuery,
             VideoAnalyticsQuery videoAnalyticsQuery,
-            TagsQuery tagsQuery,
-            TagAnalyticsQuery tagAnalyticsQuery
+            TagAnalyticsQuery tagAnalyticsQuery,
+            UserSettingsAdapter userSettingsAdapter,
+            DataExportAdapter dataExportAdapter
     ) {
-        this.videoQuery = videoQuery;
         this.frameQuery = frameQuery;
         this.videoAnalyticsQuery = videoAnalyticsQuery;
-        this.tagsQuery = tagsQuery;
         this.tagAnalyticsQuery = tagAnalyticsQuery;
+        this.userSettingsAdapter = userSettingsAdapter;
+        this.dataExportAdapter = dataExportAdapter;
 
         cachedTagData.addAll(
                 frameQuery.getAll().stream()
@@ -122,10 +124,10 @@ public class ExportController implements UiView {
         });
 
         selectColumn.setCellValueFactory(cd -> cd.getValue().selectedProperty());
-        selectColumn.setCellFactory(tc -> new TableCell<ExportTableEntry, Boolean>() {
+        selectColumn.setCellFactory(tc -> new TableCell<>() {
 
             private final CheckBox checkBox = new CheckBox();
-            private BooleanProperty boundTo; // keep reference to unbind
+            private BooleanProperty boundTo;
 
             {
                 checkBox.setOnMouseClicked(event -> {
@@ -187,6 +189,8 @@ public class ExportController implements UiView {
         setupList(videoFieldsList);
         setUpTagOptions();
         setupList(tagFieldsList);
+
+        fileTypeBox.getItems().addAll("Excel", "CSV");
 
         Platform.runLater(() -> {
             var stage = (Stage) exportView.getScene().getWindow();
@@ -396,7 +400,7 @@ public class ExportController implements UiView {
         return videoTable.getItems().stream()
                 .filter(ExportTableEntry::isSelected)
                 .map(e -> new VideoDataDTO(e.getVideo(), e.getFrames()))
-                .toList();
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     @FXML
@@ -407,28 +411,69 @@ public class ExportController implements UiView {
     @FXML
     @Async
     public void onExport() {
+        if(fileTypeBox.getSelectionModel().getSelectedIndex() == -1) return; //TODO: ERROR
+
         var videosToExport = getSelectedVideos();
 
         if (videosToExport.isEmpty()) return;
 
         var videoExportActions = videoFieldsList.getItems().stream()
                 .filter(ExportActionEntry::isSelected)
-                .toList();
+                .collect(Collectors.toCollection(LinkedList::new));
         var tagExportActions = tagFieldsList.getItems().stream()
                 .filter(ExportActionEntry::isSelected)
-                .toList();
+                .collect(Collectors.toCollection(LinkedList::new));
 
-        //get video data
+        //get export data
+        Map<String, Map<String, Number>> videoExportData = getVideoExportData(videosToExport, videoExportActions);
+        Map<String, Number> videoSummaryExportData = getVideoSummaryExportData(videosToExport, videoExportActions);
+        Map<String, Map<String, Number>> tagExportData = getTagExportData(videosToExport, tagExportActions);
+
+        var fileFormat = fileTypeBox.getSelectionModel().getSelectedItem();
+        try {
+            var dir = "CSV".equals(fileFormat) ?
+                    FileChooserProvider.locationWithNameChooser(
+                            (Stage) tagDataPane.getScene().getWindow(),
+                            userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
+                    ) : FileChooserProvider.locationFileSaveChooser(
+                            (Stage) tagDataPane.getScene().getWindow(),
+                            ".xlsx",
+                            userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
+                    );
+
+            if("CSV".equals(fileFormat))
+                dataExportAdapter.exportToCSV(videoExportData, videoSummaryExportData, tagExportData, dir);
+            else
+                dataExportAdapter.exportToExcel(videoExportData, videoSummaryExportData, tagExportData, dir);
+
+        } catch (Exception e) {
+            //TODO: error
+            e.printStackTrace();
+        }
+    }
+
+    //region [Export Data]
+
+    private Map<String, Map<String, Number>> getVideoExportData(
+            List<VideoDataDTO> videosToExport,
+            List<ExportActionEntry.VideoExportActionEntry> videoExportActions
+    ) {
         Map<String, Map<String, Number>> videoExportData = new LinkedHashMap<>();
         videosToExport.forEach(e -> {
             Map<String, Number> videoInfo =  new LinkedHashMap<>();
 
             videoExportActions.forEach(a -> videoInfo.put(a.getLabel(), a.apply(e)));
 
-           videoExportData.put(e.video().name(), videoInfo);
+            videoExportData.put(e.video().name(), videoInfo);
         });
 
-        //get summary data
+        return videoExportData;
+    }
+
+    private Map<String, Number> getVideoSummaryExportData(
+            List<VideoDataDTO> videosToExport,
+            List<ExportActionEntry.VideoExportActionEntry> videoExportActions
+    ) {
         var analytics = videoAnalyticsQuery.getAnalytics(videosToExport);
         Map<String, Number> videoSummaryExportData = new LinkedHashMap<>();
         videoSummaryExportData.put(Dictionary.get("data.overview.summary.totalShotAmount"), analytics.totalShotAmount());
@@ -440,7 +485,13 @@ public class ExportController implements UiView {
         });
         videoSummaryExportData.put(Dictionary.get("data.overview.asl"), analytics.asl());
 
-        //get tag data
+        return videoSummaryExportData;
+    }
+
+    private Map<String, Map<String, Number>> getTagExportData(
+            List<VideoDataDTO> videosToExport,
+            List<ExportActionEntry.TagExportActionEntry> tagExportActions
+    ) {
         Map<String, Map<String, Number>> tagExportData = new LinkedHashMap<>();
 
         if(!tagExportActions.isEmpty())
@@ -449,15 +500,18 @@ public class ExportController implements UiView {
                     .flatMap(List::stream)
                     .collect(Collectors.toSet())
                     .forEach(t -> {
-                              var tagInfo = new LinkedHashMap<String, Number>();
-                              tagExportActions.forEach(a -> tagInfo.put(
-                                      a.getLabel(),
-                                      a.apply(new ExportActionEntry.TagExportActionEntry.TagExportDto(t, videosToExport))
-                              ));
-                              tagExportData.put(t.getName(), tagInfo);
+                        var tagInfo = new LinkedHashMap<String, Number>();
+                        tagExportActions.forEach(a -> tagInfo.put(
+                                a.getLabel(),
+                                a.apply(new ExportActionEntry.TagExportActionEntry.TagExportDto(t, videosToExport))
+                        ));
+                        tagExportData.put(t.getName(), tagInfo);
                     });
 
+        return tagExportData;
     }
+
+    //endregion
 
     @Override
     public void close() {

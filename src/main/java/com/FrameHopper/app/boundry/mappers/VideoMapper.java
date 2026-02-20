@@ -1,8 +1,13 @@
 package com.FrameHopper.app.boundry.mappers;
 
+import com.FrameHopper.app.boundry.dto.CommentDTO;
 import com.FrameHopper.app.boundry.dto.MetadataDto;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
+import com.FrameHopper.app.core.domain.Comment;
 import com.FrameHopper.app.core.domain.Video;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VideoMapper {
     public static VideoDTO fromDomain(Video video) {
@@ -17,11 +22,17 @@ public class VideoMapper {
                     video.getMetadata().width()
             );
 
+        var list = video.getNotes();
+        List<CommentDTO> commentDTOs = (list == null || list.isEmpty()) ? new ArrayList<>() :
+                list.stream().map(CommentMapper::fromDomain).toList();
+
+
         return new VideoDTO(
                 video.getId(),
                 video.getName(),
                 video.getPath(),
-                metadata
+                metadata,
+                commentDTOs
         );
     }
 
@@ -37,11 +48,16 @@ public class VideoMapper {
                     videoDTO.metadata().width()
             );
 
+        var dtoList = videoDTO.comments();
+        List<Comment> comments = (dtoList == null || dtoList.isEmpty()) ? new ArrayList<>() :
+                dtoList.stream().map(CommentMapper::toDomain).toList();
+
         return new Video(
                 videoDTO.id(),
                 videoDTO.path(),
                 videoDTO.name(),
-                metadata
+                metadata,
+                comments
         );
     }
 }

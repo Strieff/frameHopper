@@ -1,6 +1,7 @@
 package com.FrameHopper.app.core.application.comment;
 
-import com.FrameHopper.app.core.domain.Comment;
+import com.FrameHopper.app.boundry.dto.CommentDTO;
+import com.FrameHopper.app.boundry.mappers.CommentMapper;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderCommand;
 import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
@@ -17,21 +18,30 @@ public class CommentCommandService implements
     private final CommentRepositoryPort commentRepositoryPort;
 
     @Override
-    public void updateCommentContent(Comment comment) {
-        commentRepositoryPort.update(comment);
+    public CommentDTO updateCommentContent(CommentDTO comment) {
+        var coreComment = CommentMapper.toDomain(comment);
+        coreComment = commentRepositoryPort.update(coreComment);
+
+        return CommentMapper.fromDomain(coreComment);
     }
 
     @Override
-    public void changeCommentListingOrder(Comment comment) {
+    public CommentDTO changeCommentListingOrder(CommentDTO comment) {
         if(comment.getListingOrder() < 0)
             throw new IllegalArgumentException("Comment listing order must be greater than or equal to 0");
 
-        commentRepositoryPort.update(comment);
+        var coreComment = CommentMapper.toDomain(comment);
+        coreComment = commentRepositoryPort.update(coreComment);
+
+        return CommentMapper.fromDomain(coreComment);
     }
 
     @Override
-    public Comment CreateComment(Comment comment) {
-        return commentRepositoryPort.create(comment);
+    public CommentDTO CreateComment(CommentDTO comment) {
+        var coreComment = CommentMapper.toDomain(comment);
+        var createdComment = commentRepositoryPort.create(coreComment);
+
+        return CommentMapper.fromDomain(createdComment);
     }
 
     @Override

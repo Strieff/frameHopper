@@ -107,6 +107,11 @@ public class WiringConfig {
         return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
     }
 
+    @Bean
+    public UpdateCommentsCommand updateCommentsCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
+    }
+
     // COMMENTS
 
     @Bean

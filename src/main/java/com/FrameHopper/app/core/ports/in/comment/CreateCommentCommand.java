@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.ports.in.comment;
 
-import com.FrameHopper.app.core.domain.Comment;
+import com.FrameHopper.app.boundry.dto.CommentDTO;
 
 public interface CreateCommentCommand {
-    Comment CreateComment(Comment comment);
+    CommentDTO CreateComment(CommentDTO comment);
 }

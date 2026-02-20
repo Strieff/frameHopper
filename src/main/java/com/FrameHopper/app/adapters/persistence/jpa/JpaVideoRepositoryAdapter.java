@@ -40,6 +40,16 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
     }
 
     @Override
+    public List<Video> getAllWithNotes() {
+        var entities = videoRepository.getVideoEntitiesWithNotes();
+
+        if(entities.isEmpty())
+            return new ArrayList<>();
+
+        return entities.stream().map(VideoMapper::toDomain).toList();
+    }
+
+    @Override
     public Video create(Video video) {
         var entity = videoRepository.save(VideoMapper.fromDomain(video));
 

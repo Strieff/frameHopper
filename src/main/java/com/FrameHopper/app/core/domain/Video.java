@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -13,28 +14,33 @@ public class Video {
     private String path;
     @Setter
     private VideoMetadata metadata;
+    private final List<Comment> notes;
 
     public Video(
             int id,
             String path,
             String name,
-            VideoMetadata metadata
+            VideoMetadata metadata,
+            List<Comment> notes
     ) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.metadata = metadata;
+        this.notes = notes;
     }
 
     public Video(
             int id,
             String name,
-            String path
+            String path,
+            List<Comment> notes
     ) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.metadata = null;
+        this.notes = notes;
     }
 
     public void changePath(String path) {

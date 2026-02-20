@@ -8,6 +8,7 @@ public interface VideoRepositoryPort {
     Video getById(int id);
     Video getByPath(String path);
     List<Video> getAll();
+    List<Video> getAllWithNotes();
     Video create(Video video);
     Video update(Video video);
     void delete(int id);

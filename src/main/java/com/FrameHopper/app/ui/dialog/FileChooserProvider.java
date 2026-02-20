@@ -60,6 +60,49 @@ public class FileChooserProvider {
         return selectedLocation.getAbsolutePath();
     }
 
+    public static String locationWithNameChooser(Stage stage, String openPath) throws IOException {
+        var name = FXDialogProvider.inputDialog();
+
+        if (name == null || name.isBlank()) throw new IOException("File name can't be empty!");
+
+        var directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Open Directory");
+
+        if(openPath != null && !openPath.isBlank())
+            directoryChooser.setInitialDirectory(new File(openPath));
+
+        var selectedLocation = directoryChooser.showDialog(stage);
+        if (selectedLocation == null || !selectedLocation.exists() ||!selectedLocation.isDirectory())
+            throw new IOException("Invalid directory!");
+
+        var finalPath = selectedLocation.getAbsolutePath() + File.separator + name;
+
+        while (new File(finalPath).exists()) {
+            var res = FXDialogProvider.customDialog(
+                    Dictionary.get("dialog.export.exists"),
+                    0,
+                    Dictionary.get("cancel"),
+                    Dictionary.get("dialog.export.option.rename"),
+                    Dictionary.get("dialog.export.option.overwrite")
+            );
+
+            switch (res) {
+                case 0:
+                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
+                    break;
+                case 1:
+                    name = FXDialogProvider.inputDialog();
+                    if (name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+                    finalPath = selectedLocation.getAbsolutePath() + File.separator + name;
+                    break;
+            }
+
+            if (res == 2) break;
+        }
+
+        return finalPath;
+    }
+
     public static String locationFileSaveChooser(Stage stage, String extension, String openPath) throws IOException {
         var name = FXDialogProvider.inputDialog();
 

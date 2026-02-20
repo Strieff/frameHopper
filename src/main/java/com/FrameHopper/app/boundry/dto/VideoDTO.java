@@ -1,12 +1,14 @@
 package com.FrameHopper.app.boundry.dto;
 
+import java.util.List;
 import java.util.Objects;
 
 public record VideoDTO(
         int id,
         String name,
         String path,
-        MetadataDto metadata
+        MetadataDto metadata,
+        List<CommentDTO> comments
 ) {
     @Override
     public boolean equals(Object o) {

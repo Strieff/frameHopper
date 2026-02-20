@@ -11,11 +11,14 @@ public class Comment {
     @Setter
     private String content;
     private int listingOrder;
+    @Setter
+    private Video video;
 
     public Comment(int id, String content, int listingOrder) {
         this.id = id;
         this.content = content;
         this.listingOrder = listingOrder;
+        this.video = null;
     }
 
     public void changeListingOrder(int listingOrder) {

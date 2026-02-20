@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.ports.in.comment;
 
-import com.FrameHopper.app.core.domain.Comment;
+import com.FrameHopper.app.boundry.dto.CommentDTO;
 
 public interface ChangeCommentListingOrderCommand {
-    void changeCommentListingOrder(Comment comment);
+    CommentDTO changeCommentListingOrder(CommentDTO comment);
 }

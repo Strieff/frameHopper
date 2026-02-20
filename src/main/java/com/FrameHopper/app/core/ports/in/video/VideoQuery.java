@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface VideoQuery {
     List<VideoDTO> getAllVideos();
+    List<VideoDTO> getAllWithNotes();
     VideoDTO getVideoById(int id);
     Video getVideoByPath(String path);
 }

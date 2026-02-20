@@ -1,70 +1,78 @@
-package com.FrameHopper.app.View.FXViews.Notes;
+package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.Model.Comment;
-import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.OpenViewsInformationContainer;
-import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.ViewFlag;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
+import com.FrameHopper.app.boundry.dto.CommentDTO;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
-import com.FrameHopper.app.View.Elements.Language.LanguageManager;
+import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;
+import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderCommand;
+import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
+import com.FrameHopper.app.core.ports.in.comment.DeleteCommentCommand;
+import com.FrameHopper.app.core.ports.in.video.UpdateCommentsCommand;
+import com.FrameHopper.app.core.ports.in.video.VideoQuery;
+import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.ve.NotesVideoTableEntry;
 import javafx.animation.PauseTransition;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
-import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Component
 @Scope("prototype")
-public class NotesController implements LanguageChangeListener {
+public class NotesController implements UiView {
     @FXML
     private BorderPane notesView;
     @FXML
     private TextArea noteEditor;
     @FXML
-    private ListView<TableEntry> notesList;
+    private ListView<NotesVideoTableEntry> notesList;
     @FXML
     private ImageView addNoteIcon, deleteNoteIcon;
     @FXML
     private HBox noteTabsBar;
 
-    private final NotesService viewService;
-    private final OpenViewsInformationContainer viewContainer;
-
     private final PauseTransition saveDebounce = new PauseTransition(Duration.millis(300));
     private final ToggleGroup toggleGroup = new ToggleGroup();
-    private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
 
-    private Comment currentNote;
+    private final VideoQuery videoQuery;
+    private final ChangeCommentContentCommand changeCommentContentCommand;
+    private final UpdateCommentsCommand updateCommentsCommand;
+    private final ChangeCommentListingOrderCommand changeCommentListingOrderCommand;
+    private final CreateCommentCommand createCommentCommand;
+    private final DeleteCommentCommand deleteCommentCommand;
 
-    public NotesController(NotesService noteService, OpenViewsInformationContainer viewContainer) {
-        this.viewService = noteService;
-        this.viewContainer = viewContainer;
+    private CommentDTO currentNote;
 
-        LanguageManager.register(this);
+    public NotesController(
+            VideoQuery videoQuery,
+            ChangeCommentContentCommand changeCommentContentCommand,
+            UpdateCommentsCommand updateCommentsCommand,
+            ChangeCommentListingOrderCommand changeCommentListingOrderCommand,
+            CreateCommentCommand createCommentCommand,
+            DeleteCommentCommand deleteCommentCommand
+    ) {
+        this.videoQuery = videoQuery;
+        this.changeCommentContentCommand = changeCommentContentCommand;
+        this.updateCommentsCommand = updateCommentsCommand;
+        this.changeCommentListingOrderCommand = changeCommentListingOrderCommand;
+        this.createCommentCommand = createCommentCommand;
+        this.deleteCommentCommand = deleteCommentCommand;
     }
 
     @FXML
-    public void initialize(){
-        //text area prompt
+    public void initialize() {
         noteEditor.setPromptText(Dictionary.get("notes.empty-editor"));
 
-        //set autosave
         noteEditor.textProperty().addListener((obs, oldV, newV) -> {
             saveDebounce.stop();
             saveDebounce.playFromStart();
@@ -72,11 +80,9 @@ public class NotesController implements LanguageChangeListener {
 
         saveDebounce.setOnFinished(e -> saveCurrent());
 
-        //populate notes list
         notesList.setCellFactory(createNotesCellFactory());
-        notesList.getItems().addAll(viewService.getVideosWithNotes());
+        notesList.getItems().addAll(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
 
-        //load notes tabs
         notesList.getSelectionModel().selectedItemProperty().addListener((obs, old, entry) -> {
             if(entry == null) return;
             currentNote = null;
@@ -84,44 +90,11 @@ public class NotesController implements LanguageChangeListener {
             loadCurrentTabs();
         });
 
-        //button icons
         addNoteIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
         deleteNoteIcon.setImage(FXIconLoader.getLargeIcon("bin.png"));
-
-        //handle closing
-        Platform.runLater(() -> {
-            var stage = (Stage) notesView.getScene().getWindow();
-            stage.setOnCloseRequest(e -> close());
-        });
-
-        //add key binds
-        notesView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
-
-        keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::close);
-        keyActions.put(new KeyCodeCombination(KeyCode.DELETE), this::onDeleteNote);
-        keyActions.put(new KeyCodeCombination(KeyCode.ADD), this::onAddNote);
-        keyActions.put(new KeyCodeCombination(KeyCode.EQUALS), this::onAddNote);
     }
 
-    //HANDLE KEY BINDS
-    private void handleKeyPressed(KeyEvent event) {
-        keyActions.keySet().stream()
-                .filter(k -> k.match(event))
-                .findFirst()
-                .ifPresent(k -> {
-                    event.consume();
-                    keyActions.get(k).run();
-                });
-    }
-
-    private void close(){
-        LanguageManager.unregister(this);
-        var stage = (Stage) notesView.getScene().getWindow();
-        stage.close();
-        viewContainer.close(ViewFlag.NOTES);
-    }
-
-    private Callback<ListView<TableEntry>, ListCell<TableEntry>> createNotesCellFactory() {
+    private Callback<ListView<NotesVideoTableEntry>, ListCell<NotesVideoTableEntry>> createNotesCellFactory() {
         return lv -> new ListCell<>() {
 
             private final Label nameLabel = new Label();
@@ -132,7 +105,7 @@ public class NotesController implements LanguageChangeListener {
             private final Region spacer = new Region();
             private final HBox root = new HBox(10, textBox, spacer, arrowLabel);
 
-            private TableEntry bound;
+            private NotesVideoTableEntry bound;
 
             {
                 // Layout
@@ -155,7 +128,7 @@ public class NotesController implements LanguageChangeListener {
             }
 
             @Override
-            protected void updateItem(TableEntry item, boolean empty) {
+            protected void updateItem(NotesVideoTableEntry item, boolean empty) {
                 super.updateItem(item, empty);
 
                 // Unbind previous
@@ -185,7 +158,7 @@ public class NotesController implements LanguageChangeListener {
         noteTabsBar.getChildren().clear();
         toggleGroup.getToggles().clear();
 
-        var notes = notesList.getSelectionModel().getSelectedItem().getVideo().getComments();
+        var notes = notesList.getSelectionModel().getSelectedItem().getVideo().comments();
         if(notes.isEmpty()) {
             currentNote = null;
             noteEditor.clear();
@@ -193,7 +166,7 @@ public class NotesController implements LanguageChangeListener {
         }
 
         var sorted = notes.stream()
-                .sorted(Comparator.comparingInt(Comment::getListingOrder))
+                .sorted(Comparator.comparingInt(CommentDTO::getListingOrder))
                 .toList();
 
         sorted.forEach(n -> {
@@ -212,60 +185,52 @@ public class NotesController implements LanguageChangeListener {
         openNote(sorted.getFirst());
     }
 
-    private void openNote(Comment note) {
-        ((ToggleButton) noteTabsBar.getChildren().get(note.getListingOrder()-1)).setSelected(true);
-        currentNote = note;
+    private void openNote(CommentDTO comment) {
+        ((ToggleButton) noteTabsBar.getChildren().get(comment.getListingOrder()-1)).setSelected(true);
+        currentNote = comment;
         noteEditor.setText(currentNote.getContent());
     }
 
     private void saveCurrent() {
-        if(currentNote != null)
-            if(!currentNote.getContent().equals(noteEditor.getText())) {
-                currentNote.setContent(noteEditor.getText());
-                currentNote = viewService.save(currentNote);
-            }
+        if(currentNote == null) return;
+
+        if(currentNote.getContent().equals(noteEditor.getText())) return;
+
+        currentNote.setContent(noteEditor.getText());
+        currentNote = changeCommentContentCommand.updateCommentContent(currentNote);
     }
 
     @FXML
-    protected void onAddNote() {
+    public void onAddNote() {
         var selected = notesList.getSelectionModel().getSelectedItem();
-        if(selected != null) {
-            var notes = selected.getVideo().getComments();
+        if(selected == null) return;
 
-            var notesCount = selected.getNotesCount();
-            viewService.save("", notesCount + 1, selected.getVideo());
-            loadCurrentTabs();
-            openNote(notes.getLast());
+        var notes = selected.getVideo().comments();
+        var count = selected.getNotesCount();
+        var created = createCommentCommand.CreateComment(new CommentDTO(
+                -1,
+                "",
+                count + 1,
+                selected.getVideo()
+        ));
 
-            selected.updateNotesCount();
-        }
+        notes.add(created);
+        updateCommentsCommand.updateVideo(selected.getVideo());
+
+        loadCurrentTabs();
+        openNote(notes.getLast());
+
+        selected.updateNotesCount();
     }
 
     @FXML
-    protected void onDeleteNote() {
-        var selected = notesList.getSelectionModel().getSelectedItem();
-        if(selected != null) {
-            viewService.delete(currentNote, selected.getVideo());
-            selected.getVideo().getComments().remove(currentNote);
+    public void onDeleteNote() {
 
-            if(!selected.getVideo().getComments().isEmpty())
-                selected.getVideo().getComments().stream()
-                    .filter(n -> n.getListingOrder() > currentNote.getListingOrder())
-                    .forEach(n -> n.setListingOrder(n.getListingOrder()-1));
-
-            currentNote = null;
-
-            selected.updateNotesCount();
-            loadCurrentTabs();
-        }
     }
+
 
     @Override
-    public void changeLanguage() {
-        //text area prompt
-        noteEditor.setPromptText(Dictionary.get("notes.empty-editor"));
+    public void close() {
 
-        //refresh list
-        notesList.refresh();
     }
 }

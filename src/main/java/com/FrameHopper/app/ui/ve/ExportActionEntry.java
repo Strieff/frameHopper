@@ -18,7 +18,7 @@ public class ExportActionEntry {
 
     public ExportActionEntry(String labelName) {
         this.labelName = labelName;
-        this.selected = new SimpleBooleanProperty(false);
+        this.selected = new SimpleBooleanProperty(true);
     }
 
     public boolean isSelected() {

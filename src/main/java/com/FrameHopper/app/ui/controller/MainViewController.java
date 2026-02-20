@@ -335,7 +335,12 @@ public class MainViewController implements
 
     @FXML
     protected void onNotes() {
-
+        //TODO: check if already open
+        FXMLViewLoader.getView(
+                "NotesViewModel",
+                "Notes",
+                mainView
+        );
     }
 
     @FXML

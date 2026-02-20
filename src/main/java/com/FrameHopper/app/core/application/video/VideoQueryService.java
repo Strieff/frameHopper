@@ -29,6 +29,16 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
     }
 
     @Override
+    public List<VideoDTO> getAllWithNotes() {
+        var videos = videoRepositoryPort.getAllWithNotes();
+
+        if(videos == null || videos.isEmpty())
+            return new ArrayList<>();
+
+        return videos.stream().map(VideoMapper::fromDomain).toList();
+    }
+
+    @Override
     public VideoDTO getVideoById(int id) {
         if(id < 0)
             throw new IllegalArgumentException("");
