@@ -9,7 +9,7 @@ public class CommentMapper {
                 comment.getId(),
                 comment.getContent(),
                 comment.getListingOrder(),
-                comment.getVideo().getId()
+                comment.getVideoId()
         );
     }
 
@@ -17,7 +17,8 @@ public class CommentMapper {
         return new Comment(
                 dto.getId(),
                 dto.getContent(),
-                dto.getListingOrder()
+                dto.getListingOrder(),
+                dto.getVideoId()
         );
     }
 }

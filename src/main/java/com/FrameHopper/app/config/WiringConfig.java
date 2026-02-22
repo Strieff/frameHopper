@@ -28,6 +28,7 @@ import com.FrameHopper.app.core.ports.in.frame.UpdateFrameCommand;
 import com.FrameHopper.app.core.ports.in.tag.*;
 import com.FrameHopper.app.core.ports.in.video.*;
 import com.FrameHopper.app.core.ports.out.FfmpegPort;
+import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -107,11 +108,6 @@ public class WiringConfig {
         return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
     }
 
-    @Bean
-    public UpdateCommentsCommand updateCommentsCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
-    }
-
     // COMMENTS
 
     @Bean
@@ -120,23 +116,23 @@ public class WiringConfig {
     }
 
     @Bean
-    public ChangeCommentContentCommand changeCommentContentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    public ChangeCommentContentCommand changeCommentContentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
     }
 
     @Bean
-    public ChangeCommentListingOrderCommand changeCommentListingOrderCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    public ChangeCommentListingOrderCommand changeCommentListingOrderCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
     }
 
     @Bean
-    public CreateCommentCommand createCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    public CreateCommentCommand createCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
     }
 
     @Bean
-    public DeleteCommentCommand deleteCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter);
+    public DeleteCommentCommand deleteCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
+        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
     }
 
     // FRAMES

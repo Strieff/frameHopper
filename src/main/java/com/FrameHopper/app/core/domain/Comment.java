@@ -1,25 +1,19 @@
 package com.FrameHopper.app.core.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Objects;
 
 @Getter
+@AllArgsConstructor
 public class Comment {
     private final int id;
     @Setter
     private String content;
     private int listingOrder;
-    @Setter
-    private Video video;
-
-    public Comment(int id, String content, int listingOrder) {
-        this.id = id;
-        this.content = content;
-        this.listingOrder = listingOrder;
-        this.video = null;
-    }
+    private int videoId;
 
     public void changeListingOrder(int listingOrder) {
         if(listingOrder < 0)

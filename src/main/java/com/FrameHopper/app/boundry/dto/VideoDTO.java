@@ -1,6 +1,6 @@
 package com.FrameHopper.app.boundry.dto;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public record VideoDTO(
@@ -8,7 +8,7 @@ public record VideoDTO(
         String name,
         String path,
         MetadataDto metadata,
-        List<CommentDTO> comments
+        ArrayList<CommentDTO> comments
 ) {
     @Override
     public boolean equals(Object o) {

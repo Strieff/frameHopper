@@ -5,10 +5,14 @@ import com.FrameHopper.app.core.domain.Comment;
 
 public class CommentMapper {
     public static Comment toDomain(CommentEntity commentEntity) {
+        if (commentEntity == null)
+            throw new IllegalArgumentException("CommentEntity cannot be null");
+
         return new Comment(
                 commentEntity.getId(),
                 commentEntity.getContent(),
-                commentEntity.getListingOrder()
+                commentEntity.getListingOrder(),
+                commentEntity.getVideoEntity().getId()
         );
     }
 

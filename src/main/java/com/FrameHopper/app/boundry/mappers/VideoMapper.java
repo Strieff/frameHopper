@@ -8,6 +8,7 @@ import com.FrameHopper.app.core.domain.Video;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class VideoMapper {
     public static VideoDTO fromDomain(Video video) {
@@ -23,8 +24,8 @@ public class VideoMapper {
             );
 
         var list = video.getNotes();
-        List<CommentDTO> commentDTOs = (list == null || list.isEmpty()) ? new ArrayList<>() :
-                list.stream().map(CommentMapper::fromDomain).toList();
+        ArrayList<CommentDTO> commentDTOs = (list == null || list.isEmpty()) ? new ArrayList<>() :
+                list.stream().map(CommentMapper::fromDomain).collect(Collectors.toCollection(ArrayList::new));
 
 
         return new VideoDTO(

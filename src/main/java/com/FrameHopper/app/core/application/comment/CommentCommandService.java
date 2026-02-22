@@ -7,7 +7,10 @@ import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderComman
 import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
 import com.FrameHopper.app.core.ports.in.comment.DeleteCommentCommand;
 import com.FrameHopper.app.core.ports.out.repository.CommentRepositoryPort;
+import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 public class CommentCommandService implements
@@ -16,30 +19,41 @@ public class CommentCommandService implements
         CreateCommentCommand,
         DeleteCommentCommand {
     private final CommentRepositoryPort commentRepositoryPort;
+    private final VideoRepositoryPort videoRepositoryPort;
 
     @Override
     public CommentDTO updateCommentContent(CommentDTO comment) {
         var coreComment = CommentMapper.toDomain(comment);
-        coreComment = commentRepositoryPort.update(coreComment);
+        var coreVideo = videoRepositoryPort.getById(comment.getVideoId());
+
+        coreComment = commentRepositoryPort.update(coreComment, coreVideo);
 
         return CommentMapper.fromDomain(coreComment);
     }
 
     @Override
-    public CommentDTO changeCommentListingOrder(CommentDTO comment) {
-        if(comment.getListingOrder() < 0)
+    public List<CommentDTO> changeCommentListingOrder(List<CommentDTO> comments) {
+        if(comments == null || comments.isEmpty())
+            throw new IllegalArgumentException("comments cannot be null or empty");
+
+        if(comments.stream().anyMatch(c -> c.getListingOrder() == -1))
             throw new IllegalArgumentException("Comment listing order must be greater than or equal to 0");
 
-        var coreComment = CommentMapper.toDomain(comment);
-        coreComment = commentRepositoryPort.update(coreComment);
+        var videoId = comments.getFirst().getVideoId();
+        var coreVideo = videoRepositoryPort.getById(videoId);
 
-        return CommentMapper.fromDomain(coreComment);
+        var coreComments = comments.stream().map(CommentMapper::toDomain).toList();
+        coreComments = commentRepositoryPort.update(coreComments, coreVideo);
+
+        return coreComments.stream().map(CommentMapper::fromDomain).toList();
     }
 
     @Override
     public CommentDTO CreateComment(CommentDTO comment) {
         var coreComment = CommentMapper.toDomain(comment);
-        var createdComment = commentRepositoryPort.create(coreComment);
+        var coreVideo = videoRepositoryPort.getById(comment.getVideoId());
+
+        var createdComment = commentRepositoryPort.create(coreComment,coreVideo);
 
         return CommentMapper.fromDomain(createdComment);
     }

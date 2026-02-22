@@ -18,8 +18,8 @@ public class VideoCommandService implements
         DeleteVideoCommand,
         UpdateVideoPathCommand,
         CreateVideoCommand,
-        LoadVideoCommand,
-        UpdateCommentsCommand {
+        LoadVideoCommand
+{
     private final VideoRepositoryPort videoRepositoryPort;
     private final FfmpegPort ffmpegPort;
 
@@ -79,12 +79,5 @@ public class VideoCommandService implements
 
         ffmpegPort.loadVideo(loadedVideo);
         return VideoMapper.fromDomain(loadedVideo);
-    }
-
-    @Override
-    public VideoDTO updateVideo(VideoDTO video) {
-        var coreVideo = VideoMapper.toDomain(video);
-
-        return VideoMapper.fromDomain(videoRepositoryPort.update(coreVideo));
     }
 }

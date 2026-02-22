@@ -7,7 +7,7 @@ import lombok.Getter;
 
 public class NotesVideoTableEntry {
     @Getter
-    private final VideoDTO video;
+    private VideoDTO video;
 
     private final SimpleStringProperty name;
     private final SimpleIntegerProperty notesCount;
@@ -16,6 +16,11 @@ public class NotesVideoTableEntry {
         this.video = video;
         name = new SimpleStringProperty(video.name());
         notesCount = new SimpleIntegerProperty(video.comments() != null ? video.comments().size() : 0);
+    }
+
+    public void setName(VideoDTO video) {
+        this.video = video;
+        name.set(video.name());
     }
 
     public String getName()  { return name.get(); }

@@ -7,7 +7,6 @@ import com.FrameHopper.app.core.domain.Comment;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.out.repository.CommentRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,7 +18,7 @@ public class JpaCommentRepositoryAdapter implements CommentRepositoryPort {
 
     @Override
     public Comment getById(int id) {
-        return CommentMapper.toDomain(commentRepository.findById(id).get());
+        return CommentMapper.toDomain(commentRepository.findById(id).orElse(null));
     }
 
     @Override
@@ -30,17 +29,36 @@ public class JpaCommentRepositoryAdapter implements CommentRepositoryPort {
     }
 
     @Override
-    public Comment create(Comment comment) {
-        var savedEntity = commentRepository.save(CommentMapper.fromDomain(comment));
+    public Comment create(Comment comment, Video video) {
+        var commentEntity = CommentMapper.fromDomain(comment);
+        var videoEntity = VideoMapper.fromDomain(video);
+        commentEntity.setVideoEntity(videoEntity);
+
+        var savedEntity = commentRepository.save(commentEntity);
 
         return CommentMapper.toDomain(savedEntity);
     }
 
     @Override
-    public Comment update(Comment comment) {
-        var updatedEntity = commentRepository.save(CommentMapper.fromDomain(comment));
+    public Comment update(Comment comment, Video video) {
+        var commentEntity = CommentMapper.fromDomain(comment);
+        var videoEntity = VideoMapper.fromDomain(video);
+        commentEntity.setVideoEntity(videoEntity);
+
+        var updatedEntity = commentRepository.save(commentEntity);
 
         return CommentMapper.toDomain(updatedEntity);
+    }
+
+    @Override
+    public List<Comment> update(List<Comment> comments, Video video) {
+        var videoEntity = VideoMapper.fromDomain(video);
+        var commentEntities = comments.stream().map(CommentMapper::fromDomain).toList();
+        commentEntities.forEach(c -> c.setVideoEntity(videoEntity));
+
+        var updated = commentRepository.saveAll(commentEntities);
+
+        return updated.stream().map(CommentMapper::toDomain).toList();
     }
 
     @Override

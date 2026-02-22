@@ -1,35 +1,42 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.Model.Comment;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.boundry.dto.CommentDTO;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
+import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderCommand;
 import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
 import com.FrameHopper.app.core.ports.in.comment.DeleteCommentCommand;
-import com.FrameHopper.app.core.ports.in.video.UpdateCommentsCommand;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.eventing.DeleteVideoEventDispatcher;
+import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener;
+import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
 import com.FrameHopper.app.ui.ve.NotesVideoTableEntry;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
-import java.util.List;
 
 @Component
 @Scope("prototype")
-public class NotesController implements UiView {
+public class NotesController implements UiView,
+        DeleteVideoEventListener,
+        VideoPathUpdatedListener
+{
     @FXML
     private BorderPane notesView;
     @FXML
@@ -46,7 +53,6 @@ public class NotesController implements UiView {
 
     private final VideoQuery videoQuery;
     private final ChangeCommentContentCommand changeCommentContentCommand;
-    private final UpdateCommentsCommand updateCommentsCommand;
     private final ChangeCommentListingOrderCommand changeCommentListingOrderCommand;
     private final CreateCommentCommand createCommentCommand;
     private final DeleteCommentCommand deleteCommentCommand;
@@ -56,17 +62,18 @@ public class NotesController implements UiView {
     public NotesController(
             VideoQuery videoQuery,
             ChangeCommentContentCommand changeCommentContentCommand,
-            UpdateCommentsCommand updateCommentsCommand,
             ChangeCommentListingOrderCommand changeCommentListingOrderCommand,
             CreateCommentCommand createCommentCommand,
             DeleteCommentCommand deleteCommentCommand
     ) {
         this.videoQuery = videoQuery;
         this.changeCommentContentCommand = changeCommentContentCommand;
-        this.updateCommentsCommand = updateCommentsCommand;
         this.changeCommentListingOrderCommand = changeCommentListingOrderCommand;
         this.createCommentCommand = createCommentCommand;
         this.deleteCommentCommand = deleteCommentCommand;
+
+        DeleteVideoEventDispatcher.register(this);
+        VideoPathUpdatedEventDispatcher.register(this);
     }
 
     @FXML
@@ -183,6 +190,11 @@ public class NotesController implements UiView {
         });
 
         openNote(sorted.getFirst());
+
+        Platform.runLater(() -> {
+            var stage = (Stage) notesView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> close());
+        });
     }
 
     private void openNote(CommentDTO comment) {
@@ -197,7 +209,8 @@ public class NotesController implements UiView {
         if(currentNote.getContent().equals(noteEditor.getText())) return;
 
         currentNote.setContent(noteEditor.getText());
-        currentNote = changeCommentContentCommand.updateCommentContent(currentNote);
+        var updated = changeCommentContentCommand.updateCommentContent(currentNote);
+        currentNote.setContent(updated.getContent());
     }
 
     @FXML
@@ -211,11 +224,9 @@ public class NotesController implements UiView {
                 -1,
                 "",
                 count + 1,
-                selected.getVideo()
+                selected.getVideo().id()
         ));
-
         notes.add(created);
-        updateCommentsCommand.updateVideo(selected.getVideo());
 
         loadCurrentTabs();
         openNote(notes.getLast());
@@ -225,12 +236,52 @@ public class NotesController implements UiView {
 
     @FXML
     public void onDeleteNote() {
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected == null) return;
 
+        if(currentNote == null) return;
+
+        var comments = selected.getVideo().comments();
+        if(comments.isEmpty()) return;
+
+        deleteCommentCommand.DeleteComment(currentNote.getId());
+        comments.remove(currentNote);
+
+        if(!comments.isEmpty()) {
+            var toUpdate = comments.stream()
+                    .filter(c -> c.getListingOrder() > currentNote.getListingOrder())
+                    .toList();
+
+            toUpdate.forEach(c -> c.setListingOrder(c.getListingOrder() - 1));
+            changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate);
+        }
+
+        currentNote = null;
+        selected.updateNotesCount();
+        loadCurrentTabs();
     }
-
 
     @Override
     public void close() {
+        DeleteVideoEventDispatcher.unregister(this);
+        VideoPathUpdatedEventDispatcher.unregister(this);
 
+        var stage = (Stage) notesView.getScene().getWindow();
+        stage.close();
+    }
+
+    @Override
+    public void onDeleteVideo(VideoDTO videoDTO) {
+        notesList.getItems().clear();
+        notesList.getItems().addAll(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+    }
+
+    @Override
+    public void onVideoPathUpdated(VideoDTO video) {
+        var videos = notesList.getItems().stream().toList();
+        var index = videos.indexOf(video);
+        if(index == -1) return;
+
+        notesList.getItems().get(index).setName(video);
     }
 }
