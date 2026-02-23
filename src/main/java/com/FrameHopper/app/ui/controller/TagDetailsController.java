@@ -99,7 +99,7 @@ public class TagDetailsController implements UiView {
                 e -> {
                     cachedTag.changeStatus();
                     changeTagStatusCommand.ChangeTagStatus(cachedTag.getId());
-                    changeStatusButton.setText(Dictionary.get(cachedTag.isVisible() ? "td.hide" : "td.unhide"));
+                    changeStatusButton.setText(Dictionary.get(cachedTag.getVisible() ? "td.hide" : "td.unhide"));
 
                     TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
                 }
@@ -116,7 +116,7 @@ public class TagDetailsController implements UiView {
     public void init(TagDTO tag) {
         cachedTag = tag;
 
-        changeStatusButton.setText(Dictionary.get(cachedTag.isVisible() ? "td.hide" : "td.unhide"));
+        changeStatusButton.setText(Dictionary.get(cachedTag.getVisible() ? "td.hide" : "td.unhide"));
         buttonBox.getChildren().addAll(cancelButton, changeStatusButton, saveButton);
 
         nameField.textProperty().setValue(cachedTag.getName());

@@ -10,7 +10,7 @@ public class TagMapper {
                 tagDTO.getName(),
                 tagDTO.getValue(),
                 tagDTO.getDescription(),
-                tagDTO.isVisible()
+                tagDTO.getVisible()
         );
     }
 

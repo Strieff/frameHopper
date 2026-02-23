@@ -26,7 +26,7 @@ public class TagCommandService implements
 
     @Override
     public TagDTO CreateTag(TagDTO tagDto) {
-        if (tagDto.getName() == null || tagDto.getName().isBlank())
+        if (tagDto.getName().isBlank())
             throw new IllegalArgumentException("name is required");
 
         if(tagRepositoryPort.getByName(tagDto.getName()) != null)
@@ -51,7 +51,7 @@ public class TagCommandService implements
 
     @Override
     public TagDTO UpdateTag(TagDTO tagDto) {
-        if (tagDto.getName() == null || tagDto.getName().isBlank())
+        if (tagDto.getName().isBlank())
             throw new IllegalArgumentException("name is required");
 
         if(tagDto.getValue() == null || tagDto.getValue().isNaN())

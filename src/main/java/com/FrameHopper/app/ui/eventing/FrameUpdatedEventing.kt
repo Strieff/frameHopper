@@ -16,11 +16,11 @@ object FrameUpdatedEventDispatcher {
     }
 
     @JvmStatic
-    fun dispatch(index: Int, frame: FrameDTO) {
+    fun dispatch(index: Int, frame: FrameDTO?) {
         listeners.forEach { it.onFrameUpdate(index, frame) }
     }
 }
 
 fun interface FrameUpdatedListener {
-    fun onFrameUpdate(index: Int, frame: FrameDTO)
+    fun onFrameUpdate(index: Int, frame: FrameDTO?)
 }

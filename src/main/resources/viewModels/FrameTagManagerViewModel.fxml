@@ -13,7 +13,7 @@
             <Label fx:id="frameLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="FRAME: 1" />
             <HBox alignment="CENTER" spacing="5">
                 <TextField fx:id="searchField" prefWidth="150" promptText="Search" />
-                <Button fx:id="searchButton" text="🔍" />
+                <Button fx:id="searchButton" text="🔍" onAction="#handleSearch"/>
             <padding>
                <Insets bottom="5.0" />
             </padding>

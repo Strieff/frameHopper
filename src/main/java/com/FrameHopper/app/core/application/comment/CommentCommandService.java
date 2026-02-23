@@ -26,6 +26,9 @@ public class CommentCommandService implements
         var coreComment = CommentMapper.toDomain(comment);
         var coreVideo = videoRepositoryPort.getById(comment.getVideoId());
 
+        if(coreVideo == null)
+            throw new IllegalArgumentException("Video not found");
+
         coreComment = commentRepositoryPort.update(coreComment, coreVideo);
 
         return CommentMapper.fromDomain(coreComment);
@@ -41,6 +44,8 @@ public class CommentCommandService implements
 
         var videoId = comments.getFirst().getVideoId();
         var coreVideo = videoRepositoryPort.getById(videoId);
+        if(coreVideo == null)
+            throw new IllegalArgumentException("Video not found");
 
         var coreComments = comments.stream().map(CommentMapper::toDomain).toList();
         coreComments = commentRepositoryPort.update(coreComments, coreVideo);
@@ -50,8 +55,14 @@ public class CommentCommandService implements
 
     @Override
     public CommentDTO CreateComment(CommentDTO comment) {
+        if(comment.getVideoId() < 0)
+            throw new IllegalArgumentException("Invalid video id");
+
         var coreComment = CommentMapper.toDomain(comment);
         var coreVideo = videoRepositoryPort.getById(comment.getVideoId());
+
+        if(coreVideo == null)
+            throw new IllegalArgumentException("Video not found"); //TODO: not found
 
         var createdComment = commentRepositoryPort.create(coreComment,coreVideo);
 

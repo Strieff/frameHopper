@@ -26,6 +26,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -271,14 +272,14 @@ public class NotesController implements UiView,
     }
 
     @Override
-    public void onDeleteVideo(VideoDTO videoDTO) {
+    public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
         notesList.getItems().clear();
         notesList.getItems().addAll(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
     }
 
     @Override
-    public void onVideoPathUpdated(VideoDTO video) {
-        var videos = notesList.getItems().stream().toList();
+    public void onVideoPathUpdated(@NotNull VideoDTO video) {
+        var videos = notesList.getItems().stream().map(NotesVideoTableEntry::getVideo).toList();
         var index = videos.indexOf(video);
         if(index == -1) return;
 
