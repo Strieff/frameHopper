@@ -4,7 +4,6 @@ import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.DataExportAdapter;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
-import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
@@ -17,6 +16,7 @@ import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.ve.ExportTableEntry;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -70,9 +70,8 @@ public class ExportController implements UiView {
     private final DataExportAdapter dataExportAdapter;
 
     private Integer lastSelectedIndex = null;
-    private boolean isSearching = false;
 
-    private final List<TagDTO> cachedTagData = new ArrayList<>();
+    private ObservableList<ExportTableEntry> cachedVideoList;
 
     public ExportController(
             FrameQuery frameQuery,
@@ -86,13 +85,6 @@ public class ExportController implements UiView {
         this.tagAnalyticsQuery = tagAnalyticsQuery;
         this.userSettingsAdapter = userSettingsAdapter;
         this.dataExportAdapter = dataExportAdapter;
-
-        cachedTagData.addAll(
-                frameQuery.getAll().stream()
-                        .map(FrameDTO::tags)
-                        .flatMap(List::stream)
-                        .collect(Collectors.toSet())
-        );
     }
 
     @FXML
@@ -172,9 +164,10 @@ public class ExportController implements UiView {
         });
 
         Map<VideoDTO, List<FrameDTO>> groupedFrames = frameQuery.getAll().stream().collect(Collectors.groupingBy(FrameDTO::video));
-        videoTable.getItems().addAll(
+        cachedVideoList = FXCollections.observableArrayList(
                 groupedFrames.entrySet().stream().map(e -> new ExportTableEntry(e.getKey(), e.getValue())).toList()
         );
+        videoTable.setItems(cachedVideoList);
 
         exportAccordion.setExpandedPane(videoPane);
 
@@ -397,7 +390,7 @@ public class ExportController implements UiView {
     //endregion
 
     private List<VideoDataDTO> getSelectedVideos() {
-        return videoTable.getItems().stream()
+        return cachedVideoList.stream()
                 .filter(ExportTableEntry::isSelected)
                 .map(e -> new VideoDataDTO(e.getVideo(), e.getFrames()))
                 .collect(Collectors.toCollection(LinkedList::new));
@@ -405,7 +398,22 @@ public class ExportController implements UiView {
 
     @FXML
     public void onClear() {
-        videoTable.getItems().forEach(e -> e.setSelected(false));
+        cachedVideoList.forEach(e -> e.setSelected(false));
+    }
+
+    @FXML
+    public void handleSearch() {
+        var query = searchField.getText().trim();
+        if(query.isEmpty() && !searchButton.getText().equals("X")) return;
+
+        if(searchButton.getText().equals("\uD83D\uDD0D")) {
+            videoTable.setItems(cachedVideoList.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase())));
+            searchButton.setText("X");
+        } else {
+            videoTable.setItems(cachedVideoList);
+            searchButton.setText("\uD83D\uDD0D");
+            searchField.clear();
+        }
     }
 
     @FXML

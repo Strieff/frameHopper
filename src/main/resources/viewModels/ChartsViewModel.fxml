@@ -101,6 +101,14 @@
     <!-- Left: Table for Video Selection -->
     <left>
         <VBox prefWidth="300" BorderPane.alignment="CENTER">
+            <HBox alignment="CENTER" prefWidth="316.0" spacing="5">
+                <TextField fx:id="searchField" prefHeight="25.0" prefWidth="260.0" promptText="Search" />
+                <Button fx:id="searchButton" onAction="#handleSearch" text="🔍" />
+                <padding>
+                    <Insets bottom="10.0" top="10.0" />
+                </padding>
+            </HBox>
+
             <TableView fx:id="videoTable" editable="true" prefHeight="603.0" prefWidth="300.0">
                 <columns>
                     <!-- Checkbox Column -->

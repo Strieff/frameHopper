@@ -12,7 +12,7 @@
     <VBox alignment="CENTER" spacing="5">
         <HBox alignment="CENTER" spacing="5">
             <TextField fx:id="searchField" prefWidth="200" promptText="Search" />
-            <Button fx:id="searchButton" text="🔍" />
+            <Button fx:id="searchButton" onAction="#handleSearch" text="🔍" />
             <padding>
                <Insets bottom="10.0" top="10.0" />
             </padding>

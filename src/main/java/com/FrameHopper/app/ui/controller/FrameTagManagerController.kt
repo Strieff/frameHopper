@@ -62,7 +62,7 @@ open class FrameTagManagerController (
     private lateinit var frameTagManagerView: BorderPane
 
     private lateinit var cachedFrame: FrameDTO
-    private lateinit var tagListCache: ObservableList<FrameTagManagerTableEntry?>
+    private lateinit var cachedTagList: ObservableList<FrameTagManagerTableEntry?>
 
     @FXML
     fun initialize() {
@@ -73,11 +73,11 @@ open class FrameTagManagerController (
         selectColumn.cellValueFactory = Callback {it.value?.selected}
         selectColumn.cellFactory = CheckBoxTableCell.forTableColumn(selectColumn)
 
-        tagListCache = FXCollections.observableArrayList(
+        cachedTagList = FXCollections.observableArrayList(
             tagsQuery.getAllTags()?.takeIf { it.isNotEmpty() }
                 ?.map(::FrameTagManagerTableEntry)
         )
-        codeTable.items = tagListCache
+        codeTable.items = cachedTagList
 
         cancelButton.text = Dictionary.get("cancel")
         cancelButton.setOnAction { _: ActionEvent? -> close() }
@@ -110,10 +110,10 @@ open class FrameTagManagerController (
         if(query == "" && searchButton.text != "X") return
 
         if(searchButton.text == "\uD83D\uDD0D"){
-            codeTable.items = FXCollections.observableArrayList(tagListCache.filter { it?.tag?.name?.contains(searchField.text, true) == true })
+            codeTable.items = FXCollections.observableArrayList(cachedTagList.filter { it?.tag?.name?.contains(searchField.text, true) == true })
             searchButton.text = "X"
         } else {
-            codeTable.items = tagListCache
+            codeTable.items = cachedTagList
             searchButton.text = "\uD83D\uDD0D"
             searchField.clear()
         }

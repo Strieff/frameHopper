@@ -15,6 +15,7 @@ import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.ve.ChartsTableEntry;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.SnapshotParameters;
@@ -64,9 +65,9 @@ public class ChartsController implements UiView {
     @FXML
     private CheckBox meanCheckbox,colorMean;
     @FXML
-    private Button generateButton;
+    private Button generateButton, searchButton;
     @FXML
-    private TextField tickField,separatorField;
+    private TextField tickField, separatorField, searchField;
     @FXML
     private Label tickLabel, separatorLabel, yAxisLabel, legend1Label, legend2Label, legend3Label;
     @FXML
@@ -82,6 +83,8 @@ public class ChartsController implements UiView {
     private final VideoQuery videoQuery;
     private final VideoAnalyticsQuery videoAnalyticsQuery;
     private final UserSettingsAdapter userSettingsAdapter;
+
+    private ObservableList<ChartsTableEntry> cachedVideoList;
 
     public ChartsController(
             FrameQuery frameQuery,
@@ -115,7 +118,9 @@ public class ChartsController implements UiView {
 
         entries.forEach(e -> e.selectedProperty().addListener((obs, oldVal, newVal) -> generateChart()));
 
-        videoTable.getItems().addAll(entries);
+        cachedVideoList = FXCollections.observableArrayList(entries);
+
+        videoTable.setItems(cachedVideoList);
         selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
         selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(selectColumn));
 
@@ -181,7 +186,7 @@ public class ChartsController implements UiView {
         legend3Label.setText(Dictionary.get("legend.mean"));
 
         Platform.runLater(() -> {
-            var stage = (Stage) videoTable.getScene().getWindow();
+            var stage = (Stage) chartView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -358,7 +363,7 @@ public class ChartsController implements UiView {
     }
 
     private List<VideoDataDTO> getSelectedForAnalytics() {
-        return videoTable.getItems().stream()
+        return cachedVideoList.stream()
                 .filter(ChartsTableEntry::isSelected)
                 .map(e -> new VideoDataDTO(e.getVideo(), e.getFrames()))
                 .toList();
@@ -438,8 +443,23 @@ public class ChartsController implements UiView {
 
     @FXML
     public void handleClear() {
-        videoTable.getItems().forEach(e -> e.setSelected(false));
+        cachedVideoList.forEach(e -> e.setSelected(false));
         generateChart();
+    }
+
+    @FXML
+    public void handleSearch() {
+        var query = searchField.getText().trim();
+        if(query.isEmpty() && !searchButton.getText().equals("X")) return;
+
+        if(searchButton.getText().equals("\uD83D\uDD0D")) {
+            videoTable.setItems(cachedVideoList.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase())));
+            searchButton.setText("X");
+        } else {
+            videoTable.setItems(cachedVideoList);
+            searchButton.setText("\uD83D\uDD0D");
+            searchField.clear();
+        }
     }
 
     @Async
