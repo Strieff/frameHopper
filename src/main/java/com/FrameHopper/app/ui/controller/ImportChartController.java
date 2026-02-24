@@ -2,8 +2,6 @@ package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UiView;
 import javafx.application.Platform;
@@ -35,7 +33,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class ImportChartController implements UiView {
+public class ImportChartController extends UiView {
     @FXML
     StackPane chartPane;
     @FXML
@@ -225,6 +223,11 @@ public class ImportChartController implements UiView {
         close();
     }
 
+
+    @Override
+    public void addKeybinds() {
+
+    }
 
     @Override
     public void close() {

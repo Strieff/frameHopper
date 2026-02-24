@@ -16,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
@@ -29,7 +30,7 @@ import java.util.function.Consumer;
 
 @Component
 @Scope("prototype")
-public class TagManagerController implements UiView, TagUpdatedEventListener {
+public class TagManagerController extends UiView implements TagUpdatedEventListener {
     @FXML
     private TableView<TagManagerTableEntry> codeTable;
     @FXML
@@ -224,6 +225,11 @@ public class TagManagerController implements UiView, TagUpdatedEventListener {
     }
 
     //endregion
+
+    @Override
+    public void addKeybinds() {
+
+    }
 
     @Override
     public void close() {

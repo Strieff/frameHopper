@@ -17,11 +17,14 @@ import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
 import com.FrameHopper.app.ui.ve.NotesVideoTableEntry;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -34,7 +37,7 @@ import java.util.Comparator;
 
 @Component
 @Scope("prototype")
-public class NotesController implements UiView,
+public class NotesController extends UiView implements
         DeleteVideoEventListener,
         VideoPathUpdatedListener
 {
@@ -48,6 +51,10 @@ public class NotesController implements UiView,
     private ImageView addNoteIcon, deleteNoteIcon;
     @FXML
     private HBox noteTabsBar;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private Button searchButton;
 
     private final PauseTransition saveDebounce = new PauseTransition(Duration.millis(300));
     private final ToggleGroup toggleGroup = new ToggleGroup();
@@ -59,6 +66,7 @@ public class NotesController implements UiView,
     private final DeleteCommentCommand deleteCommentCommand;
 
     private CommentDTO currentNote;
+    private ObservableList<NotesVideoTableEntry> cachedVideoList;
 
     public NotesController(
             VideoQuery videoQuery,
@@ -89,7 +97,8 @@ public class NotesController implements UiView,
         saveDebounce.setOnFinished(e -> saveCurrent());
 
         notesList.setCellFactory(createNotesCellFactory());
-        notesList.getItems().addAll(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+        cachedVideoList = FXCollections.observableArrayList(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+        notesList.setItems(cachedVideoList);
 
         notesList.getSelectionModel().selectedItemProperty().addListener((obs, old, entry) -> {
             if(entry == null) return;
@@ -165,8 +174,12 @@ public class NotesController implements UiView,
     private void loadCurrentTabs() {
         noteTabsBar.getChildren().clear();
         toggleGroup.getToggles().clear();
+        noteEditor.clear();
 
-        var notes = notesList.getSelectionModel().getSelectedItem().getVideo().comments();
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected == null) return;
+
+        var notes = selected.getVideo().comments();
         if(notes.isEmpty()) {
             currentNote = null;
             noteEditor.clear();
@@ -262,6 +275,32 @@ public class NotesController implements UiView,
         loadCurrentTabs();
     }
 
+    @FXML
+    public void handleSearch() {
+        var query = searchField.getText().trim();
+        if(query.isEmpty() && !searchButton.getText().equals("X")) return;
+
+        if(searchButton.getText().equals("\uD83D\uDD0D")) {
+            notesList.setItems(cachedVideoList.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase())));
+            searchButton.setText("X");
+
+            var selected = notesList.getSelectionModel().getSelectedItem();
+            if(selected != null) return;
+
+            currentNote = null;
+            loadCurrentTabs();
+        } else {
+            notesList.setItems(cachedVideoList);
+            searchButton.setText("\uD83D\uDD0D");
+            searchField.clear();
+        }
+    }
+
+    @Override
+    public void addKeybinds() {
+
+    }
+
     @Override
     public void close() {
         DeleteVideoEventDispatcher.unregister(this);
@@ -274,15 +313,16 @@ public class NotesController implements UiView,
     @Override
     public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
         notesList.getItems().clear();
-        notesList.getItems().addAll(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+        cachedVideoList = FXCollections.observableArrayList(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+        notesList.setItems(cachedVideoList);
     }
 
     @Override
     public void onVideoPathUpdated(@NotNull VideoDTO video) {
-        var videos = notesList.getItems().stream().map(NotesVideoTableEntry::getVideo).toList();
+        var videos = cachedVideoList.stream().map(NotesVideoTableEntry::getVideo).toList();
         var index = videos.indexOf(video);
         if(index == -1) return;
 
-        notesList.getItems().get(index).setName(video);
+        cachedVideoList.get(index).setName(video);
     }
 }

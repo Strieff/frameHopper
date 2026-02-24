@@ -7,6 +7,7 @@ import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.UpdateTagCommand;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -14,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
@@ -21,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class TagDetailsController implements UiView {
+public class TagDetailsController extends UiView {
     @FXML
     private TextField nameField,valueField;
     @FXML
@@ -30,6 +32,8 @@ public class TagDetailsController implements UiView {
     private Label nameLabel,valueLabel,descriptionLabel;
     @FXML
     private HBox buttonBox;
+    @FXML
+    private BorderPane tagDetailsView;
 
     private final CreateTagCommand createTagCommand;
     private final ChangeTagStatusCommand changeTagStatusCommand;
@@ -104,6 +108,13 @@ public class TagDetailsController implements UiView {
                     TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
                 }
         );
+
+        Platform.runLater(() -> {
+            tagDetailsView.requestFocus();
+
+            var stage = (Stage) tagDetailsView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> close());
+        });
     }
 
     private void setUpButton(Button button, String label, EventHandler<ActionEvent> event) {
@@ -126,6 +137,11 @@ public class TagDetailsController implements UiView {
 
     public void init() {
         buttonBox.getChildren().addAll(cancelButton, saveButton);
+    }
+
+    @Override
+    public void addKeybinds() {
+
     }
 
     @Override

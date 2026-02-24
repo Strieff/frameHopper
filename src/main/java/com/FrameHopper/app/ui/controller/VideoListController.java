@@ -14,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class VideoListController implements UiView,
+public class VideoListController extends UiView implements
         DeleteVideoEventListener,
         VideoPathUpdatedListener
 {
@@ -148,6 +149,16 @@ public class VideoListController implements UiView,
                 }
             }
         };
+    }
+
+    @Override
+    public void addKeybinds() {
+
+    }
+
+    @Override
+    public void handleKeyPressed(KeyEvent event) {
+
     }
 
     @Override

@@ -22,9 +22,7 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
@@ -39,7 +37,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class ExportController implements UiView {
+public class ExportController extends UiView {
     @FXML
     private TableView<ExportTableEntry> videoTable;
     @FXML
@@ -184,6 +182,8 @@ public class ExportController implements UiView {
         setupList(tagFieldsList);
 
         fileTypeBox.getItems().addAll("Excel", "CSV");
+
+        addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) exportView.getScene().getWindow();
@@ -520,6 +520,20 @@ public class ExportController implements UiView {
     }
 
     //endregion
+
+    private void handleWholeSelection() {
+        var allSelected = cachedVideoList.stream().allMatch(ExportTableEntry::isSelected);
+        cachedVideoList.forEach(e -> e.setSelected(!allSelected));
+    }
+
+    @Override
+    public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN), this::handleWholeSelection);
+        keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN), this::handleSearch);
+
+        exportView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+    }
 
     @Override
     public void close() {

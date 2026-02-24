@@ -24,6 +24,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.control.cell.CheckBoxTableCell
 import javafx.scene.control.cell.PropertyValueFactory
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.stage.Stage
 import javafx.stage.WindowEvent
@@ -39,7 +40,7 @@ open class FrameTagManagerController (
     private val createFrameCommand: CreateFrameCommand,
     private val updateFrameCommand: UpdateFrameCommand,
     private val deleteFrameCommand: DeleteFrameCommand
-) : UiView {
+) : UiView() {
     @FXML
     private lateinit var searchField: TextField
     @FXML
@@ -148,6 +149,10 @@ open class FrameTagManagerController (
 
         FrameUpdatedEventDispatcher.dispatch(cachedFrame.id, cachedFrame)
         close()
+    }
+
+    override fun addKeybinds() {
+        TODO("Not yet implemented")
     }
 
     @FXML

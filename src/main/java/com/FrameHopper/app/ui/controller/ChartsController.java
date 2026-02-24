@@ -25,6 +25,10 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -41,15 +45,12 @@ import org.springframework.stereotype.Component;
 import javax.imageio.ImageIO;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class ChartsController implements UiView {
+public class ChartsController extends UiView {
     @FXML
     private BorderPane chartView;
     @FXML
@@ -184,6 +185,8 @@ public class ChartsController implements UiView {
         legend1Label.setText(!colorMean.isSelected() ? optionLabel : String.format(Dictionary.get("legend.green"), optionLabel));
         legend2Label.setText(String.format(Dictionary.get("legend.red"), optionLabel));
         legend3Label.setText(Dictionary.get("legend.mean"));
+
+        addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) chartView.getScene().getWindow();
@@ -485,6 +488,18 @@ public class ChartsController implements UiView {
             FXDialogProvider.errorDialog(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN), this::handleClear);
+        keyActions.put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN), this::handleImport);
+        keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN), this::handleExport);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN), this::handleSave);
+        keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN), this::handleSearch);
+
+        chartView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
     }
 
     @Override

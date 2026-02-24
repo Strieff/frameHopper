@@ -21,7 +21,7 @@ import java.io.File;
 
 @Component
 @Scope("prototype")
-public class VideoDetailsController implements UiView,
+public class VideoDetailsController extends UiView implements
         VideoPathUpdatedListener
 {
     @FXML
@@ -76,6 +76,11 @@ public class VideoDetailsController implements UiView,
         frameRateLabel.setText(Dictionary.get("vd.framerate") + cachedVideo.metadata().frameRate());
         durationLabel.setText(Dictionary.get("vd.duration") + cachedVideo.metadata().duration());
         filePathField.setText(cachedVideo.path());
+    }
+
+    @Override
+    public void addKeybinds() {
+
     }
 
     @Override

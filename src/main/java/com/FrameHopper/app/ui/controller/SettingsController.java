@@ -18,7 +18,7 @@ import java.util.List;
 
 @Component
 @Scope("prototype")
-public class SettingsController implements UiView {
+public class SettingsController extends UiView {
     @FXML
     private BorderPane settingsView;
     @FXML
@@ -83,6 +83,11 @@ public class SettingsController implements UiView {
             var stage = (Stage) settingsView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
         });
+    }
+
+    @Override
+    public void addKeybinds() {
+
     }
 
     @Override
