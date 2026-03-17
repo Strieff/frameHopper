@@ -3,11 +3,14 @@ package com.FrameHopper.app.ui.controller;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.boundry.dto.TagDTO;
+import com.FrameHopper.app.core.ports.in.tag.ChangeTagStatusCommand;
+import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.DeleteTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
 import com.FrameHopper.app.ui.UiView;
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher;
+import com.FrameHopper.app.ui.dialog.FileChooserProvider;
+import com.FrameHopper.app.ui.eventing.TagEventDispatcher;
 import com.FrameHopper.app.ui.eventing.TagUpdatedEventListener;
 import com.FrameHopper.app.ui.ve.TagManagerTableEntry;
 import javafx.application.Platform;
@@ -16,6 +19,9 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -23,9 +29,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Component
@@ -53,12 +63,21 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
 
     private final TagsQuery tagsQuery;
     private final DeleteTagCommand deleteTagCommand;
+    private final CreateTagCommand createTagCommand;
+    private final ChangeTagStatusCommand changeTagStatusCommand;
 
-    public TagManagerController(TagsQuery tagsQuery, DeleteTagCommand deleteTagCommand) {
+    public TagManagerController(
+            TagsQuery tagsQuery,
+            DeleteTagCommand deleteTagCommand,
+            CreateTagCommand createTagCommand,
+            ChangeTagStatusCommand changeTagStatusCommand
+    ) {
         this.tagsQuery = tagsQuery;
         this.deleteTagCommand = deleteTagCommand;
+        this.createTagCommand = createTagCommand;
+        this.changeTagStatusCommand = changeTagStatusCommand;
 
-        TagUpdatedEventDispatcher.register(this);
+        TagEventDispatcher.register(this);
     }
 
     @FXML
@@ -98,7 +117,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
                 "bin.png",
                 e -> {
                     deleteTagCommand.DeleteTag(e.getTag().getId());
-                    TagUpdatedEventDispatcher.dispatchDelete(e.getTag());
+                    TagEventDispatcher.dispatchDelete(e.getTag());
                 });
 
         loadTagTable();
@@ -108,6 +127,8 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         hideCodesButton.setText(Dictionary.get("settings.button.hide"));
         unhideCodesButton.setText(Dictionary.get("settings.button.unhide"));
         deleteCodesButton.setText(Dictionary.get("settings.button.delete"));
+
+        addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) tagManagerView.getScene().getWindow();
@@ -175,6 +196,24 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
 
     //endregion
 
+    private void openTagDetails(){
+        var selectedItems = codeTable.getSelectionModel().getSelectedItems();
+        if(selectedItems == null || selectedItems.isEmpty()) return;
+
+        var selected = selectedItems.stream().map(TagManagerTableEntry::getTag);
+
+        selected.forEach(e -> {
+            var loader = FXMLViewLoader.getView(
+                    "TagDetailsViewModel",
+                    "Create Tag",
+                    tagManagerView
+            );
+
+            TagDetailsController controller = loader.getController();
+            controller.init(e);
+        });
+    }
+
     //region JFX
 
     @FXML
@@ -190,19 +229,75 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
     }
 
     @FXML
-    protected void loadTags() {
+    protected void importTags() {
+        try {
+            var path = FileChooserProvider.textFileChooser((Stage) tagManagerView.getScene().getWindow());
+            var lines = Files.readAllLines(Path.of(path));
+            var tags = lines.stream()
+                    .map(line -> {
+                        var data = line.split(";");
+                        return new TagDTO(data[0], Double.parseDouble(data[1]), data.length == 2 ? "" : data[2]);
+                    })
+                    .toList();
+
+            tags = createTagCommand.CreateTags(tags);
+            TagEventDispatcher.dispatchCreate(tags);
+        } catch (Exception e) {
+            //TODO
+            e.printStackTrace();
+        }
     }
 
     @FXML
     protected void hideTags() {
+        var selectedItems = getSelected();
+        if(selectedItems == null || selectedItems.isEmpty()) return;
+
+        var selected = selectedItems.stream()
+                .map(TagManagerTableEntry::getTag)
+                .filter(TagDTO::getVisible)
+                .toList();
+        var selectedIds = selected.stream().map(TagDTO::getId).toList();
+
+        changeTagStatusCommand.ChangeTagStatus(selectedIds);
+
+        selected.forEach(t -> t.setVisible(false));
+        TagEventDispatcher.dispatchUpdate(selected);
     }
 
     @FXML
     protected void unhideTags() {
+        var selectedItems = getSelected();
+        if(selectedItems == null || selectedItems.isEmpty()) return;
+
+        var selected = selectedItems.stream()
+                .map(TagManagerTableEntry::getTag)
+                .filter(t -> !t.getVisible())
+                .toList();
+        var selectedIds = selected.stream().map(TagDTO::getId).toList();
+
+        changeTagStatusCommand.ChangeTagStatus(selectedIds);
+        selected.forEach(t -> t.setVisible(true));
+
+        TagEventDispatcher.dispatchUpdate(selected);
     }
 
     @FXML
     protected void deleteTags() {
+        var selectedItems = getSelected();
+        if(selectedItems == null || selectedItems.isEmpty()) return;
+
+        var selected = selectedItems.stream()
+                .map(TagManagerTableEntry::getTag)
+                .toList();
+        var selectedIds = selected.stream().map(TagDTO::getId).toList();
+
+        deleteTagCommand.DeleteTags(selectedIds);
+        TagEventDispatcher.dispatchUpdate(selected);
+    }
+
+    private List<TagManagerTableEntry> getSelected() {
+        return codeTable.getSelectionModel().getSelectedItems();
     }
 
     //endregion
@@ -216,6 +311,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
 
     @Override
     public void onTagCreated(TagDTO tagDTO) {
+        //TODO: add and sort
         loadTagTable();
     }
 
@@ -224,16 +320,41 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         loadTagTable();
     }
 
+    @Override
+    public void onTagUpdated(@NotNull List<TagDTO> tags) {
+        loadTagTable();
+    }
+
+    @Override
+    public void onTagDeleted(@NotNull List<TagDTO> tags) {
+        loadTagTable();
+    }
+
+    @Override
+    public void onTagCreated(@NotNull List<TagDTO> tags) {
+        //TODO: add and sort
+        loadTagTable();
+    }
+
     //endregion
 
     @Override
     public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
 
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN), this::openTagDetails);
+        keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN), this::openTagCreation);
+        keyActions.put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN), this::importTags);
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN), this::hideTags);
+        keyActions.put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN), this::unhideTags);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::deleteTags);
+
+        tagManagerView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
     }
 
     @Override
     public void close() {
-        TagUpdatedEventDispatcher.unregister(this);
+        TagEventDispatcher.unregister(this);
 
         var stage = (Stage) tagManagerView.getScene().getWindow();
         stage.close();

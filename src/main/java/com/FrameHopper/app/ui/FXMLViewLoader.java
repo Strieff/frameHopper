@@ -20,7 +20,7 @@ public class FXMLViewLoader {
     }
 
     private FXMLLoader get(String viewName) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("viewModels/"+viewName+".fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource(String.format("viewModels/%s.fxml", viewName)));
         loader.setControllerFactory(context::getBean);
         return loader;
     }

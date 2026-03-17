@@ -18,7 +18,7 @@
                     <Insets bottom="20.0" top="5.0" />
                 </VBox.margin>
             </Button>
-            <Button onAction="#handleClose">
+            <Button onAction="#close">
                 <graphic>
                     <ImageView fx:id="closeButtonIcon" fitHeight="32.0" fitWidth="32.0" />
                 </graphic>

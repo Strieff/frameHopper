@@ -9,6 +9,10 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
@@ -79,6 +83,8 @@ public class SettingsController extends UiView {
             }
         });
 
+        addKeybinds();
+
         Platform.runLater(() -> {
             var stage = (Stage) settingsView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
@@ -87,7 +93,9 @@ public class SettingsController extends UiView {
 
     @Override
     public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
 
+        settingsView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
     }
 
     @Override

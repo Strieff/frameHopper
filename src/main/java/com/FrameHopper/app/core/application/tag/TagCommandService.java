@@ -25,23 +25,51 @@ public class TagCommandService implements
     }
 
     @Override
+    public void ChangeTagStatus(List<Integer> ids) {
+        tagRepositoryPort.updateStatus(ids);
+    }
+
+    @Override
     public TagDTO CreateTag(TagDTO tagDto) {
-        if (tagDto.getName().isBlank())
-            throw new IllegalArgumentException("name is required");
-
-        if(tagRepositoryPort.getByName(tagDto.getName()) != null)
-            throw new IllegalArgumentException("Tag with that name already exists");
-
-        if (tagDto.getValue() == null)
-            throw new IllegalArgumentException("value is required");
-
-        if (tagDto.getValue().isNaN())
-            throw new IllegalArgumentException("Value must be a number");
+        var message = validateTag(tagDto);
+        if(!message.isEmpty())
+            throw new IllegalArgumentException(message);
 
         var tag = TagMapper.toDomain(tagDto);
         var savedTag = tagRepositoryPort.create(tag);
 
         return TagMapper.fromDomain(savedTag);
+    }
+
+    @Override
+    public List<TagDTO> CreateTags(List<TagDTO> tags) {
+        var domainTags = tags.stream().map(t -> {
+            var message = validateTag(t);
+            if(!message.isEmpty())
+                throw new IllegalArgumentException(message);
+
+            return TagMapper.toDomain(t);
+        }).toList();
+
+        domainTags = tagRepositoryPort.create(domainTags);
+
+        return domainTags.stream().map(TagMapper::fromDomain).toList();
+    }
+
+    private String validateTag(TagDTO dto) {
+        if(dto.getName().isBlank())
+            return "name is required";
+
+        if(tagRepositoryPort.getByName(dto.getName()) != null)
+            return "Tag with that name already exists";
+
+        if(dto.getValue() == null)
+            return "value is required";
+
+        if(dto.getValue().isNaN())
+            return "Value must be a number";
+
+        return "";
     }
 
     @Override

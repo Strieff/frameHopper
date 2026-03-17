@@ -10,7 +10,8 @@ import com.FrameHopper.app.core.ports.in.FrameBytesQuery;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.LoadVideoCommand;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
-import com.FrameHopper.app.ui.FXMLViewLoader;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.ve.MainViewTagTableEntry;
@@ -35,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 //TODO: move to dictionary adapter
@@ -82,6 +84,7 @@ public class MainViewController extends UiView implements
     private final LoadVideoCommand loadVideoCommand;
     private final FrameQuery frameQuery;
     private final FrameBytesQuery frameBytesQuery;
+    private final UIManager uiManager;
 
     private final Map<Integer, FrameDTO> cachedTags = new HashMap<>();
     private VideoDTO cachedVideo;
@@ -91,15 +94,17 @@ public class MainViewController extends UiView implements
             LoadVideoCommand loadVideoCommand,
             FrameBytesQuery frameBytesQuery,
             FrameQuery frameQuery,
-            VideoQuery videoQuery
+            VideoQuery videoQuery,
+            UIManager uiManager
     ) {
         this.loadVideoCommand = loadVideoCommand;
         this.frameBytesQuery = frameBytesQuery;
         this.frameQuery = frameQuery;
         this.videoQuery = videoQuery;
+        this.uiManager = uiManager;
 
         FrameUpdatedEventDispatcher.register(this);
-        TagUpdatedEventDispatcher.register(this);
+        TagEventDispatcher.register(this);
         OpenVideoEventDispatcher.register(this);
         DeleteVideoEventDispatcher.register(this);
     }
@@ -129,7 +134,6 @@ public class MainViewController extends UiView implements
 
         //jump section
         jumpButton.setText(Dictionary.get("main.jump.button"));
-        jumpButton.setOnAction(e -> jumpToFrame());
         frameInput.setPromptText(Dictionary.get("main.jump.hint"));
 
         addKeybinds();
@@ -246,13 +250,12 @@ public class MainViewController extends UiView implements
 
     @FXML
     protected void onAdd() {
-        //TODO: check if already open
+        //TODO: error when open
 
-        var loader = FXMLViewLoader.getView(
-                "FrameTagManagerViewModel",
-                "Frame Tag manager",
-                mainView
-        );
+        if(uiManager.isOpen(UIFlag.FRAME_TAG_MANAGER))
+            return;
+
+        var loader = uiManager.open(UIFlag.FRAME_TAG_MANAGER, mainView);
 
         FrameTagManagerController controller = loader.getController();
 
@@ -263,63 +266,56 @@ public class MainViewController extends UiView implements
 
     @FXML
     protected void onSettings() {
-        FXMLViewLoader.getView(
-                "SettingsViewModel",
-                "Settings",
-                mainView
-        );
+        //TODO: error when open
+        if(uiManager.isOpen(UIFlag.SETTINGS))
+            return;
+
+        uiManager.open(UIFlag.SETTINGS, mainView);
     }
 
     @FXML
     protected void onVideoList() {
-        FXMLViewLoader.getView(
-            "VideoManagementListViewModel",
-            "Video Management",
-            mainView
-        );
+        //TODO: error when open
+        if(uiManager.isOpen(UIFlag.VIDEO_LIST))
+            return;
+
+        uiManager.open(UIFlag.VIDEO_LIST, mainView);
     }
 
     @FXML
     protected void onExport() {
-        FXMLViewLoader.getView(
-            "ExportViewModel",
-            "Export",
-            mainView
-        );
+        //TODO: error when open
+        if(uiManager.isOpen(UIFlag.EXPORT))
+            return;
+
+        uiManager.open(UIFlag.EXPORT, mainView);
     }
 
     @FXML
     protected void onChart(){
-        FXMLViewLoader.getView(
-                "ChartsViewModel",
-                "Charts",
-                mainView
-        );
+        //TODO: error when open
+        if(uiManager.isOpen(UIFlag.CHARTS))
+            return;
+
+        uiManager.open(UIFlag.CHARTS, mainView);
     }
 
     @FXML
     protected void onManager() {
-        //TODO: check if already open
-        FXMLViewLoader.getView(
-                "TagManagerViewModel",
-                "Settings",
-                mainView
-        );
+        //TODO: error when open
+        if(uiManager.isOpen(UIFlag.TAG_MANAGER))
+            return;
+
+        uiManager.open(UIFlag.TAG_MANAGER, mainView);
     }
 
     @FXML
     protected void onNotes() {
-        //TODO: check if already open
-        FXMLViewLoader.getView(
-                "NotesViewModel",
-                "Notes",
-                mainView
-        );
-    }
+        //TODO: error when open
+        if(uiManager.isOpen(UIFlag.NOTES))
+            return;
 
-    @FXML
-    protected void onJumpToFrame() {
-
+        uiManager.open(UIFlag.NOTES, mainView);
     }
 
     //endregion
@@ -344,7 +340,8 @@ public class MainViewController extends UiView implements
         displayCurrentData();
     }
 
-    private void jumpToFrame() {
+    @FXML
+    protected void onJumpToFrame() {
         if(cachedVideo == null) return;
 
         int frame;
@@ -383,14 +380,38 @@ public class MainViewController extends UiView implements
         displayCurrentTags();
     }
 
+    @Async
+    @Override
+    public void onTagUpdated(List<TagDTO> tagsDTO) {
+        if(cachedVideo == null) return;
+
+        cacheTagData();
+        displayCurrentTags();
+    }
+
     @Override
     public void onTagCreated(TagDTO tagDTO) {
+        //NOT NEEDED
+    }
+
+    @Override
+    public void onTagCreated(@NotNull List<TagDTO> tag) {
         //NOT NEEDED
     }
 
     @Async
     @Override
     public void onTagDeleted(TagDTO tagDTO) {
+        if(cachedVideo == null) return;
+
+        cacheTagData();
+        displayCurrentTags();
+    }
+
+    @Override
+    public void onTagDeleted(@NotNull List<TagDTO> tags) {
+        if(cachedVideo == null) return;
+
         cacheTagData();
         displayCurrentTags();
     }

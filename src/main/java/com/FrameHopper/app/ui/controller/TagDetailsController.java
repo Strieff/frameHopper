@@ -6,7 +6,7 @@ import com.FrameHopper.app.core.ports.in.tag.ChangeTagStatusCommand;
 import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.UpdateTagCommand;
 import com.FrameHopper.app.ui.UiView;
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.TagEventDispatcher;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -83,7 +83,7 @@ public class TagDetailsController extends UiView {
                         description
                 ));
 
-                TagUpdatedEventDispatcher.dispatchCreate(cachedTag);
+                TagEventDispatcher.dispatchCreate(cachedTag);
             }
             else {
                 cachedTag.setName(name);
@@ -92,7 +92,7 @@ public class TagDetailsController extends UiView {
 
                 updateTagCommand.UpdateTag(cachedTag);
 
-                TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
+                TagEventDispatcher.dispatchUpdate(cachedTag);
             }
 
             close();
@@ -105,7 +105,7 @@ public class TagDetailsController extends UiView {
                     changeTagStatusCommand.ChangeTagStatus(cachedTag.getId());
                     changeStatusButton.setText(Dictionary.get(cachedTag.getVisible() ? "td.hide" : "td.unhide"));
 
-                    TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
+                    TagEventDispatcher.dispatchUpdate(cachedTag);
                 }
         );
 
@@ -140,9 +140,7 @@ public class TagDetailsController extends UiView {
     }
 
     @Override
-    public void addKeybinds() {
-
-    }
+    public void addKeybinds() {}
 
     @Override
     public void close() {

@@ -297,9 +297,7 @@ public class NotesController extends UiView implements
     }
 
     @Override
-    public void addKeybinds() {
-
-    }
+    public void addKeybinds() {}
 
     @Override
     public void close() {

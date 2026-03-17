@@ -14,6 +14,10 @@ import javafx.scene.chart.*;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -59,6 +63,8 @@ public class ImportChartController extends UiView {
     public void initialize(){
         saveButtonIcon.setImage(FXIconLoader.getLargeIcon("save.png"));
         closeButtonIcon.setImage(FXIconLoader.getLargeIcon("x.png"));
+
+        addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage)rectangle1.getScene().getWindow();
@@ -218,15 +224,13 @@ public class ImportChartController extends UiView {
         }
     }
 
-    @FXML
-    public void handleClose() {
-        close();
-    }
-
 
     @Override
     public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN), this::handleSave);
 
+        chartPane.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
     }
 
     @Override

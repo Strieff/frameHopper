@@ -71,6 +71,14 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
     }
 
     @Override
+    public List<Tag> create(List<Tag> tags) {
+        var entities = tags.stream().map(TagMapper::fromDomain).toList();
+        entities = tagRepository.saveAll(entities);
+
+        return entities.stream().map(TagMapper::toDomain).toList();
+    }
+
+    @Override
     public Tag update(Tag tag) {
         var updatedEntity = tagRepository.save(TagMapper.fromDomain(tag));
 
@@ -83,6 +91,14 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
         entity.setVisible(!entity.isVisible());
 
         tagRepository.save(entity);
+    }
+
+    @Override
+    public void updateStatus(List<Integer> ids) {
+        var entities = tagRepository.findTagEntitiesById(ids);
+        entities.forEach(e -> e.setVisible(!e.isVisible()));
+
+        tagRepository.saveAll(entities);
     }
 
     @Override

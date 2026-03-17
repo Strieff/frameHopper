@@ -12,8 +12,10 @@ public interface TagRepositoryPort {
     List<Tag> getTagsOnVideoFrame(Video video, int frame);
     List<Tag> getAll();
     Tag create(Tag tag);
+    List<Tag> create(List<Tag> tags);
     Tag update(Tag tag);
     void updateStatus(int id);
+    void updateStatus(List<Integer> id);
     void delete(int id);
     void delete(List<Integer> ids);
 }

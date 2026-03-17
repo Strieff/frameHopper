@@ -493,10 +493,10 @@ public class ChartsController extends UiView {
     @Override
     public void addKeybinds() {
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::handleSave);
+        keyActions.put(new KeyCodeCombination(KeyCode.I, KeyCombination.SHIFT_DOWN), this::handleImport);
+        keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::handleExport);
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN), this::handleClear);
-        keyActions.put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN), this::handleImport);
-        keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN), this::handleExport);
-        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN), this::handleSave);
         keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN), this::handleSearch);
 
         chartView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
