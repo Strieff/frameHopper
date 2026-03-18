@@ -375,14 +375,15 @@ public class MainViewController extends UiView implements
 
     @Async
     @Override
-    public void onTagUpdated(TagDTO tagDTO) {
+    public void onTagUpdated(@NotNull TagDTO tagDTO) {
+        if(cachedVideo == null) return;
         cacheTagData();
         displayCurrentTags();
     }
 
     @Async
     @Override
-    public void onTagUpdated(List<TagDTO> tagsDTO) {
+    public void onTagUpdated(@NotNull List<TagDTO> tagsDTO) {
         if(cachedVideo == null) return;
 
         cacheTagData();
@@ -390,7 +391,7 @@ public class MainViewController extends UiView implements
     }
 
     @Override
-    public void onTagCreated(TagDTO tagDTO) {
+    public void onTagCreated(@NotNull TagDTO tagDTO) {
         //NOT NEEDED
     }
 
@@ -401,7 +402,7 @@ public class MainViewController extends UiView implements
 
     @Async
     @Override
-    public void onTagDeleted(TagDTO tagDTO) {
+    public void onTagDeleted(@NotNull TagDTO tagDTO) {
         if(cachedVideo == null) return;
 
         cacheTagData();

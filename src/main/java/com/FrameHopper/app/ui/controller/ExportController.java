@@ -9,6 +9,8 @@ import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.TagAnalyticsQuery;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
 import com.FrameHopper.app.ui.ve.ExportActionEntry;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
@@ -66,6 +68,7 @@ public class ExportController extends UiView {
     private final TagAnalyticsQuery tagAnalyticsQuery;
     private final UserSettingsAdapter userSettingsAdapter;
     private final DataExportAdapter dataExportAdapter;
+    private final UIManager uiManager;
 
     private Integer lastSelectedIndex = null;
 
@@ -76,13 +79,15 @@ public class ExportController extends UiView {
             VideoAnalyticsQuery videoAnalyticsQuery,
             TagAnalyticsQuery tagAnalyticsQuery,
             UserSettingsAdapter userSettingsAdapter,
-            DataExportAdapter dataExportAdapter
+            DataExportAdapter dataExportAdapter,
+            UIManager uiManager
     ) {
         this.frameQuery = frameQuery;
         this.videoAnalyticsQuery = videoAnalyticsQuery;
         this.tagAnalyticsQuery = tagAnalyticsQuery;
         this.userSettingsAdapter = userSettingsAdapter;
         this.dataExportAdapter = dataExportAdapter;
+        this.uiManager = uiManager;
     }
 
     @FXML
@@ -532,11 +537,12 @@ public class ExportController extends UiView {
         keyActions.put(new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN), this::handleWholeSelection);
         keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN), this::handleSearch);
 
-        exportView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+        addEventFilter(exportView);
     }
 
     @Override
     public void close() {
+        uiManager.close(UIFlag.EXPORT);
         var stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }

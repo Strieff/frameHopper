@@ -8,6 +8,8 @@ import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.DeleteTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
 import com.FrameHopper.app.ui.eventing.TagEventDispatcher;
@@ -22,7 +24,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
@@ -65,17 +66,20 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
     private final DeleteTagCommand deleteTagCommand;
     private final CreateTagCommand createTagCommand;
     private final ChangeTagStatusCommand changeTagStatusCommand;
+    private final UIManager uiManager;
 
     public TagManagerController(
             TagsQuery tagsQuery,
             DeleteTagCommand deleteTagCommand,
             CreateTagCommand createTagCommand,
-            ChangeTagStatusCommand changeTagStatusCommand
+            ChangeTagStatusCommand changeTagStatusCommand,
+            UIManager uiManager
     ) {
         this.tagsQuery = tagsQuery;
         this.deleteTagCommand = deleteTagCommand;
         this.createTagCommand = createTagCommand;
         this.changeTagStatusCommand = changeTagStatusCommand;
+        this.uiManager = uiManager;
 
         TagEventDispatcher.register(this);
     }
@@ -305,34 +309,38 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
     //region [TAG LIST UPDATE]
 
     @Override
-    public void onTagUpdated(TagDTO tagDTO) {
-        loadTagTable();
-    }
-
-    @Override
-    public void onTagCreated(TagDTO tagDTO) {
+    public void onTagCreated(@NotNull TagDTO tagDTO) {
         //TODO: add and sort
-        loadTagTable();
-    }
-
-    @Override
-    public void onTagDeleted(TagDTO tagDTO) {
-        loadTagTable();
-    }
-
-    @Override
-    public void onTagUpdated(@NotNull List<TagDTO> tags) {
-        loadTagTable();
-    }
-
-    @Override
-    public void onTagDeleted(@NotNull List<TagDTO> tags) {
         loadTagTable();
     }
 
     @Override
     public void onTagCreated(@NotNull List<TagDTO> tags) {
         //TODO: add and sort
+        loadTagTable();
+    }
+
+    @Override
+    public void onTagUpdated(@NotNull TagDTO tagDTO) {
+        //TODO: edit in collection
+        loadTagTable();
+    }
+
+    @Override
+    public void onTagUpdated(@NotNull List<TagDTO> tags) {
+        //TODO: edit in collection
+        loadTagTable();
+    }
+
+    @Override
+    public void onTagDeleted(@NotNull TagDTO tagDTO) {
+        //TODO: delete from collection
+        loadTagTable();
+    }
+
+    @Override
+    public void onTagDeleted(@NotNull List<TagDTO> tags) {
+        //TODO: delete in collection
         loadTagTable();
     }
 
@@ -349,11 +357,12 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         keyActions.put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN), this::unhideTags);
         keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::deleteTags);
 
-        tagManagerView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+        addEventFilter(tagManagerView);
     }
 
     @Override
     public void close() {
+        uiManager.close(UIFlag.TAG_MANAGER);
         TagEventDispatcher.unregister(this);
 
         var stage = (Stage) tagManagerView.getScene().getWindow();

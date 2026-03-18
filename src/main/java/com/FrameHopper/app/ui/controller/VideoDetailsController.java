@@ -12,6 +12,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
@@ -45,6 +48,8 @@ public class VideoDetailsController extends UiView implements
 
     @FXML
     private void initialize() {
+        videoDetailsView.setOnKeyPressed(e -> videoDetailsView.requestFocus());
+
         pathLabel.setText(Dictionary.get("vd.path"));
         dataLabel.setText(Dictionary.get("vd.data"));
 
@@ -63,6 +68,8 @@ public class VideoDetailsController extends UiView implements
         closeButton.setText(Dictionary.get("close"));
         closeButton.setOnAction(e -> close());
 
+        addKeybinds();
+
         Platform.runLater(() -> {
             var stage = (Stage) videoDetailsView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
@@ -80,7 +87,9 @@ public class VideoDetailsController extends UiView implements
 
     @Override
     public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
 
+        addEventFilter(videoDetailsView);
     }
 
     @Override

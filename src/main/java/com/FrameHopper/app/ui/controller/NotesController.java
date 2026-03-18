@@ -9,6 +9,8 @@ import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderComman
 import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
 import com.FrameHopper.app.core.ports.in.comment.DeleteCommentCommand;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.DeleteVideoEventDispatcher;
 import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener;
@@ -24,7 +26,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -64,6 +68,7 @@ public class NotesController extends UiView implements
     private final ChangeCommentListingOrderCommand changeCommentListingOrderCommand;
     private final CreateCommentCommand createCommentCommand;
     private final DeleteCommentCommand deleteCommentCommand;
+    private final UIManager uiManager;
 
     private CommentDTO currentNote;
     private ObservableList<NotesVideoTableEntry> cachedVideoList;
@@ -73,13 +78,15 @@ public class NotesController extends UiView implements
             ChangeCommentContentCommand changeCommentContentCommand,
             ChangeCommentListingOrderCommand changeCommentListingOrderCommand,
             CreateCommentCommand createCommentCommand,
-            DeleteCommentCommand deleteCommentCommand
+            DeleteCommentCommand deleteCommentCommand,
+            UIManager uiManager
     ) {
         this.videoQuery = videoQuery;
         this.changeCommentContentCommand = changeCommentContentCommand;
         this.changeCommentListingOrderCommand = changeCommentListingOrderCommand;
         this.createCommentCommand = createCommentCommand;
         this.deleteCommentCommand = deleteCommentCommand;
+        this.uiManager = uiManager;
 
         DeleteVideoEventDispatcher.register(this);
         VideoPathUpdatedEventDispatcher.register(this);
@@ -87,6 +94,8 @@ public class NotesController extends UiView implements
 
     @FXML
     public void initialize() {
+        notesView.setOnMouseClicked(e -> notesView.requestFocus());
+
         noteEditor.setPromptText(Dictionary.get("notes.empty-editor"));
 
         noteEditor.textProperty().addListener((obs, oldV, newV) -> {
@@ -109,6 +118,13 @@ public class NotesController extends UiView implements
 
         addNoteIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
         deleteNoteIcon.setImage(FXIconLoader.getLargeIcon("bin.png"));
+
+        addKeybinds();
+
+        Platform.runLater(() -> {
+            var stage = (Stage) notesView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> close());
+        });
     }
 
     private Callback<ListView<NotesVideoTableEntry>, ListCell<NotesVideoTableEntry>> createNotesCellFactory() {
@@ -205,6 +221,8 @@ public class NotesController extends UiView implements
 
         openNote(sorted.getFirst());
 
+        addKeybinds();
+
         Platform.runLater(() -> {
             var stage = (Stage) notesView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
@@ -297,10 +315,17 @@ public class NotesController extends UiView implements
     }
 
     @Override
-    public void addKeybinds() {}
+    public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        //TODO: add adding new
+        //TODO: add moving between notes
+
+        addEventFilter(notesView);
+    }
 
     @Override
     public void close() {
+        uiManager.close(UIFlag.NOTES);
         DeleteVideoEventDispatcher.unregister(this);
         VideoPathUpdatedEventDispatcher.unregister(this);
 

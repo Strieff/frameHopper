@@ -5,6 +5,8 @@ import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.video.DeleteVideoCommand;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.ve.VideoListTableEntry;
@@ -14,10 +16,13 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -34,13 +39,16 @@ public class VideoListController extends UiView implements
 
     private final VideoQuery videoQuery;
     private final DeleteVideoCommand deleteVideoCommand;
+    private final UIManager uiManager;
 
     public VideoListController(
             VideoQuery videoQuery,
-            DeleteVideoCommand deleteVideoCommand
+            DeleteVideoCommand deleteVideoCommand,
+            UIManager uiManager
     ) {
         this.videoQuery = videoQuery;
         this.deleteVideoCommand = deleteVideoCommand;
+        this.uiManager = uiManager;
 
         DeleteVideoEventDispatcher.register(this);
         VideoPathUpdatedEventDispatcher.register(this);
@@ -153,16 +161,15 @@ public class VideoListController extends UiView implements
 
     @Override
     public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
 
-    }
-
-    @Override
-    public void handleKeyPressed(KeyEvent event) {
-
+        addEventFilter(listView);
     }
 
     @Override
     public void close() {
+        uiManager.close(UIFlag.VIDEO_LIST);
+
         DeleteVideoEventDispatcher.unregister(this);
         VideoPathUpdatedEventDispatcher.unregister(this);
 
@@ -171,12 +178,14 @@ public class VideoListController extends UiView implements
     }
 
     @Override
-    public void onDeleteVideo(VideoDTO videoDTO) {
+    public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
+        //TODO: remove from list
         loadTable();
     }
 
     @Override
-    public void onVideoPathUpdated(VideoDTO video) {
+    public void onVideoPathUpdated(@NotNull VideoDTO video) {
+        //TODO: update in list
         loadTable();
     }
 }

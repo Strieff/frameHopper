@@ -7,15 +7,12 @@ import com.FrameHopper.app.core.ports.`in`.frame.CreateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.DeleteFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.UpdateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
+import com.FrameHopper.app.ui.UIFlag
+import com.FrameHopper.app.ui.UIManager
 import com.FrameHopper.app.ui.UiView
 import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher
 import javafx.application.Platform
-import javafx.beans.property.BooleanProperty
-import javafx.beans.property.DoubleProperty
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleStringProperty
-import javafx.beans.property.StringProperty
+import javafx.beans.property.*
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.event.ActionEvent
@@ -24,7 +21,9 @@ import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.control.cell.CheckBoxTableCell
 import javafx.scene.control.cell.PropertyValueFactory
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.stage.Stage
 import javafx.stage.WindowEvent
@@ -39,7 +38,8 @@ open class FrameTagManagerController (
     private val tagsQuery: TagsQuery,
     private val createFrameCommand: CreateFrameCommand,
     private val updateFrameCommand: UpdateFrameCommand,
-    private val deleteFrameCommand: DeleteFrameCommand
+    private val deleteFrameCommand: DeleteFrameCommand,
+    private val uiManager: UIManager
 ) : UiView() {
     @FXML
     private lateinit var searchField: TextField
@@ -83,11 +83,14 @@ open class FrameTagManagerController (
         cancelButton.text = Dictionary.get("cancel")
         cancelButton.setOnAction { _: ActionEvent? -> close() }
 
-        Platform.runLater(Runnable {
+        addKeybinds()
+
+        Platform.runLater {
             val stage = frameTagManagerView.scene.window as Stage
             stage.onCloseRequest = EventHandler { _: WindowEvent? -> close() }
+            frameTagManagerView.isFocusTraversable = true
             frameTagManagerView.requestFocus()
-        })
+        }
     }
 
     fun init(frame: FrameDTO) {
@@ -152,11 +155,14 @@ open class FrameTagManagerController (
     }
 
     override fun addKeybinds() {
-        TODO("Not yet implemented")
+        keyActions[KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN)] = Runnable { close() }
+
+        addEventFilter(frameTagManagerView)
     }
 
     @FXML
     override fun close() {
+        uiManager.close(UIFlag.FRAME_TAG_MANAGER)
         val stage = frameTagManagerView.scene.window as Stage
         stage.close()
     }

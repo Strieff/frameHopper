@@ -7,7 +7,8 @@ import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
-import com.FrameHopper.app.ui.FXMLViewLoader;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.ve.ChartsActionEntry;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
@@ -84,6 +85,7 @@ public class ChartsController extends UiView {
     private final VideoQuery videoQuery;
     private final VideoAnalyticsQuery videoAnalyticsQuery;
     private final UserSettingsAdapter userSettingsAdapter;
+    private final UIManager uiManager;
 
     private ObservableList<ChartsTableEntry> cachedVideoList;
 
@@ -91,12 +93,14 @@ public class ChartsController extends UiView {
             FrameQuery frameQuery,
             VideoQuery videoQuery,
             VideoAnalyticsQuery videoAnalyticsQuery,
-            UserSettingsAdapter userSettingsAdapter
+            UserSettingsAdapter userSettingsAdapter,
+            UIManager uiManager
     ) {
         this.frameQuery = frameQuery;
         this.videoQuery = videoQuery;
         this.videoAnalyticsQuery = videoAnalyticsQuery;
         this.userSettingsAdapter = userSettingsAdapter;
+        this.uiManager = uiManager;
     }
 
     @FXML
@@ -385,11 +389,7 @@ public class ChartsController extends UiView {
                     l -> Double.parseDouble(l.split(";")[1])
             ));
 
-            var loader = FXMLViewLoader.getView(
-                    "ImportChartViewModel",
-                    "Imported chart",
-                    saveArea
-            );
+            var loader = uiManager.open(UIFlag.IMPORT_CHARTS, saveArea);
 
             ImportChartController controller = loader.getController();
             controller.init(
@@ -499,11 +499,12 @@ public class ChartsController extends UiView {
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN), this::handleClear);
         keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN), this::handleSearch);
 
-        chartView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+        addEventFilter(chartView);
     }
 
     @Override
     public void close() {
+        uiManager.close(UIFlag.CHARTS);
         var stage = (Stage) saveArea.getScene().getWindow();
         stage.close();
     }

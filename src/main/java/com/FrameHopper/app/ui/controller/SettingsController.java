@@ -2,6 +2,8 @@ package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.ve.SettingsLanguageCell;
 import com.FrameHopper.app.ui.ve.SettingsLanguageEntry;
@@ -12,7 +14,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
@@ -31,9 +32,14 @@ public class SettingsController extends UiView {
     private ComboBox<SettingsLanguageEntry> languageBox;
 
     private final UserSettingsAdapter userSettingsAdapter;
+    private final UIManager uiManager;
 
-    public SettingsController(UserSettingsAdapter userSettingsAdapter) {
+    public SettingsController(
+            UserSettingsAdapter userSettingsAdapter,
+            UIManager uiManager
+    ) {
         this.userSettingsAdapter = userSettingsAdapter;
+        this.uiManager = uiManager;
     }
 
     @FXML
@@ -95,11 +101,12 @@ public class SettingsController extends UiView {
     public void addKeybinds() {
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
 
-        settingsView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+        addEventFilter(settingsView);
     }
 
     @Override
     public void close() {
+        uiManager.close(UIFlag.SETTINGS);
         var stage = (Stage) settingsView.getScene().getWindow();
         stage.close();
     }

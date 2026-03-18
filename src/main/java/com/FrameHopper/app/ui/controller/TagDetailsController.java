@@ -11,10 +11,10 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -58,6 +58,8 @@ public class TagDetailsController extends UiView {
 
     @FXML
     private void initialize() {
+        tagDetailsView.setOnMouseClicked(e -> tagDetailsView.requestFocus());
+
         //labels
         nameLabel.setText(Dictionary.get("name")+":");
         valueLabel.setText(Dictionary.get("value")+":");
@@ -97,6 +99,7 @@ public class TagDetailsController extends UiView {
 
             close();
         });
+
         setUpButton(
                 changeStatusButton,
                 "",
@@ -108,6 +111,8 @@ public class TagDetailsController extends UiView {
                     TagEventDispatcher.dispatchUpdate(cachedTag);
                 }
         );
+
+        addKeybinds();
 
         Platform.runLater(() -> {
             tagDetailsView.requestFocus();
@@ -140,7 +145,11 @@ public class TagDetailsController extends UiView {
     }
 
     @Override
-    public void addKeybinds() {}
+    public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+
+        addEventFilter(tagDetailsView);
+    }
 
     @Override
     public void close() {
