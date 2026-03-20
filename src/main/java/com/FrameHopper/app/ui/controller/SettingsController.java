@@ -44,7 +44,7 @@ public class SettingsController extends UiView {
 
     @FXML
     public void initialize() {
-        showHiddenTagsCheckBox.setText(Dictionary.get("settings.user.hidden"));
+        bind(showHiddenTagsCheckBox, "settings.setting.show-hidden-tags");
         showHiddenTagsCheckBox.setSelected(userSettingsAdapter.showHidden());
         showHiddenTagsCheckBox.setOnAction(e -> {
             var selected = showHiddenTagsCheckBox.isSelected();
@@ -52,7 +52,7 @@ public class SettingsController extends UiView {
             userSettingsAdapter.changeShowHidden(selected);
         });
 
-        openRecentCheckBox.setText(Dictionary.get("settings.user.recent"));
+        bind(openRecentCheckBox, "settings.setting.open-recent");
         openRecentCheckBox.setSelected(userSettingsAdapter.openRecent());
         openRecentCheckBox.setOnAction(e -> {
             var selected = openRecentCheckBox.isSelected();
@@ -60,7 +60,7 @@ public class SettingsController extends UiView {
             userSettingsAdapter.setOpenRecent(selected);
         });
 
-        languageExportCheckBox.setText(Dictionary.get("settings.user.export"));
+        bind(languageExportCheckBox, "settings.setting.use-chosen-language-for-export");
         languageExportCheckBox.setSelected(userSettingsAdapter.useDefaultLanguageForExport());
         languageExportCheckBox.setOnAction(e -> {
             var selected = languageExportCheckBox.isSelected();
@@ -68,7 +68,7 @@ public class SettingsController extends UiView {
             userSettingsAdapter.setUseDefaultLanguageForExport(selected);
         });
 
-        settingsWarningCheckbox.setText(Dictionary.get("settings.user.warning"));
+        bind(settingsWarningCheckbox, "settings.setting.show-settings-warnings");
         settingsWarningCheckbox.setSelected(userSettingsAdapter.showWarnings());
         settingsWarningCheckbox.setOnAction(e -> {
             var selected = settingsWarningCheckbox.isSelected();
@@ -93,6 +93,7 @@ public class SettingsController extends UiView {
 
         Platform.runLater(() -> {
             var stage = (Stage) settingsView.getScene().getWindow();
+            bind(stage, "settings.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }

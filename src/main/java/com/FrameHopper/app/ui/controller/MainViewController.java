@@ -45,6 +45,7 @@ import java.util.Map;
 public class MainViewController extends UiView implements
         FrameUpdatedListener,
         TagUpdatedEventListener,
+        TagDeletedEventListener,
         OpenVideoEventListener,
         DeleteVideoEventListener,
         VideoPathUpdatedListener
@@ -78,7 +79,6 @@ public class MainViewController extends UiView implements
     @FXML
     private StackPane framePane;
 
-    private final Map<KeyCombination,Runnable> keyActions = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(MainViewController.class);
 
     private final LoadVideoCommand loadVideoCommand;
@@ -104,13 +104,16 @@ public class MainViewController extends UiView implements
         this.uiManager = uiManager;
 
         FrameUpdatedEventDispatcher.register(this);
-        TagEventDispatcher.register(this);
+        TagUpdatedEventDispatcher.register(this);
+        TagDeletedEventDispatcher.register(this);
         OpenVideoEventDispatcher.register(this);
         DeleteVideoEventDispatcher.register(this);
     }
 
     @FXML
     public void initialize(){
+        mainView.setOnMouseClicked(e -> mainView.requestFocus());
+
         dropLabel.setText(Dictionary.get("main.dropHere"));
 
         //drag and drop
@@ -320,6 +323,15 @@ public class MainViewController extends UiView implements
 
     //endregion
 
+    private void openVideoDetails(){
+        if(cachedVideo == null) return;
+
+        var loader = uiManager.open(UIFlag.VIDEO_DETAILS, mainView);
+
+        VideoDetailsController controller = loader.getController();
+        controller.init(cachedVideo);
+    }
+
     //region Movement
 
     private void moveRight() {
@@ -390,16 +402,6 @@ public class MainViewController extends UiView implements
         displayCurrentTags();
     }
 
-    @Override
-    public void onTagCreated(@NotNull TagDTO tagDTO) {
-        //NOT NEEDED
-    }
-
-    @Override
-    public void onTagCreated(@NotNull List<TagDTO> tag) {
-        //NOT NEEDED
-    }
-
     @Async
     @Override
     public void onTagDeleted(@NotNull TagDTO tagDTO) {
@@ -436,9 +438,9 @@ public class MainViewController extends UiView implements
         keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onSettings);
         keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::onExport);
         keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onVideoList);
-        //keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::onShiftDPressed);
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onChart);
         keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::onNotes);
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::openVideoDetails);
         //keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::pasteRecent);
         //keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
         //keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redoAction);
@@ -447,7 +449,7 @@ public class MainViewController extends UiView implements
         keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::create);
 
         //add key binds
-        mainView.addEventFilter(KeyEvent.KEY_PRESSED,this::handleKeyPressed);
+        addEventFilter(mainView);
     }
 
     @Override

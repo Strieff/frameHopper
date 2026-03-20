@@ -1,11 +1,13 @@
 package com.FrameHopper.app.ui;
 
+import com.FrameHopper.app.ui.language.I18n;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextInputControl;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,14 +27,29 @@ public abstract class UiView {
     private boolean isTyping(KeyEvent event) {
         Object target = event.getTarget();
 
-        return target instanceof TextInputControl
-                || target instanceof ComboBox
-                || target instanceof ToggleButton;
+        return target instanceof TextInputControl;
     }
 
     protected void addEventFilter(Node node) {
         node.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
     }
+
+    protected void bind(Labeled node, String key, Object... args) {
+        node.textProperty().bind(I18n.bind(key, args));
+    }
+
+    protected void bind(TextInputControl node, String key, Object... args) {
+        node.promptTextProperty().bind(I18n.bind(key, args));
+    }
+
+    protected void bind(Stage stage, String key, Object... args) {
+        stage.titleProperty().bind(I18n.bind(key, args));
+    }
+
+    protected void bind(TableColumn<?, ?> column, String key, Object... args) {
+        column.textProperty().bind(I18n.bind(key, args));
+    }
+
 
     protected abstract void addKeybinds();
     protected abstract void close();

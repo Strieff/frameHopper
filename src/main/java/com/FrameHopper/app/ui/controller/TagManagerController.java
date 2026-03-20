@@ -12,8 +12,7 @@ import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
-import com.FrameHopper.app.ui.eventing.TagEventDispatcher;
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventListener;
+import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.ve.TagManagerTableEntry;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -41,7 +40,11 @@ import java.util.function.Consumer;
 
 @Component
 @Scope("prototype")
-public class TagManagerController extends UiView implements TagUpdatedEventListener {
+public class TagManagerController extends UiView implements
+        TagCreatedEventListener,
+        TagUpdatedEventListener,
+        TagDeletedEventListener
+{
     @FXML
     private TableView<TagManagerTableEntry> codeTable;
     @FXML
@@ -81,7 +84,9 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         this.changeTagStatusCommand = changeTagStatusCommand;
         this.uiManager = uiManager;
 
-        TagEventDispatcher.register(this);
+        TagCreatedEventDispatcher.register(this);
+        TagUpdatedEventDispatcher.register(this);
+        TagDeletedEventDispatcher.register(this);
     }
 
     @FXML
@@ -104,16 +109,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         setFactoryForButtonCell(
                 editColumn,
                 "edit.png",
-                e -> {
-                    var loader = FXMLViewLoader.getView(
-                            "TagDetailsViewModel",
-                            "Create Tag",
-                            tagManagerView
-                    );
-
-                    TagDetailsController controller = loader.getController();
-                    controller.init(e.getTag());
-                }
+                e -> openTagDetails(e.getTag())
         );
 
         setFactoryForButtonCell(
@@ -121,7 +117,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
                 "bin.png",
                 e -> {
                     deleteTagCommand.DeleteTag(e.getTag().getId());
-                    TagEventDispatcher.dispatchDelete(e.getTag());
+                    TagDeletedEventDispatcher.dispatchDelete(e.getTag());
                 });
 
         loadTagTable();
@@ -200,22 +196,20 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
 
     //endregion
 
+    private void openTagDetails(TagDTO tag){
+        var loader = uiManager.open(UIFlag.TAG_DETAILS, tagManagerView);
+
+        TagDetailsController controller = loader.getController();
+        controller.init(tag);
+    }
+
     private void openTagDetails(){
         var selectedItems = codeTable.getSelectionModel().getSelectedItems();
         if(selectedItems == null || selectedItems.isEmpty()) return;
 
         var selected = selectedItems.stream().map(TagManagerTableEntry::getTag);
 
-        selected.forEach(e -> {
-            var loader = FXMLViewLoader.getView(
-                    "TagDetailsViewModel",
-                    "Create Tag",
-                    tagManagerView
-            );
-
-            TagDetailsController controller = loader.getController();
-            controller.init(e);
-        });
+        selected.forEach(this::openTagDetails);
     }
 
     //region JFX
@@ -245,7 +239,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
                     .toList();
 
             tags = createTagCommand.CreateTags(tags);
-            TagEventDispatcher.dispatchCreate(tags);
+            TagCreatedEventDispatcher.dispatchCreate(tags);
         } catch (Exception e) {
             //TODO
             e.printStackTrace();
@@ -266,7 +260,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         changeTagStatusCommand.ChangeTagStatus(selectedIds);
 
         selected.forEach(t -> t.setVisible(false));
-        TagEventDispatcher.dispatchUpdate(selected);
+        TagUpdatedEventDispatcher.dispatchUpdate(selected);
     }
 
     @FXML
@@ -283,7 +277,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         changeTagStatusCommand.ChangeTagStatus(selectedIds);
         selected.forEach(t -> t.setVisible(true));
 
-        TagEventDispatcher.dispatchUpdate(selected);
+        TagUpdatedEventDispatcher.dispatchUpdate(selected);
     }
 
     @FXML
@@ -297,7 +291,7 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
         var selectedIds = selected.stream().map(TagDTO::getId).toList();
 
         deleteTagCommand.DeleteTags(selectedIds);
-        TagEventDispatcher.dispatchUpdate(selected);
+        TagDeletedEventDispatcher.dispatchDelete(selected);
     }
 
     private List<TagManagerTableEntry> getSelected() {
@@ -310,38 +304,63 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
 
     @Override
     public void onTagCreated(@NotNull TagDTO tagDTO) {
-        //TODO: add and sort
-        loadTagTable();
+        codeTable.getItems().add(new TagManagerTableEntry(tagDTO));
     }
 
     @Override
     public void onTagCreated(@NotNull List<TagDTO> tags) {
-        //TODO: add and sort
-        loadTagTable();
+        codeTable.getItems().addAll(tags.stream().map(TagManagerTableEntry::new).toList());
     }
 
     @Override
     public void onTagUpdated(@NotNull TagDTO tagDTO) {
-        //TODO: edit in collection
-        loadTagTable();
+        var entry = codeTable.getItems().stream()
+                .filter(e ->  e.getTag().equals(tagDTO))
+                .findFirst().orElse(null);
+
+        if(entry == null) return;
+
+        entry.setTag(tagDTO);
+        codeTable.refresh();
     }
 
     @Override
     public void onTagUpdated(@NotNull List<TagDTO> tags) {
-        //TODO: edit in collection
-        loadTagTable();
+        var entries = codeTable.getItems().stream()
+                .filter(e -> tags.contains(e.getTag()))
+                .toList();
+
+        if(entries.isEmpty()) return;
+
+        codeTable.getItems().forEach(e -> {
+            var tag = tags.stream().filter(t -> e.getTag().equals(t)).findFirst().orElse(null);
+
+            if(tag ==null) return;
+
+            e.setTag(tag);
+        });
     }
 
     @Override
     public void onTagDeleted(@NotNull TagDTO tagDTO) {
-        //TODO: delete from collection
-        loadTagTable();
+        var entry = codeTable.getItems().stream()
+                .filter(e ->  e.getTag().equals(tagDTO))
+                .findFirst().orElse(null);
+
+        if(entry == null) return;
+
+        codeTable.getItems().remove(entry);
     }
 
     @Override
     public void onTagDeleted(@NotNull List<TagDTO> tags) {
-        //TODO: delete in collection
-        loadTagTable();
+        var entries = codeTable.getItems().stream()
+                .filter(e -> tags.contains(e.getTag()))
+                .toList();
+
+        if(entries.isEmpty()) return;
+
+        codeTable.getItems().removeAll(entries);
     }
 
     //endregion
@@ -363,7 +382,9 @@ public class TagManagerController extends UiView implements TagUpdatedEventListe
     @Override
     public void close() {
         uiManager.close(UIFlag.TAG_MANAGER);
-        TagEventDispatcher.unregister(this);
+        TagCreatedEventDispatcher.unregister(this);
+        TagUpdatedEventDispatcher.unregister(this);
+        TagDeletedEventDispatcher.unregister(this);
 
         var stage = (Stage) tagManagerView.getScene().getWindow();
         stage.close();

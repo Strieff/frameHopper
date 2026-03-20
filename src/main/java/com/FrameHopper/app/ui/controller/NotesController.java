@@ -16,9 +16,11 @@ import com.FrameHopper.app.ui.eventing.DeleteVideoEventDispatcher;
 import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
+import com.FrameHopper.app.ui.language.I18n;
 import com.FrameHopper.app.ui.ve.NotesVideoTableEntry;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -96,7 +98,8 @@ public class NotesController extends UiView implements
     public void initialize() {
         notesView.setOnMouseClicked(e -> notesView.requestFocus());
 
-        noteEditor.setPromptText(Dictionary.get("notes.empty-editor"));
+        bind(noteEditor, "notes.editor-prompt");
+        bind(searchField, "notes.search-prompt");
 
         noteEditor.textProperty().addListener((obs, oldV, newV) -> {
             saveDebounce.stop();
@@ -123,6 +126,8 @@ public class NotesController extends UiView implements
 
         Platform.runLater(() -> {
             var stage = (Stage) notesView.getScene().getWindow();
+            bind(stage, "notes.stage");
+
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -178,7 +183,11 @@ public class NotesController extends UiView implements
 
                     nameLabel.textProperty().bind(item.nameProperty());
                     notesLabel.textProperty().bind(
-                            item.notesCountProperty().asString(Dictionary.get("notes.amount"))
+                            Bindings.createStringBinding(
+                                    () -> I18n.tr("notes.list.note-count", item.notesCountProperty().get()),
+                                    I18n.localeProperty(),
+                                    item.notesCountProperty()
+                            )
                     );
 
                     setGraphic(root);
@@ -224,6 +233,7 @@ public class NotesController extends UiView implements
         addKeybinds();
 
         Platform.runLater(() -> {
+            notesView.requestFocus();
             var stage = (Stage) notesView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
         });
@@ -317,8 +327,8 @@ public class NotesController extends UiView implements
     @Override
     public void addKeybinds() {
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
-        //TODO: add adding new
-        //TODO: add moving between notes
+
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN), this::onAddNote);
 
         addEventFilter(notesView);
     }

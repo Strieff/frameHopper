@@ -6,7 +6,8 @@ import com.FrameHopper.app.core.ports.in.tag.ChangeTagStatusCommand;
 import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.UpdateTagCommand;
 import com.FrameHopper.app.ui.UiView;
-import com.FrameHopper.app.ui.eventing.TagEventDispatcher;
+import com.FrameHopper.app.ui.eventing.TagCreatedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -66,39 +67,7 @@ public class TagDetailsController extends UiView {
         descriptionLabel.setText(Dictionary.get("description")+":");
 
         setUpButton(cancelButton, "cancel", e -> close());
-        setUpButton(saveButton, "save", e -> {
-            try {
-                Double.parseDouble(valueField.getText());
-            }  catch (Exception ex) {
-                //TODO exception
-                return;
-            }
-
-            var name = nameField.getText();
-            var value = Double.parseDouble(valueField.getText());
-            var description = descriptionArea.getText().isBlank() ? "" : descriptionArea.getText();
-
-            if(cachedTag==null) {
-                cachedTag = createTagCommand.CreateTag(new TagDTO(
-                        name,
-                        value,
-                        description
-                ));
-
-                TagEventDispatcher.dispatchCreate(cachedTag);
-            }
-            else {
-                cachedTag.setName(name);
-                cachedTag.setValue(value);
-                cachedTag.setDescription(description);
-
-                updateTagCommand.UpdateTag(cachedTag);
-
-                TagEventDispatcher.dispatchUpdate(cachedTag);
-            }
-
-            close();
-        });
+        setUpButton(saveButton, "save", e -> save());
 
         setUpButton(
                 changeStatusButton,
@@ -108,7 +77,7 @@ public class TagDetailsController extends UiView {
                     changeTagStatusCommand.ChangeTagStatus(cachedTag.getId());
                     changeStatusButton.setText(Dictionary.get(cachedTag.getVisible() ? "td.hide" : "td.unhide"));
 
-                    TagEventDispatcher.dispatchUpdate(cachedTag);
+                    TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
                 }
         );
 
@@ -144,9 +113,44 @@ public class TagDetailsController extends UiView {
         buttonBox.getChildren().addAll(cancelButton, saveButton);
     }
 
+    private void save() {
+        try {
+            Double.parseDouble(valueField.getText());
+        }  catch (Exception ex) {
+            //TODO exception
+            return;
+        }
+
+        var name = nameField.getText();
+        var value = Double.parseDouble(valueField.getText());
+        var description = descriptionArea.getText().isBlank() ? "" : descriptionArea.getText();
+
+        if(cachedTag==null) {
+            cachedTag = createTagCommand.CreateTag(new TagDTO(
+                    name,
+                    value,
+                    description
+            ));
+
+            TagCreatedEventDispatcher.dispatchCreate(cachedTag);
+        }
+        else {
+            cachedTag.setName(name);
+            cachedTag.setValue(value);
+            cachedTag.setDescription(description);
+
+            updateTagCommand.UpdateTag(cachedTag);
+
+            TagUpdatedEventDispatcher.dispatchUpdate(cachedTag);
+        }
+
+        close();
+    }
+
     @Override
     public void addKeybinds() {
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::save);
 
         addEventFilter(tagDetailsView);
     }

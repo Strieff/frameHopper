@@ -58,11 +58,15 @@ public class VideoListController extends UiView implements
     @FXML
     private void initialize() {
         videoList.setCellFactory(createVideoListCellFactory());
+        videoList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         loadTable();
 
+        addKeybinds();
+
         Platform.runLater(() -> {
             var stage = (Stage) listView.getScene().getWindow();
+            bind(stage, "vl.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -122,16 +126,7 @@ public class VideoListController extends UiView implements
                     deleteVideoCommand.deleteVideo(bound.getVideo().id());
                     DeleteVideoEventDispatcher.dispatch(bound.getVideo());
                 });
-                editButton.setOnAction(e -> {
-                    var loader = FXMLViewLoader.getView(
-                            "VideoManagementDetailsViewModel",
-                            "Video Details",
-                            listView
-                    );
-
-                    VideoDetailsController controller = loader.getController();
-                    controller.init(bound.getVideo());
-                });
+                editButton.setOnAction(e -> openDetails(bound.getVideo()));
             }
 
             @Override
@@ -159,9 +154,29 @@ public class VideoListController extends UiView implements
         };
     }
 
+    //region [Open Tag Details]
+
+    private void openDetails(VideoDTO video) {
+        var loader = uiManager.open(UIFlag.VIDEO_DETAILS, listView);
+
+        VideoDetailsController controller = loader.getController();
+        controller.init(video);
+    }
+
+    private void openDetails() {
+        var videos = videoList.getSelectionModel().getSelectedItems();
+        if(videos == null || videos.isEmpty()) return;
+
+        videos.forEach(te -> openDetails(te.getVideo()));
+    }
+
+    //endregion
+
     @Override
     public void addKeybinds() {
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN), this::openDetails);
 
         addEventFilter(listView);
     }
@@ -178,14 +193,24 @@ public class VideoListController extends UiView implements
     }
 
     @Override
-    public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
-        //TODO: remove from list
-        loadTable();
+    public void onDeleteVideo(@NotNull VideoDTO video) {
+        var entry = videoList.getItems().stream()
+                .filter(e -> e.getVideo().equals(video))
+                .findFirst().orElse(null);
+
+        if(entry == null) return;
+
+        videoList.getItems().remove(entry);
     }
 
     @Override
     public void onVideoPathUpdated(@NotNull VideoDTO video) {
-        //TODO: update in list
-        loadTable();
+        var entry = videoList.getItems().stream()
+                .filter(e -> e.getVideo().equals(video))
+                .findFirst().orElse(null);
+
+        if(entry == null) return;
+
+        entry.setVideo(video);
     }
 }

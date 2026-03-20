@@ -6,7 +6,7 @@ import lombok.Getter;
 
 public class VideoListTableEntry {
     @Getter
-    private final VideoDTO video;
+    private VideoDTO video;
 
     private final SimpleStringProperty name;
     private final SimpleStringProperty path;
@@ -15,6 +15,12 @@ public class VideoListTableEntry {
         this.video = video;
         this.name = new SimpleStringProperty(video.name());
         this.path = new SimpleStringProperty(video.path());
+    }
+
+    public void setVideo(VideoDTO video) {
+        this.video = video;
+        this.name.set(video.name());
+        this.path.set(video.path());
     }
 
     public String getName() {

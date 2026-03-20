@@ -93,7 +93,7 @@ public class ExportController extends UiView {
     @FXML
     public void initialize() {
         videoNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        videoNameColumn.setText(Dictionary.get("export.name"));
+        bind(videoNameColumn, "export.video.table.name");
         videoNameColumn.setCellFactory(new Callback<>() {
             @Override
             public TableCell<ExportTableEntry, String> call(TableColumn<ExportTableEntry, String> param) {
@@ -174,15 +174,18 @@ public class ExportController extends UiView {
 
         exportAccordion.setExpandedPane(videoPane);
 
-        clearButton.setText(Dictionary.get("export.clear"));
-        cancelButton.setText(Dictionary.get("cancel"));
-        searchField.setPromptText(Dictionary.get("search"));
-        exportButton.setText(Dictionary.get("export.export"));
-        videoPane.setText(Dictionary.get("export.name"));
+        bind(clearButton, "export.button.clear");
+        bind(cancelButton, "export.button.cancel");
+        bind(searchField, "export.search-prompt");
+        bind(exportButton, "export.button.export");
 
-        videoDataPane.setText(Dictionary.get("export.data.video"));
+        bind(videoPane, "export.accordion.video");
+
+        bind(videoDataPane, "export.accordion.video-data");
         setUpVideoOptions();
         setupList(videoFieldsList);
+
+        bind(tagDataPane, "export.accordion.tag-data");
         setUpTagOptions();
         setupList(tagFieldsList);
 
@@ -192,6 +195,7 @@ public class ExportController extends UiView {
 
         Platform.runLater(() -> {
             var stage = (Stage) exportView.getScene().getWindow();
+            bind(stage, "export.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }
