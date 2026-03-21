@@ -4,24 +4,24 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.utils.ChartsUtils;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.*;
-import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static javafx.scene.paint.Color.*;
+import static javafx.scene.paint.Color.ORANGE;
 
 
 @Component
@@ -47,11 +50,7 @@ public class ImportChartController extends UiView {
     @FXML
     VBox saveArea;
     @FXML
-    Rectangle rectangle1, rectangle2;
-    @FXML
-    Label legend1Label, legend2Label, legend3Label;
-    @FXML
-    HBox legendBox2, meanArea;
+    HBox legendContainer;
 
     private final UserSettingsAdapter userSettingsAdapter;
 
@@ -67,7 +66,7 @@ public class ImportChartController extends UiView {
         addKeybinds();
 
         Platform.runLater(() -> {
-            var stage = (Stage)rectangle1.getScene().getWindow();
+            var stage = (Stage)chartPane.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -80,6 +79,33 @@ public class ImportChartController extends UiView {
             String separator,
             String ticks
     ) {
+        bind((Stage)chartPane.getScene().getWindow(), "charts.import.stage", customDataLabel);
+        StringProperty customDataProperty = new SimpleStringProperty(customDataLabel);
+
+        var greenLabel = ChartsUtils.getLabel(50, 140, "charts.legend.green", customDataProperty);
+        HBox greenBox = ChartsUtils.getLegendBox(greenLabel, 5, 40, GREEN, 100, 200);
+
+        var redLabel = ChartsUtils.getLabel(50, 140, "charts.legend.red", customDataProperty);
+        HBox redBox = ChartsUtils.getLegendBox(redLabel, 5, 40, RED, 100, 200);
+
+        var blueLabel = ChartsUtils.getLabel(50, 140, "charts.legend.blue", customDataProperty);
+        HBox blueBox = ChartsUtils.getLegendBox(blueLabel, 5, 40, BLUE, 100, 200);
+
+        var meanLabel = ChartsUtils.getMeanLabel(50, 140, "charts.legend.mean");
+        HBox meanBox = ChartsUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
+
+        List<HBox> legend = new  ArrayList<>();
+
+        if(colorMean)
+            legend.addAll(List.of(greenBox, redBox));
+        else
+            legend.add(blueBox);
+
+        if(showMean)
+            legend.add(meanBox);
+
+        ChartsUtils.populateTable(legendContainer, legend.toArray(new HBox[0]));
+
         chartPane.getChildren().clear();
         var maxValue = customData.values().stream().mapToDouble(Number::doubleValue).summaryStatistics().getMax();
         var average = customData.values().stream().mapToDouble(Number::doubleValue).summaryStatistics().getAverage();

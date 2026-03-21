@@ -49,39 +49,39 @@
                     </yAxis>
                 </LineChart>
             </StackPane>
-            <HBox alignment="TOP_CENTER" fillHeight="false" maxHeight="50.0" minHeight="50.0" prefHeight="50.0" prefWidth="700.0">
+            <HBox fx:id="legendContainer" alignment="TOP_CENTER" fillHeight="false" maxHeight="50.0" minHeight="50.0" prefHeight="50.0" prefWidth="700.0">
                 <HBox prefHeight="100.0" prefWidth="200.0">
-                    <Rectangle fx:id="rectangle1" arcHeight="5.0" arcWidth="5.0" fill="GREEN" height="41.0" stroke="BLACK" strokeType="INSIDE" width="47.0">
+                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="GREEN" height="41.0" stroke="BLACK" strokeType="INSIDE" width="47.0">
                         <HBox.margin>
                             <Insets left="10.0" top="5.0" />
                         </HBox.margin>
                     </Rectangle>
-                    <Label fx:id="legend1Label" prefHeight="50.0" prefWidth="140.0" text="VALUE">
+                    <Label prefHeight="50.0" prefWidth="140.0" text="VALUE">
                         <HBox.margin>
                             <Insets left="5.0" />
                         </HBox.margin>
                     </Label>
                 </HBox>
 
-                <HBox fx:id="legendBox2" prefHeight="100.0" prefWidth="200.0">
-                    <Rectangle fx:id="rectangle2" arcHeight="5.0" arcWidth="5.0" fill="RED" height="41.0" stroke="BLACK" strokeType="INSIDE" width="47.0">
+                <HBox prefHeight="100.0" prefWidth="200.0">
+                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="RED" height="41.0" stroke="BLACK" strokeType="INSIDE" width="47.0">
                         <HBox.margin>
                             <Insets left="10.0" top="5.0" />
                         </HBox.margin>
                     </Rectangle>
-                    <Label fx:id="legend2Label" prefHeight="50.0" prefWidth="140.0" text="VALUE">
+                    <Label prefHeight="50.0" prefWidth="140.0" text="VALUE">
                         <HBox.margin>
                             <Insets left="5.0" />
                         </HBox.margin>
                     </Label>
                 </HBox>
 
-                <HBox fx:id="meanArea" prefHeight="100.0" prefWidth="200.0">
+                <HBox prefHeight="100.0" prefWidth="200.0">
                     <Line startX="-100.0" stroke="#ff8d01" strokeWidth="5.0">
                         <HBox.margin>
                             <Insets top="22.0" />
                         </HBox.margin></Line>
-                    <Label fx:id="legend3Label" prefHeight="50.0" prefWidth="140.0" text="MEAN">
+                    <Label prefHeight="50.0" prefWidth="140.0" text="MEAN">
                         <HBox.margin>
                             <Insets left="5.0" />
                         </HBox.margin>

@@ -25,9 +25,15 @@ public class FXMLViewLoader {
         return loader;
     }
 
-    public static FXMLLoader getView(String name){
+    public static FXMLLoader getMainView(String viewName, String windowName, Stage primaryStage){
         try {
-            return instance.get(name);
+            var loader = instance.get(viewName);
+            Parent root = loader.load();
+            primaryStage.setTitle(windowName);
+            primaryStage.setScene(new Scene(root, 1200, 900));
+            primaryStage.show();
+
+            return loader;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

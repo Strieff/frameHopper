@@ -1,6 +1,5 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.DataExportAdapter;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
@@ -12,6 +11,7 @@ import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
+import com.FrameHopper.app.ui.language.I18n;
 import com.FrameHopper.app.ui.ve.ExportActionEntry;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.ui.UiView;
@@ -205,29 +205,29 @@ public class ExportController extends UiView {
     private void setUpVideoOptions() {
         videoFieldsList.getItems().addAll(
                 new ExportActionEntry.VideoExportActionEntry(
-                        "data.overview.frameCount", "data.overview.summary.frameCount",
+                        "export.data.video.frame-count", "export.data.video.summary.frame-count",
                         v -> videoAnalyticsQuery.getFrameCount(v).data(),
                         VideoDataAnalyticsDTO::totalFrameAmount
                 ),
                 new ExportActionEntry.VideoExportActionEntry(
-                        "data.overview.codes", "undefinedCodes",
+                        "export.data.video.tags", "undefinedCodes",
                         v -> videoAnalyticsQuery.getUniqueTagsCount(v).data(),
                         null
                 ),
                 new ExportActionEntry.VideoExportActionEntry(
-                        "data.overview.runtime", "data.overview.summary.runtime",
+                        "export.data.video.runtime", "export.data.video.summary.runtime",
                         v -> videoAnalyticsQuery.getRuntime(v).data(),
                         VideoDataAnalyticsDTO::totalRuntime
                 ),
-                new ExportActionEntry.VideoExportActionEntry("data.overview.framerate", "undefinedFramerate",
+                new ExportActionEntry.VideoExportActionEntry("export.data.video.framerate", "undefinedFramerate",
                         v -> videoAnalyticsQuery.getFrameRate(v).data(),
                         null
                 ),
-                new ExportActionEntry.VideoExportActionEntry("data.overview.totalPoints", "data.overview.summary.totalPoints",
+                new ExportActionEntry.VideoExportActionEntry("export.data.video.total-points", "export.data.video.summary.total-points",
                         v -> videoAnalyticsQuery.getTotalPoints(v).data(),
                         VideoDataAnalyticsDTO::totalPoints
                 ),
-                new ExportActionEntry.VideoExportActionEntry("data.overview.complexity", "data.overview.summary.complexity",
+                new ExportActionEntry.VideoExportActionEntry("export.data.video.complexity", "export.data.video.summary.complexity",
                         v -> videoAnalyticsQuery.getComplexity(v).data(),
                         VideoDataAnalyticsDTO::overallComplexity
                 )
@@ -236,13 +236,13 @@ public class ExportController extends UiView {
 
     private void setUpTagOptions() {
         tagFieldsList.getItems().addAll(
-                new ExportActionEntry.TagExportActionEntry("data.tags.value",
+                new ExportActionEntry.TagExportActionEntry("export.data.tags.value",
                         t -> tagAnalyticsQuery.getValue(t.tag()).data()
                 ),
-                new ExportActionEntry.TagExportActionEntry("data.tags.amount",
+                new ExportActionEntry.TagExportActionEntry("export.data.tags.amount",
                         t -> tagAnalyticsQuery.getAmountUsed(t.tag(), t.videos()).data()
                 ),
-                new ExportActionEntry.TagExportActionEntry("data.tags.totalPoints",
+                new ExportActionEntry.TagExportActionEntry("export.data.tags.total-points",
                         t -> tagAnalyticsQuery.getTotalPoints(t.tag(), t.videos()).data()
                 )
         );
@@ -388,7 +388,7 @@ public class ExportController extends UiView {
                     setText(null);
                 } else {
                     boundItem = (ExportActionEntry) item;
-                    checkBox.setText(Dictionary.get(((ExportActionEntry) item).getLabelName()));
+                    checkBox.setText(I18n.tr(((ExportActionEntry) item).getLabelName()));
                     checkBox.selectedProperty().bindBidirectional(((ExportActionEntry) item).selectedProperty());
                     setGraphic(root);
                 }
@@ -493,14 +493,14 @@ public class ExportController extends UiView {
     ) {
         var analytics = videoAnalyticsQuery.getAnalytics(videosToExport);
         Map<String, Number> videoSummaryExportData = new LinkedHashMap<>();
-        videoSummaryExportData.put(Dictionary.get("data.overview.summary.totalShotAmount"), analytics.totalShotAmount());
+        videoSummaryExportData.put(I18n.tr("export.data.video.count"), analytics.totalShotAmount());
         videoExportActions.forEach(a -> {
             if(!a.hasSummaryAction())
                 videoSummaryExportData.put(a.getSummaryLabelName(), null);
             else
                 videoSummaryExportData.put(a.getSummaryLabel(), a.summary(analytics).doubleValue());
         });
-        videoSummaryExportData.put(Dictionary.get("data.overview.asl"), analytics.asl());
+        videoSummaryExportData.put(I18n.tr("export.data.video.summary.asl"), analytics.asl());
 
         return videoSummaryExportData;
     }

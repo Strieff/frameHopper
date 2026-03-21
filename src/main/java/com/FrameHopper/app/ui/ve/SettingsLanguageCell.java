@@ -26,7 +26,7 @@ public class SettingsLanguageCell extends ListCell<SettingsLanguageEntry> {
         if (empty || language == null) {
             setGraphic(null);
         } else {
-            label.setText(language.getName());
+            label.setText(language.getLanguageName());
 
             if (language.getFlagIcon() != null) {
                 imageView.setImage(language.getFlagIcon());

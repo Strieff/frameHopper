@@ -1,28 +1,40 @@
 package com.FrameHopper.app.ui.ve;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
-import com.FrameHopper.app.View.Elements.Language.LanguageManager;
+import com.FrameHopper.app.ui.language.I18n;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.image.Image;
 import lombok.Getter;
-import lombok.Setter;
 
+import java.util.Locale;
 import java.util.Objects;
 
 @Getter
 public class SettingsLanguageEntry {
     private final String code;
     private final Image flagIcon;
-    @Setter
-    private String name;
+    StringProperty languageNameProperty = new SimpleStringProperty();
 
-    public SettingsLanguageEntry(String code, String name) {
+    public SettingsLanguageEntry(String code, Image flagIcon) {
         this.code = code;
-        this.name = name;
-        this.flagIcon = FXIconLoader.getFlagIcon(code+".png");
+        this.flagIcon = flagIcon;
+
+        languageNameProperty.setValue(getLanguageName(code));
+        languageNameProperty.bind(
+                Bindings.createStringBinding(
+                        () -> getLanguageName(this.code),
+                        I18n.localeProperty()
+                )
+        );
     }
 
-    public void setLanguage() {
-        setName(LanguageManager.getLanguageName(code));
+    private String getLanguageName(String code) {
+        return Locale.of(code).getDisplayLanguage(I18n.getLocale());
+    }
+
+    public String getLanguageName() {
+        return languageNameProperty.get();
     }
 
     @Override

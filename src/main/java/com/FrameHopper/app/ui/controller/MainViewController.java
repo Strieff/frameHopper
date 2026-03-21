@@ -1,8 +1,6 @@
 package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.View.Elements.Language.DictionaryCreator;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
@@ -14,8 +12,14 @@ import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.*;
+import com.FrameHopper.app.ui.language.I18n;
 import com.FrameHopper.app.ui.ve.MainViewTagTableEntry;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -87,8 +91,9 @@ public class MainViewController extends UiView implements
     private final UIManager uiManager;
 
     private final Map<Integer, FrameDTO> cachedTags = new HashMap<>();
-    private VideoDTO cachedVideo;
-    private int index = 0;
+
+    private final ObjectProperty<VideoDTO> cachedVideoProperty = new SimpleObjectProperty<>(null);
+    private final IntegerProperty indexProperty = new SimpleIntegerProperty(0);
 
     public MainViewController(
             LoadVideoCommand loadVideoCommand,
@@ -114,7 +119,7 @@ public class MainViewController extends UiView implements
     public void initialize(){
         mainView.setOnMouseClicked(e -> mainView.requestFocus());
 
-        dropLabel.setText(Dictionary.get("main.dropHere"));
+        bind(dropLabel, "main.drop-placeholder");
 
         //drag and drop
         framePane.setOnDragOver(this::handleDragOver);
@@ -122,9 +127,9 @@ public class MainViewController extends UiView implements
 
         //set cell factories for the table
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        nameColumn.setText(Dictionary.get("name"));
+        bind(nameColumn, "main.table.name");
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
-        valueColumn.setText(Dictionary.get("value"));
+        bind(valueColumn, "main.table.value");
 
         //set up button icons
         addButtonIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
@@ -136,14 +141,37 @@ public class MainViewController extends UiView implements
         videoListButtonIcon.setImage(FXIconLoader.getLargeIcon("video-player.png"));
 
         //jump section
-        jumpButton.setText(Dictionary.get("main.jump.button"));
-        frameInput.setPromptText(Dictionary.get("main.jump.hint"));
+        bind(jumpButton, "main.jump.button");
+        bind(frameInput, "main.jump.prompt");
+
+        //status label
+        statusLabel.textProperty().bind(
+                Bindings.createStringBinding(
+                        () -> {
+                            var video = cachedVideoProperty.get();
+
+                            if(video == null)
+                                return I18n.tr("main.video-info.no-video");
+
+                            return I18n.tr(
+                                    "main.video-info",
+                                    indexProperty.get() + 1,
+                                    video.metadata().totalFrames(),
+                                    video.metadata().frameRate()
+                            );
+                        },
+                        I18n.localeProperty(),
+                        indexProperty,
+                        cachedVideoProperty
+                )
+        );
 
         addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
             stage.setOnCloseRequest(e -> System.exit(0));
+            bind(stage, "main.stage");
             mainView.requestFocus();
         });
     }
@@ -167,7 +195,7 @@ public class MainViewController extends UiView implements
             var file = db.getFiles().getFirst();
 
             try {
-                cachedVideo = loadVideoCommand.loadVideo(file.getPath());
+                cachedVideoProperty.set(loadVideoCommand.loadVideo(file.getPath()));
                 openVideo();
             }catch (Exception e){
                 logger.error(e.getMessage(),e);
@@ -181,24 +209,23 @@ public class MainViewController extends UiView implements
     //endregion
 
     private void openVideo(){
-        index = 0;
+        indexProperty.set(0);
         cacheTagData();
         displayCurrentData();
     }
 
     private void cacheTagData() {
         cachedTags.clear();
-        var allFramesOnVideo = frameQuery.getAllFramesOnVideo(cachedVideo);
+        var allFramesOnVideo = frameQuery.getAllFramesOnVideo(cachedVideoProperty.get());
 
         allFramesOnVideo.forEach(f -> cachedTags.put(f.frameNumber(), f));
     }
 
     private void displayCurrentData() {
         if(!dropLabel.getText().isBlank())
-            dropLabel.setText("");
+            dropLabel.setVisible(false);
 
         displayCurrentFrame();
-        displayCurrentInfo();
         displayCurrentTags();
     }
 
@@ -206,7 +233,8 @@ public class MainViewController extends UiView implements
 
     private void displayCurrentFrame() {
         try {
-            var frameBytes = frameBytesQuery.getVideoFrame(cachedVideo, index);
+            var index = indexProperty.get();
+            var frameBytes = frameBytesQuery.getVideoFrame(cachedVideoProperty.get(), index);
             Image fxImage = new Image(new ByteArrayInputStream(frameBytes));
 
             if(fxImage.isError())
@@ -225,16 +253,9 @@ public class MainViewController extends UiView implements
         }
     }
 
-    private void displayCurrentInfo() {
-        statusLabel.setText(String.format(
-                Dictionary.get("main.fileInfo"), //TODO: change to adapter
-                cachedVideo != null ?  index + 1 : 0,
-                cachedVideo != null ? cachedVideo.metadata().totalFrames() : 0,
-                cachedVideo != null ? cachedVideo.metadata().frameRate() : 0f
-        ));
-    }
-
     private void displayCurrentTags() {
+        var index = indexProperty.get();
+
         if(!cachedTags.containsKey(index)) {
             tableView.getItems().clear();
             return;
@@ -258,11 +279,13 @@ public class MainViewController extends UiView implements
         if(uiManager.isOpen(UIFlag.FRAME_TAG_MANAGER))
             return;
 
+        var index = indexProperty.get();
+
         var loader = uiManager.open(UIFlag.FRAME_TAG_MANAGER, mainView);
 
         FrameTagManagerController controller = loader.getController();
 
-        var frame = cachedTags.getOrDefault(index, new FrameDTO(-1, index, cachedVideo, new ArrayList<>()));
+        var frame = cachedTags.getOrDefault(index, new FrameDTO(-1, index, cachedVideoProperty.get(), new ArrayList<>()));
 
         controller.init(frame);
     }
@@ -324,6 +347,8 @@ public class MainViewController extends UiView implements
     //endregion
 
     private void openVideoDetails(){
+        var cachedVideo = cachedVideoProperty.get();
+
         if(cachedVideo == null) return;
 
         var loader = uiManager.open(UIFlag.VIDEO_DETAILS, mainView);
@@ -335,25 +360,33 @@ public class MainViewController extends UiView implements
     //region Movement
 
     private void moveRight() {
+        var cachedVideo = cachedVideoProperty.get();
+        var index = indexProperty.get();
+
         if(cachedVideo == null) return;
 
         if(index + 1 > cachedVideo.metadata().totalFrames() - 1) return;
 
-        index++;
+        indexProperty.set(++index);
         displayCurrentData();
     }
 
     private void moveLeft() {
+        var cachedVideo = cachedVideoProperty.get();
+        var index = indexProperty.get();
+
         if(cachedVideo == null) return;
 
         if(index - 1 < 0) return;
 
-        index--;
+        indexProperty.set(--index);
         displayCurrentData();
     }
 
     @FXML
     protected void onJumpToFrame() {
+        var cachedVideo = cachedVideoProperty.get();
+
         if(cachedVideo == null) return;
 
         int frame;
@@ -365,7 +398,7 @@ public class MainViewController extends UiView implements
 
         if(frame - 1 < 0 || frame > cachedVideo.metadata().totalFrames()) return;
 
-        index = frame;
+        indexProperty.set(frame);
 
         displayCurrentData();
     }
@@ -388,7 +421,7 @@ public class MainViewController extends UiView implements
     @Async
     @Override
     public void onTagUpdated(@NotNull TagDTO tagDTO) {
-        if(cachedVideo == null) return;
+        if(cachedVideoProperty.get() == null) return;
         cacheTagData();
         displayCurrentTags();
     }
@@ -396,7 +429,7 @@ public class MainViewController extends UiView implements
     @Async
     @Override
     public void onTagUpdated(@NotNull List<TagDTO> tagsDTO) {
-        if(cachedVideo == null) return;
+        if(cachedVideoProperty.get() == null) return;
 
         cacheTagData();
         displayCurrentTags();
@@ -405,7 +438,7 @@ public class MainViewController extends UiView implements
     @Async
     @Override
     public void onTagDeleted(@NotNull TagDTO tagDTO) {
-        if(cachedVideo == null) return;
+        if(cachedVideoProperty.get() == null) return;
 
         cacheTagData();
         displayCurrentTags();
@@ -413,7 +446,7 @@ public class MainViewController extends UiView implements
 
     @Override
     public void onTagDeleted(@NotNull List<TagDTO> tags) {
-        if(cachedVideo == null) return;
+        if(cachedVideoProperty.get() == null) return;
 
         cacheTagData();
         displayCurrentTags();
@@ -423,7 +456,7 @@ public class MainViewController extends UiView implements
 
     @Override
     public void openVideo(int id) {
-        cachedVideo = loadVideoCommand.loadVideo(id);
+        cachedVideoProperty.set(loadVideoCommand.loadVideo(id));
         openVideo();
     }
 
@@ -445,8 +478,8 @@ public class MainViewController extends UiView implements
         //keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
         //keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redoAction);
         //keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undoAction);
-        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::reload);//TODO: move to adapter
-        keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::create);
+        //keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::reload);//TODO: move to adapter
+        //keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::create);
 
         //add key binds
         addEventFilter(mainView);
@@ -460,21 +493,25 @@ public class MainViewController extends UiView implements
     @Async
     @Override
     public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
+        var cachedVideo = cachedVideoProperty.get();
+
         if(cachedVideo == null) return;
 
         if(cachedVideo.equals(videoDTO)) return;
 
-        cachedVideo = null;
+        cachedVideoProperty.set(null);
+        indexProperty.set(0);
+
         cachedTags.clear();
         tableView.getItems().clear();
 
         frameView.setImage(null);
-        statusLabel.setText("NO VIDEO OPEN"); //TODO
+        dropLabel.setVisible(true);
     }
 
     @Override
     public void onVideoPathUpdated(@NotNull VideoDTO video) {
-        if(cachedVideo.equals(video))
-            cachedVideo = video;
+        if(cachedVideoProperty.get().equals(video))
+            cachedVideoProperty.set(video);
     }
 }

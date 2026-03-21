@@ -9,16 +9,21 @@ import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
+import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.utils.ChartsUtils;
 import com.FrameHopper.app.ui.ve.ChartsActionEntry;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.ve.ChartsTableEntry;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
@@ -29,13 +34,10 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -48,6 +50,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static javafx.scene.paint.Color.*;
 
 @Component
 @Scope("prototype")
@@ -65,21 +69,23 @@ public class ChartsController extends UiView {
     @FXML
     private ComboBox<ChartsActionEntry> yAxisOptions;
     @FXML
-    private CheckBox meanCheckbox,colorMean;
+    private CheckBox meanCheckbox, colorMean;
     @FXML
     private Button generateButton, searchButton;
     @FXML
     private TextField tickField, separatorField, searchField;
     @FXML
-    private Label tickLabel, separatorLabel, yAxisLabel, legend1Label, legend2Label, legend3Label;
+    private Label tickLabel, separatorLabel, yAxisLabel;
     @FXML
     private VBox saveArea;
     @FXML
-    private HBox meanArea,legendBox2;
-    @FXML
-    Rectangle rectangle1,rectangle2;
+    private HBox legendContainer;
     @FXML
     ImageView importButtonIcon, exportButtonIcon, clearButtonIcon, saveButtonIcon;
+
+    private final HBox greenBox, redBox, blueBox, meanBox;
+
+    private final StringProperty chartOptionProperty = new SimpleStringProperty("");
 
     private final FrameQuery frameQuery;
     private final VideoQuery videoQuery;
@@ -101,11 +107,23 @@ public class ChartsController extends UiView {
         this.videoAnalyticsQuery = videoAnalyticsQuery;
         this.userSettingsAdapter = userSettingsAdapter;
         this.uiManager = uiManager;
+
+        var greenLabel = ChartsUtils.getLabel(50, 140, "charts.legend.green", chartOptionProperty);
+        greenBox = ChartsUtils.getLegendBox(greenLabel, 5, 40, GREEN, 100, 200);
+
+        var redLabel = ChartsUtils.getLabel(50, 140, "charts.legend.red", chartOptionProperty);
+        redBox = ChartsUtils.getLegendBox(redLabel, 5, 40, RED, 100, 200);
+
+        var blueLabel = ChartsUtils.getLabel(50, 140, "charts.legend.blue", chartOptionProperty);
+        blueBox = ChartsUtils.getLegendBox(blueLabel, 5, 40, BLUE, 100, 200);
+
+        var meanLabel = ChartsUtils.getMeanLabel(50, 140, "charts.legend.mean");
+        meanBox = ChartsUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
     }
 
     @FXML
     public void initialize() {
-        videoTable.setPlaceholder(new Label(Dictionary.get("placeholder.video")));
+        bind(searchField, "charts.search-prompt");
 
         var videos = videoQuery.getAllVideos();
         var frames = frameQuery.getAll();
@@ -129,7 +147,7 @@ public class ChartsController extends UiView {
         selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
         selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(selectColumn));
 
-        nameColumn.setText(Dictionary.get("export.name"));
+        bind(nameColumn, "charts.table.name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameColumn.setCellFactory(c -> new TableCell<>() {
             private final Text text = new Text();
@@ -147,21 +165,27 @@ public class ChartsController extends UiView {
         });
 
         meanCheckbox.setOnMouseClicked(e -> generateChart());
-        meanCheckbox.setText(Dictionary.get("checkbox.mean"));
+        bind(meanCheckbox, "charts.chart-options.show-mean");
 
         colorMean.setOnMouseClicked(e -> generateChart());
-        colorMean.setText(Dictionary.get("checkbox.color"));
+        bind(colorMean, "charts.chart-options.color-mean");
 
         generateButton.setOnMouseClicked(e -> generateChart());
         generateButton.setText(Dictionary.get("chart.generate"));
+        bind(generateButton, "charts.button.generate");
 
-        yAxisLabel.setText(Dictionary.get("y-axis.options"));
+        bind(yAxisLabel, "charts.y-axis-options.label");
         yAxisOptions.getItems().addAll(getChartsOptions());
         yAxisOptions.getSelectionModel().select(0);
+        chartOptionProperty.setValue(yAxisOptions.getSelectionModel().getSelectedItem().getLabel());
+
         yAxisOptions.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-           if(newVal != null)
+           if(newVal != null) {
                generateChart();
+               chartOptionProperty.setValue(newVal.getLabel());
+           }
         });
+
         yAxisOptions.setCellFactory(cb -> new ListCell<>() {
             @Override
             protected void updateItem(ChartsActionEntry item, boolean empty) {
@@ -177,23 +201,23 @@ public class ChartsController extends UiView {
         yAxisOptions.setCellFactory(chartCellFactory);
         yAxisOptions.setButtonCell(chartCellFactory.call(null));
 
-        tickLabel.setText(Dictionary.get("y-axis.ticks"));
-        separatorLabel.setText(Dictionary.get("y-axis.separator"));
+        bind(tickLabel, "charts.chart-options.ticks");
+        bind(separatorLabel, "charts.chart-options.separator");
 
         exportButtonIcon.setImage(FXIconLoader.getLargeIcon("export.png"));
         importButtonIcon.setImage(FXIconLoader.getLargeIcon("import.png"));
         clearButtonIcon.setImage(FXIconLoader.getLargeIcon("clean.png"));
         saveButtonIcon.setImage(FXIconLoader.getLargeIcon("save.png"));
 
-        var optionLabel = yAxisOptions.getSelectionModel().getSelectedItem().getLabel();
-        legend1Label.setText(!colorMean.isSelected() ? optionLabel : String.format(Dictionary.get("legend.green"), optionLabel));
-        legend2Label.setText(String.format(Dictionary.get("legend.red"), optionLabel));
-        legend3Label.setText(Dictionary.get("legend.mean"));
+        legendContainer.setAlignment(Pos.CENTER);
+        legendContainer.setSpacing(10);
+        ChartsUtils.populateTable(greenBox, redBox, meanBox);
 
         addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) chartView.getScene().getWindow();
+            bind(stage, "charts.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -207,25 +231,30 @@ public class ChartsController extends UiView {
                 }
             };
 
+    private void populateLegend(HBox... elements) {
+        legendContainer.getChildren().clear();
+        legendContainer.getChildren().addAll(elements);
+    }
+
     private List<ChartsActionEntry> getChartsOptions() {
         return List.of(
-                new ChartsActionEntry("chart.complexity", data -> data.stream().collect(Collectors.toMap(
+                new ChartsActionEntry("charts.y-axis-options.complexity", data -> data.stream().collect(Collectors.toMap(
                         vd -> vd.video().name(),
                         vd -> videoAnalyticsQuery.getComplexity(vd).data()
                 ))),
-                new ChartsActionEntry("chart.tags.unique", data -> data.stream().collect(Collectors.toMap(
+                new ChartsActionEntry("charts.y-axis-options.unique-tags", data -> data.stream().collect(Collectors.toMap(
                         vd -> vd.video().name(),
                         vd -> videoAnalyticsQuery.getUniqueTagsCount(vd).data()
                 ))),
-                new ChartsActionEntry("chart.frame-count", data -> data.stream().collect(Collectors.toMap(
+                new ChartsActionEntry("charts.y-axis-options.total-frame-count", data -> data.stream().collect(Collectors.toMap(
                         vd -> vd.video().name(),
                    vd -> videoAnalyticsQuery.getFrameCount(vd).data()
                 ))),
-                new ChartsActionEntry("chart.duration", data -> data.stream().collect(Collectors.toMap(
+                new ChartsActionEntry("charts.y-axis-options.duration", data -> data.stream().collect(Collectors.toMap(
                         vd -> vd.video().name(),
                         vd -> videoAnalyticsQuery.getRuntime(vd).data()
                 ))),
-                new ChartsActionEntry("chart.points", data -> data.stream().collect(Collectors.toMap(
+                new ChartsActionEntry("charts.y-axis-options.total-points", data -> data.stream().collect(Collectors.toMap(
                         vd -> vd.video().name(),
                         vd -> videoAnalyticsQuery.getTotalPoints(vd).data()
                 )))
@@ -237,18 +266,17 @@ public class ChartsController extends UiView {
     private void generateChart() {
         var option = yAxisOptions.getSelectionModel().getSelectedItem();
 
-        meanArea.setVisible(meanCheckbox.isSelected());
-        legend1Label.setText(!colorMean.isSelected() ? option.getLabel() : String.format(Dictionary.get("legend.green"), option.getLabel()));
-        legend2Label.setText(String.format(Dictionary.get("legend.red"), option.getLabel()));
+        List<HBox> legend = new  ArrayList<>();
 
-        if(!colorMean.isSelected()){
-            rectangle1.setFill(Color.valueOf("blue"));
-            legendBox2.setVisible(false);
-        }else{
-            rectangle1.setFill(Color.valueOf("green"));
-            rectangle2.setFill(Color.valueOf("red"));
-            legendBox2.setVisible(true);
-        }
+        if(colorMean.isSelected())
+            legend.addAll(List.of(greenBox, redBox));
+        else
+            legend.add(blueBox);
+
+        if(meanCheckbox.isSelected())
+            legend.add(meanBox);
+
+        ChartsUtils.populateTable(legendContainer, legend.toArray(new HBox[0]));
 
         chartPane.getChildren().clear();
 

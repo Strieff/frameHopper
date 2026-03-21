@@ -3,6 +3,7 @@ package com.FrameHopper.app.ui
 import jakarta.annotation.PostConstruct
 import javafx.fxml.FXMLLoader
 import javafx.scene.Node
+import javafx.stage.Stage
 import org.springframework.stereotype.Component
 import java.util.EnumMap
 
@@ -23,6 +24,10 @@ open class UIManager {
             flags[flag] = true
 
         return loader
+    }
+
+    fun openMain(primaryStage: Stage) {
+        FXMLViewLoader.getMainView(UIFlag.MAIN.fileName, UIFlag.MAIN.windowName, primaryStage)
     }
 
     fun close(flag: UIFlag) {

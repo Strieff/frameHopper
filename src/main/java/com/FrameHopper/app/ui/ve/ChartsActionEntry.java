@@ -1,7 +1,7 @@
 package com.FrameHopper.app.ui.ve;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
+import com.FrameHopper.app.ui.language.I18n;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,6 @@ public record ChartsActionEntry(
     }
 
     public String getLabel() {
-        return Dictionary.get(labelName);
+        return I18n.tr(labelName);
     }
 }

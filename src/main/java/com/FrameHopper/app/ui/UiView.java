@@ -50,6 +50,9 @@ public abstract class UiView {
         column.textProperty().bind(I18n.bind(key, args));
     }
 
+    protected String getText(String key, Object... args) {
+        return I18n.tr(key, args);
+    }
 
     protected abstract void addKeybinds();
     protected abstract void close();

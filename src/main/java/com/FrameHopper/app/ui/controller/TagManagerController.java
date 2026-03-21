@@ -94,17 +94,15 @@ public class TagManagerController extends UiView implements
         codeTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("code"));
-        codeColumn.setText(Dictionary.get("name"));
+        bind(codeColumn, "tm.table.name");
         setFactoryForTextCell(codeColumn);
 
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
-        valueColumn.setText(Dictionary.get("value"));
+        bind(valueColumn, "tm.table.value");
 
-        descriptionColumn.setText(Dictionary.get("description"));
+        bind(descriptionColumn, "tm.table.description");
         descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
         setFactoryForTextCell(descriptionColumn);
-
-        codeTable.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
 
         setFactoryForButtonCell(
                 editColumn,
@@ -122,16 +120,17 @@ public class TagManagerController extends UiView implements
 
         loadTagTable();
 
-        addCodeButton.setText(Dictionary.get("settings.button.add"));
-        addCodesButton.setText(Dictionary.get("settings.button.add.multi"));
-        hideCodesButton.setText(Dictionary.get("settings.button.hide"));
-        unhideCodesButton.setText(Dictionary.get("settings.button.unhide"));
-        deleteCodesButton.setText(Dictionary.get("settings.button.delete"));
+        bind(addCodeButton, "tm.button.add-tag");
+        bind(addCodesButton, "tm.button.add-tags");
+        bind(hideCodesButton, "tm.button.hide-tags");
+        bind(unhideCodesButton, "tm.button.unhide-tags");
+        bind(deleteCodesButton, "tm.button.delete-tags");
 
         addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) tagManagerView.getScene().getWindow();
+            bind(stage, "tm.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }

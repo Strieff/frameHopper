@@ -1,9 +1,9 @@
 package com.FrameHopper.app.ui.ve;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
+import com.FrameHopper.app.ui.language.I18n;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class ExportActionEntry {
     }
 
     public String getLabel() {
-        return Dictionary.get(labelName);
+        return I18n.tr(labelName);
     }
 
     public static class VideoExportActionEntry extends ExportActionEntry {
@@ -61,7 +61,7 @@ public class ExportActionEntry {
         public Number summary(VideoDataAnalyticsDTO analytics) { return videoSummaryFunction.apply(analytics); }
 
         public String getSummaryLabel() {
-            return Dictionary.get(summaryLabelName);
+            return I18n.tr(summaryLabelName);
         }
 
         public boolean hasSummaryAction() {

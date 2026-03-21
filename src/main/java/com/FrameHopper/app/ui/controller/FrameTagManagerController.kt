@@ -1,6 +1,5 @@
 package com.FrameHopper.app.ui.controller
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary
 import com.FrameHopper.app.boundry.dto.FrameDTO
 import com.FrameHopper.app.boundry.dto.TagDTO
 import com.FrameHopper.app.core.ports.`in`.frame.CreateFrameCommand
@@ -68,9 +67,11 @@ open class FrameTagManagerController (
     @FXML
     fun initialize() {
         codeColumn.cellValueFactory = PropertyValueFactory("name")
-        codeColumn.text = Dictionary.get("name")
+        bind(codeColumn, "ftm.table.name")
+
         valueColumn.cellValueFactory = PropertyValueFactory("value")
-        valueColumn.text = Dictionary.get("value")
+        bind(valueColumn, "ftm.table.value")
+
         selectColumn.cellValueFactory = Callback {it.value?.selected}
         selectColumn.cellFactory = CheckBoxTableCell.forTableColumn(selectColumn)
 
@@ -80,23 +81,25 @@ open class FrameTagManagerController (
         )
         codeTable.items = cachedTagList
 
-        cancelButton.text = Dictionary.get("cancel")
+        bind(cancelButton, "ftm.button.cancel")
         cancelButton.setOnAction { _: ActionEvent? -> close() }
+
+        bind(saveButton, "ftm.button.save")
+        bind(searchField, "ftm.search-prompt")
 
         addKeybinds()
 
         Platform.runLater {
             val stage = frameTagManagerView.scene.window as Stage
+            bind(stage, "ftm.stage")
             stage.onCloseRequest = EventHandler { _: WindowEvent? -> close() }
-            frameTagManagerView.isFocusTraversable = true
             frameTagManagerView.requestFocus()
         }
     }
 
     fun init(frame: FrameDTO) {
+        bind(frameLabel, "ftm.frame-info",frame.frameNumber + 1)
         cachedFrame = frame
-
-        frameLabel.text = String.format(Dictionary.get("tm.frame"), (cachedFrame.frameNumber + 1))
 
         val tags = cachedFrame.tags
         if(tags.isNullOrEmpty()) return

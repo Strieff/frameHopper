@@ -1,10 +1,11 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.utils.LanguageUtils;
 import com.FrameHopper.app.ui.ve.SettingsLanguageCell;
 import com.FrameHopper.app.ui.ve.SettingsLanguageEntry;
 import javafx.application.Platform;
@@ -19,7 +20,7 @@ import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
@@ -76,16 +77,22 @@ public class SettingsController extends UiView {
             userSettingsAdapter.setShowWarnings(selected);
         });
 
-        //var languageMap = TODO: language
-        List.of("en").forEach(l -> languageBox.getItems().add(new SettingsLanguageEntry("en","english")));
+        var availableLanguagesEntries = LanguageUtils.getAvailableLanguages()
+                .stream().collect(Collectors.toMap(
+                        c -> c,
+                        LanguageUtils::getFlagIcon
+                )).entrySet().stream()
+                .map(le -> new SettingsLanguageEntry(le.getKey(), le.getValue()))
+                .toList();
+        languageBox.getItems().addAll(availableLanguagesEntries);
+        languageBox.getSelectionModel().select(new SettingsLanguageEntry(userSettingsAdapter.getLanguage(), null));
         languageBox.setCellFactory(cb -> new SettingsLanguageCell());
         languageBox.setButtonCell(new SettingsLanguageCell());
-        languageBox.getSelectionModel().select(new SettingsLanguageEntry("en","english"));
         languageBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                var cell = newValue.getCode();
-                userSettingsAdapter.setLanguage(cell);
-                //TODO: dispatch update language Event
+                var code = newValue.getCode();
+                userSettingsAdapter.setLanguage(code);
+                I18n.setLocale(code);
             }
         });
 

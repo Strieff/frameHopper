@@ -1,8 +1,8 @@
 package com.FrameHopper.app.adapters;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.core.ports.out.export.CSVExportAdapter;
 import com.FrameHopper.app.core.ports.out.export.ExcelExportAdapter;
+import com.FrameHopper.app.ui.language.I18n;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +23,14 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
             Map<String, Map<String, Number>> tagExportData,
             String dir
     ) {
-        var videoData = getCSVData(videoExportData, "overview");
+        var videoData = getCSVData(videoExportData, "video");
 
         var summaryData = getCSVSummaryData(videoSummaryExportData);
         var dummySummaryPath = dir + File.separator + "summary.csv";
 
         var tagData = getCSVData(tagExportData, "tags");
 
-        writeToFile(videoData, getCSVFilePath(dir,"overview"));
+        writeToFile(videoData, getCSVFilePath(dir,"video"));
         writeToFile(summaryData, dummySummaryPath);
         writeToFile(tagData, getCSVFilePath(dir,"tags"));
     }
@@ -42,7 +42,7 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
         var rows = new LinkedList<List<String>>();
 
         var headerRow = new LinkedList<String>();
-        headerRow.add(Dictionary.get(String.format("data.%s.name",namespace)));
+        headerRow.add(I18n.tr(String.format("export.data.%s.name", namespace)));
         headerRow.addAll(headers);
         rows.add(headerRow);
 
@@ -72,7 +72,7 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
     }
 
     private String getCSVFilePath(String path, String namespace) {
-        return path + File.separator + Dictionary.get(String.format("data.%s.title",namespace)) + ".csv";
+        return path + File.separator + I18n.tr(String.format("export.data.%s.title", namespace)) + ".csv";
     }
 
     private void writeToFile(String data, String path) {
@@ -103,7 +103,7 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
                 Workbook workbook = WorkbookFactory.create(true);
                 var fos = new FileOutputStream(fileDir)
         ) {
-            var videoDataSheet = setUpExcelSheet(workbook, "overview", videoExportData);
+            var videoDataSheet = setUpExcelSheet(workbook, "video", videoExportData);
 
             addSummaryData(videoDataSheet, videoSummaryExportData);
 
@@ -147,10 +147,10 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
     private Sheet setUpExcelSheet(Workbook workbook, String namespace, Map<String, Map<String, Number>> data) {
         var headers = new LinkedList<>(data.values().stream().findFirst().get().keySet());
 
-        Sheet sheet = workbook.createSheet(Dictionary.get(String.format("data.%s.title",namespace)));
+        Sheet sheet = workbook.createSheet(I18n.tr(String.format("export.data.%s.title",namespace)));
 
         var headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue(Dictionary.get(String.format("data.%s.name",namespace)));
+        headerRow.createCell(0).setCellValue(I18n.tr(String.format("export.data.%s.name",namespace)));
         for (int i = 0; i < headers.size() ; i++)
             headerRow.createCell(i + 1).setCellValue(headers.get(i));
 

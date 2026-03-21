@@ -3,11 +3,12 @@ package com.FrameHopper.app;
 import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.adapters.settings.UserSettings;
+import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.FXMLViewLoader;
 import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
+import com.FrameHopper.app.ui.UIManager;
+import com.FrameHopper.app.ui.language.I18n;
 import javafx.application.Application;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -34,15 +35,14 @@ public class EngineerApplication extends Application {
     @Override
     public void start(Stage primaryStage) {
         try{
-            var loader = FXMLViewLoader.getView("MainViewModel");
-            Parent root = loader.load();
-            primaryStage.setTitle("FrameHopper");
-            primaryStage.setScene(new Scene(root, 1200, 900));
-            primaryStage.show();
+            var settings = context.getBean(UserSettingsAdapter.class);
+            I18n.setLocale(settings.getLanguage());
+
+            context.getBean(UIManager.class).openMain(primaryStage);
 
             closeLoadingWindow();
 
-            if (UserSettings.getInstance().getOpenRecent())
+            if (settings.openRecent())
                 openRecent(context);
 
         }catch (Exception e){

@@ -50,10 +50,10 @@ public class VideoDetailsController extends UiView implements
     private void initialize() {
         videoDetailsView.setOnKeyPressed(e -> videoDetailsView.requestFocus());
 
-        pathLabel.setText(Dictionary.get("vd.path"));
-        dataLabel.setText(Dictionary.get("vd.data"));
+        bind(pathLabel, "vd.path.label");
+        bind(dataLabel, "vd.info.label");
 
-        changeButton.setText(Dictionary.get("vd.change"));
+        bind(changeButton, "vd.path.button");
         changeButton.setOnAction(e -> {
             try {
                 var file = new File(FileChooserProvider.videoFileChooser((Stage) videoDetailsView.getScene().getWindow()));
@@ -65,7 +65,7 @@ public class VideoDetailsController extends UiView implements
                 ex.printStackTrace();
             }
         });
-        closeButton.setText(Dictionary.get("close"));
+        bind(closeButton, "vd.button.close");
         closeButton.setOnAction(e -> close());
 
         addKeybinds();
@@ -78,10 +78,11 @@ public class VideoDetailsController extends UiView implements
 
     public void init(VideoDTO videoDTO) {
         cachedVideo = videoDTO;
+        bind((Stage) videoDetailsView.getScene().getWindow(), "vd.stage", cachedVideo.name());
 
-        frameAmountLabel.setText(Dictionary.get("vd.frameAmount") + cachedVideo.metadata().totalFrames());
-        frameRateLabel.setText(Dictionary.get("vd.framerate") + cachedVideo.metadata().frameRate());
-        durationLabel.setText(Dictionary.get("vd.duration") + cachedVideo.metadata().duration());
+        bind(frameAmountLabel, "vd.info.frame-count", cachedVideo.metadata().totalFrames());
+        bind(frameRateLabel, "vd.info.framerate", cachedVideo.metadata().frameRate());
+        bind(durationLabel, "vd.info.duration", cachedVideo.metadata().duration());
         filePathField.setText(cachedVideo.path());
     }
 

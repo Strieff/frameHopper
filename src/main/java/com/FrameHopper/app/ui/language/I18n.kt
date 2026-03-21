@@ -40,7 +40,7 @@ object I18n {
     }
 
     @JvmStatic
-    fun tr(key: String,vararg args: Any?): String {
+    fun tr(key: String, vararg args: Any?): String {
         val pattern = lookup(key)
         return if (args.isEmpty()) {
             pattern
