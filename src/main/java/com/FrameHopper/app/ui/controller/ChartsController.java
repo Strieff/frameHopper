@@ -186,18 +186,6 @@ public class ChartsController extends UiView {
            }
         });
 
-        yAxisOptions.setCellFactory(cb -> new ListCell<>() {
-            @Override
-            protected void updateItem(ChartsActionEntry item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getLabel());
-                }
-            }
-        });
         yAxisOptions.setCellFactory(chartCellFactory);
         yAxisOptions.setButtonCell(chartCellFactory.call(null));
 
@@ -211,7 +199,7 @@ public class ChartsController extends UiView {
 
         legendContainer.setAlignment(Pos.CENTER);
         legendContainer.setSpacing(10);
-        ChartsUtils.populateTable(greenBox, redBox, meanBox);
+        ChartsUtils.populateTable(legendContainer, greenBox, redBox, meanBox);
 
         addKeybinds();
 
@@ -227,14 +215,16 @@ public class ChartsController extends UiView {
                 @Override
                 protected void updateItem(ChartsActionEntry item, boolean empty) {
                     super.updateItem(item, empty);
-                    setText(empty || item == null ? null : item.getLabel());
+
+                    textProperty().unbind();
+
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        textProperty().bind(item.labelProperty());
+                    }
                 }
             };
-
-    private void populateLegend(HBox... elements) {
-        legendContainer.getChildren().clear();
-        legendContainer.getChildren().addAll(elements);
-    }
 
     private List<ChartsActionEntry> getChartsOptions() {
         return List.of(
@@ -276,7 +266,7 @@ public class ChartsController extends UiView {
         if(meanCheckbox.isSelected())
             legend.add(meanBox);
 
-        ChartsUtils.populateTable(legendContainer, legend.toArray(new HBox[0]));
+        ChartsUtils.populateTable(legendContainer, legend.toArray(HBox[]::new));
 
         chartPane.getChildren().clear();
 

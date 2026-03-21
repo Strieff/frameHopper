@@ -1,9 +1,11 @@
 package com.FrameHopper.app.ui.utils
 
+import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider
 import javafx.scene.image.Image
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.Locale
 import java.util.Locale.getDefault
 import kotlin.streams.asSequence
@@ -54,7 +56,9 @@ object LanguageUtils {
         val code = locale.country.lowercase()
         return if (code.isNotBlank()) flagIcons[code] ?: fallbackIcon else fallbackIcon
     }
+}
 
+object AvailableLanguageUtils {
     @JvmStatic
     fun getAvailableLanguages(): List<String> {
         val languages = mutableSetOf<String>()
@@ -74,5 +78,36 @@ object LanguageUtils {
 
         languages.add("en")
         return languages.sorted().toList()
+    }
+}
+
+object LanguageBundleUtils {
+    @JvmStatic
+    fun creteBundle() {
+        val lang = FXDialogProvider.inputDialog() ?: return
+        //if(!isValidLocale(lang)) //TODO: messsage abt unknown locale
+
+        val languages = AvailableLanguageUtils.getAvailableLanguages()
+        if(languages.contains(lang.lowercase())) return //TODO: error
+
+        val stream = ClassLoader.getSystemClassLoader()
+            .getResourceAsStream("translations_template.properties")
+            ?: throw Exception("Template not found!")
+
+        val dir = Path.of("i18n")
+
+        val fileName = "translations_$lang.properties"
+
+        val target = dir.resolve(fileName)
+
+        stream.use { input ->
+            Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+
+    private fun isValidLocale(code: String): Boolean {
+        val locale: Locale = Locale.forLanguageTag(code)
+
+        return Locale.getAvailableLocales().asList().contains(locale)
     }
 }

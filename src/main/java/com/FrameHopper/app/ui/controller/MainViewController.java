@@ -8,12 +8,12 @@ import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.FrameBytesQuery;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.LoadVideoCommand;
-import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.utils.LanguageBundleUtils;
 import com.FrameHopper.app.ui.ve.MainViewTagTableEntry;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -480,8 +480,11 @@ public class MainViewController extends UiView implements
         //keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
         //keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redoAction);
         //keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undoAction);
-        //keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::reload);//TODO: move to adapter
-        //keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), DictionaryCreator::create);
+        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), I18n::clearCache);
+        keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), () -> {
+            LanguageBundleUtils.creteBundle();
+            NewLanguageEventDispatcher.dispatch();
+        });
 
         //add key binds
         addEventFilter(mainView);

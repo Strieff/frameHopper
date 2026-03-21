@@ -4,7 +4,9 @@ import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.eventing.NewLanguageListener;
 import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.utils.AvailableLanguageUtils;
 import com.FrameHopper.app.ui.utils.LanguageUtils;
 import com.FrameHopper.app.ui.ve.SettingsLanguageCell;
 import com.FrameHopper.app.ui.ve.SettingsLanguageEntry;
@@ -18,13 +20,16 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class SettingsController extends UiView {
+public class SettingsController extends UiView implements
+        NewLanguageListener
+{
     @FXML
     private BorderPane settingsView;
     @FXML
@@ -77,13 +82,26 @@ public class SettingsController extends UiView {
             userSettingsAdapter.setShowWarnings(selected);
         });
 
-        var availableLanguagesEntries = LanguageUtils.getAvailableLanguages()
+        loadLanguages();
+
+        addKeybinds();
+
+        Platform.runLater(() -> {
+            var stage = (Stage) settingsView.getScene().getWindow();
+            bind(stage, "settings.stage");
+            stage.setOnCloseRequest(e -> close());
+        });
+    }
+
+    private void loadLanguages() {
+        var availableLanguagesEntries = AvailableLanguageUtils.getAvailableLanguages()
                 .stream().collect(Collectors.toMap(
                         c -> c,
                         LanguageUtils::getFlagIcon
                 )).entrySet().stream()
                 .map(le -> new SettingsLanguageEntry(le.getKey(), le.getValue()))
                 .toList();
+        languageBox.getItems().clear();
         languageBox.getItems().addAll(availableLanguagesEntries);
         languageBox.getSelectionModel().select(new SettingsLanguageEntry(userSettingsAdapter.getLanguage(), null));
         languageBox.setCellFactory(cb -> new SettingsLanguageCell());
@@ -94,14 +112,6 @@ public class SettingsController extends UiView {
                 userSettingsAdapter.setLanguage(code);
                 I18n.setLocale(code);
             }
-        });
-
-        addKeybinds();
-
-        Platform.runLater(() -> {
-            var stage = (Stage) settingsView.getScene().getWindow();
-            bind(stage, "settings.stage");
-            stage.setOnCloseRequest(e -> close());
         });
     }
 
@@ -117,5 +127,11 @@ public class SettingsController extends UiView {
         uiManager.close(UIFlag.SETTINGS);
         var stage = (Stage) settingsView.getScene().getWindow();
         stage.close();
+    }
+
+    @Async
+    @Override
+    public void newLanguageCreated() {
+        loadLanguages();
     }
 }
