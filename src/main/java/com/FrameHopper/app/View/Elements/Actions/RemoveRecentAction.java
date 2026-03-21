@@ -3,7 +3,6 @@ package com.FrameHopper.app.View.Elements.Actions;
 import com.FrameHopper.app.Service.DataBaseManagementService;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ public class RemoveRecentAction extends ActionHandler{
             undoRedoAction.setUp(temp,existingTags,currentFrameIndex, video.getId());
             dbService.modifyTagsOfFrame(existingTagsTemp, existingTags,currentFrameIndex, video.getId());
             existingTags.removeAll(removeTags);
-            UpdateTableEventDispatcher.fireEvent();
         }
     }
 

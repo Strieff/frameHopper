@@ -4,7 +4,6 @@ import com.FrameHopper.app.Model.Frame;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
 import com.FrameHopper.app.Repository.TagRepositoryOld;
-import com.FrameHopper.app.View.FXViews.Export.TagOnVideoDto;
 import jakarta.transaction.Transactional;
 import javafx.util.Pair;
 import org.springframework.stereotype.Service;
@@ -130,9 +129,6 @@ public class TagService {
         return dataMap;
     }
 
-    public List<TagOnVideoDto> getTotalTagAmountOnVideos(Tag tag, List<Video> videos) {
-        return tagRepositoryOld.findTagAmountOnSelectedVideos(tag, videos);
-    }
 
     public List<Tag> getTagsOnVideos(List<Video> videos) {
         return tagRepositoryOld.findAllTagsOnSelectedVideos(videos);

@@ -1,6 +1,7 @@
 package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
+import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
@@ -54,7 +55,6 @@ public class MainViewController extends UiView implements
         DeleteVideoEventListener,
         VideoPathUpdatedListener
 {
-    private final VideoQuery videoQuery;
     @FXML
     private TextField frameInput;
     @FXML
@@ -89,6 +89,7 @@ public class MainViewController extends UiView implements
     private final FrameQuery frameQuery;
     private final FrameBytesQuery frameBytesQuery;
     private final UIManager uiManager;
+    private final UserSettingsAdapter userSettingsAdapter;
 
     private final Map<Integer, FrameDTO> cachedTags = new HashMap<>();
 
@@ -99,14 +100,14 @@ public class MainViewController extends UiView implements
             LoadVideoCommand loadVideoCommand,
             FrameBytesQuery frameBytesQuery,
             FrameQuery frameQuery,
-            VideoQuery videoQuery,
-            UIManager uiManager
+            UIManager uiManager,
+            UserSettingsAdapter userSettingsAdapter
     ) {
         this.loadVideoCommand = loadVideoCommand;
         this.frameBytesQuery = frameBytesQuery;
         this.frameQuery = frameQuery;
-        this.videoQuery = videoQuery;
         this.uiManager = uiManager;
+        this.userSettingsAdapter = userSettingsAdapter;
 
         FrameUpdatedEventDispatcher.register(this);
         TagUpdatedEventDispatcher.register(this);
@@ -212,6 +213,7 @@ public class MainViewController extends UiView implements
         indexProperty.set(0);
         cacheTagData();
         displayCurrentData();
+        userSettingsAdapter.setRecentlyOpenId(cachedVideoProperty.get().id());
     }
 
     private void cacheTagData() {

@@ -3,7 +3,6 @@ package com.FrameHopper.app.View.Elements.FXElementsProviders;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.View.Elements.Language.LanguageEntry;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
-import com.FrameHopper.app.View.FXViews.Settings.LanguageCell;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -127,8 +126,6 @@ public class FXDialogProvider {
 
         ComboBox<LanguageEntry> languageBox = new ComboBox<>();
         languageBox.getItems().addAll(languages);
-        languageBox.setCellFactory(cb -> new LanguageCell());
-        languageBox.setButtonCell(new LanguageCell());
         languageBox.getSelectionModel().select(languages.stream().filter(i -> i.getCode().equals("en")).findFirst().get());
 
         var content = new VBox();

@@ -3,7 +3,6 @@ package com.FrameHopper.app.View.Elements.Actions;
 import com.FrameHopper.app.Service.DataBaseManagementService;
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ public class PasteRecentAction extends ActionHandler{
             existingTags.addAll(newTags);
             existingTags.removeAll(temp);
             undoRedoAction.setUp(temp,existingTags,currentFrameIndex, video.getId());
-            UpdateTableEventDispatcher.fireEvent();
             dbService.modifyTagsOfFrame(existingTags, currentFrameIndex, video.getId());
 
         }

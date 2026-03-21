@@ -1,12 +1,12 @@
 package com.FrameHopper.app;
 
-import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.adapters.settings.UserSettings;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
-import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
 import com.FrameHopper.app.ui.UIManager;
+import com.FrameHopper.app.ui.eventing.OpenVideoEventDispatcher;
 import com.FrameHopper.app.ui.language.I18n;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -60,21 +60,22 @@ public class EngineerApplication extends Application {
     }
 
     private static void openRecent(ConfigurableApplicationContext context){
-        if(UserSettings.getInstance().getRecentlyOpenedId() == -1)
+        var videoId = UserSettings.getInstance().getRecentlyOpenedId();
+        if(videoId == -1)
             return;
 
-        VideoService videoService = context.getBean(VideoService.class);
-        var video = videoService.getById(UserSettings.getInstance().getRecentlyOpenedId());
+        VideoQuery videoQuery = context.getBean("videoQuery", VideoQuery.class);
+        var video = videoQuery.getVideoById(videoId);
 
-        //TODO: change to dictionary
+        //TODO: change to I18n
         if(
                 !FXDialogProvider.yesNoDialog(
                 "Open recent video",
-                String.format("Recently opened: %s\nOpen recent?", video.getName().replace("%20", " ")))
+                String.format("Recently opened: %s\nOpen recent?", video.name().replace("%20", " ")))
         )
             return;
 
-        OpenVideoEventDispatcher.fireEvent(video.getId());
+        OpenVideoEventDispatcher.dispatch(video.id());
     }
 
     private static void closeLoadingWindow(){

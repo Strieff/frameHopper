@@ -2,7 +2,7 @@ package com.FrameHopper.app.View.Elements.Actions;
 
 import com.FrameHopper.app.Service.DataBaseManagementService;
 import com.FrameHopper.app.Model.Tag;
-import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
+//import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +38,7 @@ public class UndoRedoAction extends ActionHandler{
 
     public void undoAction(){
         if(!undid){
-            UpdateTableEventDispatcher.fireEvent();
+            //UpdateTableEventDispatcher.fireEvent();
             dbService.modifyTagsOfFrame(originalTags, currentFrameIndex, id);
 
             flipState();
@@ -47,7 +47,7 @@ public class UndoRedoAction extends ActionHandler{
 
      public void redoAction(){
          if(undid){
-             UpdateTableEventDispatcher.fireEvent();
+             //UpdateTableEventDispatcher.fireEvent();
              dbService.modifyTagsOfFrame(currentTags, currentFrameIndex, id);
 
              flipState();

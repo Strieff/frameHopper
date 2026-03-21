@@ -9,12 +9,6 @@ import com.FrameHopper.app.View.Elements.Language.DictionaryCreator;
 import com.FrameHopper.app.View.Elements.Language.LanguageChangeListener;
 import com.FrameHopper.app.View.Elements.DataManagers.ViewContainer.OpenViewsInformationContainer;
 import com.FrameHopper.app.View.Elements.Language.LanguageManager;
-import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoEventDispatcher;
-import com.FrameHopper.app.View.Elements.OpenVideo.OpenVideoListener;
-import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableEventDispatcher;
-import com.FrameHopper.app.View.Elements.UpdateTableEvent.UpdateTableListener;
-import com.FrameHopper.app.View.FXViews.FrameTagManager.FrameTagManagerControllerOld;
-import com.FrameHopper.app.View.FXViews.VideoDetails.VideoManagementDetailsController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -34,7 +28,7 @@ import java.util.Map;
 
 @Component
 @Scope("prototype")
-public class MainViewControllerOld implements LanguageChangeListener, UpdateTableListener, OpenVideoListener {
+public class MainViewControllerOld implements LanguageChangeListener{
     @FXML
     private TextField frameInput;
     @FXML
@@ -72,9 +66,7 @@ public class MainViewControllerOld implements LanguageChangeListener, UpdateTabl
         this.viewService = viewService;
         this.viewContainer = viewContainer;
 
-        UpdateTableEventDispatcher.register(this);
         LanguageManager.register(this);
-        OpenVideoEventDispatcher.register(this);
     }
 
     @FXML
@@ -160,8 +152,6 @@ public class MainViewControllerOld implements LanguageChangeListener, UpdateTabl
                 );
 
                 //get controller
-                FrameTagManagerControllerOld frameTagManagerControllerOld = loader.getController();
-                frameTagManagerControllerOld.init(viewService.getCurrentIndex());
             }
             else
                 FXDialogProvider.errorDialog(Dictionary.get("open.tm"));
@@ -322,12 +312,7 @@ public class MainViewControllerOld implements LanguageChangeListener, UpdateTabl
                 );
 
                 //get controller
-                VideoManagementDetailsController videoController = loader.getController();
                 var vid = viewService.getCurrentVideo();
-                if(vid != null)
-                    videoController.init(vid);
-                else
-                    throw new Exception(Dictionary.get("error.main.not-open"));
             }catch (Exception e){
                 e.printStackTrace();
                 FXDialogProvider.errorDialog(e.getMessage());
@@ -408,7 +393,6 @@ public class MainViewControllerOld implements LanguageChangeListener, UpdateTabl
         frameView.fitHeightProperty().bind(framePane.heightProperty());
     }
 
-    @Override
     public void updateTable(){
         Platform.runLater(() -> {
             if(viewService.isOpen())
@@ -428,7 +412,6 @@ public class MainViewControllerOld implements LanguageChangeListener, UpdateTabl
         tableView.setPlaceholder(new Label(Dictionary.get("placeholder.codes")));
     }
 
-    @Override
     public void openVideo(int id) {
         //get DB video
         var video = viewService.getVideo(id);

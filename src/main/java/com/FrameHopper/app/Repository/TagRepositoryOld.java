@@ -2,7 +2,6 @@ package com.FrameHopper.app.Repository;
 
 import com.FrameHopper.app.Model.Tag;
 import com.FrameHopper.app.Model.Video;
-import com.FrameHopper.app.View.FXViews.Export.TagOnVideoDto;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -51,17 +50,6 @@ public interface TagRepositoryOld extends JpaRepository<Tag,Double> {
     @EntityGraph(attributePaths = "frames")
     @Query("select t from Tag t where t.name=:name")
     Optional<Tag> findByNameEnriched(@Param("name") String name);
-
-    @Query("""
-        select new com.FrameHopper.app.View.FXViews.Export.TagOnVideoDto(t.id, t.name, t.value, v.id)
-        from Frame f
-        join f.video v
-        join f.tags t
-        where t=:tag
-        and v in :videos
-        order by v.id
-    """)
-    List<TagOnVideoDto> findTagAmountOnSelectedVideos(Tag tag, List<Video> videos);
 
     @Query("""
         select t
