@@ -13,7 +13,7 @@ import javafx.scene.shape.Line
 import javafx.scene.shape.Rectangle
 import javafx.scene.shape.StrokeType
 
-object ChartsUtils {
+object ChartUtils {
     @JvmStatic
     fun getLabel(prefHeight: Double, prefWidth: Double, key: String, observable: StringProperty): Label =
         Label().apply {

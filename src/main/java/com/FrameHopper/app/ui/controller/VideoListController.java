@@ -4,7 +4,6 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.video.DeleteVideoCommand;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
-import com.FrameHopper.app.ui.FXMLViewLoader;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
@@ -66,7 +65,6 @@ public class VideoListController extends UiView implements
 
         Platform.runLater(() -> {
             var stage = (Stage) listView.getScene().getWindow();
-            bind(stage, "vl.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }

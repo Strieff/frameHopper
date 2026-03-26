@@ -126,7 +126,6 @@ public class NotesController extends UiView implements
 
         Platform.runLater(() -> {
             var stage = (Stage) notesView.getScene().getWindow();
-            bind(stage, "notes.stage");
 
             stage.setOnCloseRequest(e -> close());
         });

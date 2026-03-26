@@ -4,7 +4,7 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UiView;
-import com.FrameHopper.app.ui.utils.ChartsUtils;
+import com.FrameHopper.app.ui.utils.ChartUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -36,7 +36,6 @@ import java.util.Map;
 
 import static javafx.scene.paint.Color.*;
 import static javafx.scene.paint.Color.ORANGE;
-
 
 @Component
 @Scope("prototype")
@@ -79,20 +78,19 @@ public class ImportChartController extends UiView {
             String separator,
             String ticks
     ) {
-        bind((Stage)chartPane.getScene().getWindow(), "charts.import.stage", customDataLabel);
         StringProperty customDataProperty = new SimpleStringProperty(customDataLabel);
 
-        var greenLabel = ChartsUtils.getLabel(50, 140, "charts.legend.green", customDataProperty);
-        HBox greenBox = ChartsUtils.getLegendBox(greenLabel, 5, 40, GREEN, 100, 200);
+        var greenLabel = ChartUtils.getLabel(50, 140, "charts.legend.green", customDataProperty);
+        HBox greenBox = ChartUtils.getLegendBox(greenLabel, 5, 40, GREEN, 100, 200);
 
-        var redLabel = ChartsUtils.getLabel(50, 140, "charts.legend.red", customDataProperty);
-        HBox redBox = ChartsUtils.getLegendBox(redLabel, 5, 40, RED, 100, 200);
+        var redLabel = ChartUtils.getLabel(50, 140, "charts.legend.red", customDataProperty);
+        HBox redBox = ChartUtils.getLegendBox(redLabel, 5, 40, RED, 100, 200);
 
-        var blueLabel = ChartsUtils.getLabel(50, 140, "charts.legend.blue", customDataProperty);
-        HBox blueBox = ChartsUtils.getLegendBox(blueLabel, 5, 40, BLUE, 100, 200);
+        var blueLabel = ChartUtils.getLabel(50, 140, "charts.legend.blue", customDataProperty);
+        HBox blueBox = ChartUtils.getLegendBox(blueLabel, 5, 40, BLUE, 100, 200);
 
-        var meanLabel = ChartsUtils.getMeanLabel(50, 140, "charts.legend.mean");
-        HBox meanBox = ChartsUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
+        var meanLabel = ChartUtils.getMeanLabel(50, 140, "charts.legend.mean");
+        HBox meanBox = ChartUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
 
         List<HBox> legend = new  ArrayList<>();
 
@@ -104,7 +102,7 @@ public class ImportChartController extends UiView {
         if(showMean)
             legend.add(meanBox);
 
-        ChartsUtils.populateTable(legendContainer, legend.toArray(new HBox[0]));
+        ChartUtils.populateTable(legendContainer, legend.toArray(new HBox[0]));
 
         chartPane.getChildren().clear();
         var maxValue = customData.values().stream().mapToDouble(Number::doubleValue).summaryStatistics().getMax();

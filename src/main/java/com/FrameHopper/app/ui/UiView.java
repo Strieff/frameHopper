@@ -42,10 +42,6 @@ public abstract class UiView {
         node.promptTextProperty().bind(I18n.bind(key, args));
     }
 
-    protected void bind(Stage stage, String key, Object... args) {
-        stage.titleProperty().bind(I18n.bind(key, args));
-    }
-
     protected void bind(TableColumn<?, ?> column, String key, Object... args) {
         column.textProperty().bind(I18n.bind(key, args));
     }

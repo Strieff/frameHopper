@@ -9,7 +9,10 @@ import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
 import com.FrameHopper.app.ui.UIFlag
 import com.FrameHopper.app.ui.UIManager
 import com.FrameHopper.app.ui.UiView
+import com.FrameHopper.app.ui.actions.PasteRecentAction
+import com.FrameHopper.app.ui.actions.RemoveRecentAction
 import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher
+import com.FrameHopper.app.ui.utils.SearchUtils
 import javafx.application.Platform
 import javafx.beans.property.*
 import javafx.collections.FXCollections
@@ -38,7 +41,9 @@ open class FrameTagManagerController (
     private val createFrameCommand: CreateFrameCommand,
     private val updateFrameCommand: UpdateFrameCommand,
     private val deleteFrameCommand: DeleteFrameCommand,
-    private val uiManager: UIManager
+    private val uiManager: UIManager,
+    private val pasteRecentAction: PasteRecentAction,
+    private val removeRecentAction: RemoveRecentAction
 ) : UiView() {
     @FXML
     private lateinit var searchField: TextField
@@ -64,6 +69,9 @@ open class FrameTagManagerController (
     private lateinit var cachedFrame: FrameDTO
     private lateinit var cachedTagList: ObservableList<FrameTagManagerTableEntry?>
 
+    private val addedCache = mutableListOf<TagDTO>()
+    private val removedCache = mutableListOf<TagDTO>()
+
     @FXML
     fun initialize() {
         codeColumn.cellValueFactory = PropertyValueFactory("name")
@@ -76,8 +84,16 @@ open class FrameTagManagerController (
         selectColumn.cellFactory = CheckBoxTableCell.forTableColumn(selectColumn)
 
         cachedTagList = FXCollections.observableArrayList(
-            tagsQuery.getAllTags()?.takeIf { it.isNotEmpty() }
-                ?.map(::FrameTagManagerTableEntry)
+            tagsQuery.getAllTags()
+                ?.takeIf { it.isNotEmpty() }
+                ?.map { tag -> FrameTagManagerTableEntry(tag).apply {
+                    selected.addListener { _, _, newValue ->
+                        if(!::cachedFrame.isInitialized) return@addListener
+
+                        if(newValue == true) addedCache.add(tag)
+                        else removedCache.add(tag)
+                    }
+                }}
         )
         codeTable.items = cachedTagList
 
@@ -91,7 +107,6 @@ open class FrameTagManagerController (
 
         Platform.runLater {
             val stage = frameTagManagerView.scene.window as Stage
-            bind(stage, "ftm.stage")
             stage.onCloseRequest = EventHandler { _: WindowEvent? -> close() }
             frameTagManagerView.requestFocus()
         }
@@ -99,36 +114,37 @@ open class FrameTagManagerController (
 
     fun init(frame: FrameDTO) {
         bind(frameLabel, "ftm.frame-info",frame.frameNumber + 1)
+
+        val tags = frame.tags
+
+        if(!tags.isNullOrEmpty())
+            tags.forEach { t ->
+                codeTable.items
+                    .firstOrNull { it?.tag?.id == t.id }
+                    ?.setSelected(true)
+            }
+
         cachedFrame = frame
-
-        val tags = cachedFrame.tags
-        if(tags.isNullOrEmpty()) return
-
-        tags.forEach { t ->
-            codeTable.items
-                .firstOrNull { it?.tag?.id == t.id }
-                ?.setSelected(true)
-        }
     }
 
     @FXML
     fun handleSearch() {
-        val query = searchField.text.trim()
-        if(query == "" && searchButton.text != "X") return
-
-        if(searchButton.text == "\uD83D\uDD0D"){
-            codeTable.items = FXCollections.observableArrayList(cachedTagList.filter { it?.tag?.name?.contains(searchField.text, true) == true })
-            searchButton.text = "X"
-        } else {
-            codeTable.items = cachedTagList
-            searchButton.text = "\uD83D\uDD0D"
-            searchField.clear()
+        SearchUtils.handleSearch(
+            searchButton,
+            searchField,
+            codeTable,
+            cachedTagList
+        ) { list, query ->
+            list.filtered { it?.tag?.name?.contains(query, true) == true }
         }
     }
 
     @FXML
     fun save() {
-        val selected = codeTable.items.takeIf { it.isNotEmpty() }
+        pasteRecentAction.addTags(addedCache)
+        removeRecentAction.addTags(removedCache)
+
+        val selected = codeTable.items
             ?.asSequence()
             ?.filter { it!!.selected.value}
             ?.map { it!!.tag }
@@ -137,7 +153,7 @@ open class FrameTagManagerController (
         if(selected.isNullOrEmpty()) {
             if(cachedFrame.id != -1) {
                 deleteFrameCommand.deleteFrame(cachedFrame.id)
-                FrameUpdatedEventDispatcher.dispatch(cachedFrame.id, null)
+                FrameUpdatedEventDispatcher.dispatch(cachedFrame.frameNumber, null)
             }
 
             close()
@@ -153,7 +169,7 @@ open class FrameTagManagerController (
             if(cachedFrame.id == -1) createFrameCommand.createFrame(cachedFrame)
             else updateFrameCommand.updateFrame(cachedFrame)
 
-        FrameUpdatedEventDispatcher.dispatch(cachedFrame.id, cachedFrame)
+        FrameUpdatedEventDispatcher.dispatch(cachedFrame.frameNumber, cachedFrame)
         close()
     }
 
@@ -165,6 +181,9 @@ open class FrameTagManagerController (
 
     @FXML
     override fun close() {
+        addedCache.clear()
+        removedCache.clear()
+
         uiManager.close(UIFlag.FRAME_TAG_MANAGER)
         val stage = frameTagManagerView.scene.window as Stage
         stage.close()

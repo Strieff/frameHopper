@@ -130,7 +130,6 @@ public class TagManagerController extends UiView implements
 
         Platform.runLater(() -> {
             var stage = (Stage) tagManagerView.getScene().getWindow();
-            bind(stage, "tm.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }

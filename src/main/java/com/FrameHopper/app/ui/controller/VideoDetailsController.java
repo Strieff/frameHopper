@@ -78,7 +78,6 @@ public class VideoDetailsController extends UiView implements
 
     public void init(VideoDTO videoDTO) {
         cachedVideo = videoDTO;
-        bind((Stage) videoDetailsView.getScene().getWindow(), "vd.stage", cachedVideo.name());
 
         bind(frameAmountLabel, "vd.info.frame-count", cachedVideo.metadata().totalFrames());
         bind(frameRateLabel, "vd.info.framerate", cachedVideo.metadata().frameRate());

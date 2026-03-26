@@ -1,5 +1,6 @@
 package com.FrameHopper.app.ui;
 
+import com.FrameHopper.app.ui.language.I18n;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -25,11 +26,11 @@ public class FXMLViewLoader {
         return loader;
     }
 
-    public static FXMLLoader getMainView(String viewName, String windowName, Stage primaryStage){
+    public static FXMLLoader getMainView(String viewName, String windowKey, Stage primaryStage){
         try {
             var loader = instance.get(viewName);
             Parent root = loader.load();
-            primaryStage.setTitle(windowName);
+            bind(primaryStage, windowKey);
             primaryStage.setScene(new Scene(root, 1200, 900));
             primaryStage.show();
 
@@ -39,7 +40,7 @@ public class FXMLViewLoader {
         }
     }
 
-    public static FXMLLoader getView(String viewName, String windowName, Node windowNode){
+    public static FXMLLoader getView(String viewName, String windowKey, Node windowNode){
         try {
             var loader = instance.get(viewName);
 
@@ -50,7 +51,8 @@ public class FXMLViewLoader {
             //new stage
             var secondaryStage = new Stage();
             secondaryStage.setScene(scene);
-            secondaryStage.setTitle(windowName);
+            secondaryStage.setTitle(windowKey);
+            bind(secondaryStage, windowKey);
 
             //make it a modal window
             secondaryStage.initOwner(windowNode.getScene().getWindow());
@@ -61,5 +63,9 @@ public class FXMLViewLoader {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    private static void bind(Stage stage, String key, Object... args) {
+        stage.titleProperty().bind(I18n.bind(key, args));
     }
 }

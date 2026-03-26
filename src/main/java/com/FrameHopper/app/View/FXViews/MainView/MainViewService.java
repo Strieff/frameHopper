@@ -7,8 +7,6 @@ import com.FrameHopper.app.Service.FrameService;
 import com.FrameHopper.app.Service.VideoService;
 import com.FrameHopper.app.settings.UserSettingsService;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.View.Elements.Actions.PasteRecentAction;
-import com.FrameHopper.app.View.Elements.Actions.RemoveRecentAction;
 import com.FrameHopper.app.View.Elements.Actions.UndoRedoAction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,8 +23,6 @@ import java.util.*;
 public class MainViewService {
     private final VideoService videoService;
     private final FrameService frameService;
-    private final PasteRecentAction pasteRecentAction;
-    private final RemoveRecentAction removeRecentAction;
     private final UndoRedoAction undoRedoAction;
     private final UserSettingsService userSettingsService;
 
@@ -35,14 +31,10 @@ public class MainViewService {
     public MainViewService(
             VideoService videoService,
             FrameService frameService,
-            PasteRecentAction pasteRecentAction,
-            RemoveRecentAction removeRecentAction,
             UndoRedoAction undoRedoAction,
             UserSettingsService userSettingsService) {
         this.videoService = videoService;
         this.frameService = frameService;
-        this.pasteRecentAction = pasteRecentAction;
-        this.removeRecentAction = removeRecentAction;
         this.undoRedoAction = undoRedoAction;
         this.userSettingsService = userSettingsService;
     }
@@ -162,20 +154,9 @@ public class MainViewService {
     public void pasteRecent(){
         if (info.getTagsOnFrame() == null)
             info.setCurrentTags(new ArrayList<>());
-
-        pasteRecentAction.performAction(
-                info.getTagsOnFrame(),
-                info.getCurrentIndex(),
-                info.getVideo()
-        );
     }
 
     public void removeRecent(){
-        removeRecentAction.performAction(
-                info.getTagsOnFrame() == null ? new ArrayList<>() : info.getTagsOnFrame(),
-                info.getCurrentIndex(),
-                info.getVideo()
-        );
     }
 
     public void undo(){

@@ -11,6 +11,8 @@ import com.FrameHopper.app.core.ports.in.video.LoadVideoCommand;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.actions.PasteRecentAction;
+import com.FrameHopper.app.ui.actions.RemoveRecentAction;
 import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.language.I18n;
 import com.FrameHopper.app.ui.utils.LanguageBundleUtils;
@@ -90,6 +92,8 @@ public class MainViewController extends UiView implements
     private final FrameBytesQuery frameBytesQuery;
     private final UIManager uiManager;
     private final UserSettingsAdapter userSettingsAdapter;
+    private final PasteRecentAction pasteRecentAction;
+    private final RemoveRecentAction removeRecentAction;
 
     private final Map<Integer, FrameDTO> cachedTags = new HashMap<>();
 
@@ -101,13 +105,17 @@ public class MainViewController extends UiView implements
             FrameBytesQuery frameBytesQuery,
             FrameQuery frameQuery,
             UIManager uiManager,
-            UserSettingsAdapter userSettingsAdapter
+            UserSettingsAdapter userSettingsAdapter,
+            PasteRecentAction pasteRecentAction,
+            RemoveRecentAction removeRecentAction
     ) {
         this.loadVideoCommand = loadVideoCommand;
         this.frameBytesQuery = frameBytesQuery;
         this.frameQuery = frameQuery;
         this.uiManager = uiManager;
         this.userSettingsAdapter = userSettingsAdapter;
+        this.pasteRecentAction = pasteRecentAction;
+        this.removeRecentAction = removeRecentAction;
 
         FrameUpdatedEventDispatcher.register(this);
         TagUpdatedEventDispatcher.register(this);
@@ -172,7 +180,6 @@ public class MainViewController extends UiView implements
         Platform.runLater(() -> {
             var stage = (Stage) mainView.getScene().getWindow();
             stage.setOnCloseRequest(e -> System.exit(0));
-            bind(stage, "main.stage");
             mainView.requestFocus();
         });
     }
@@ -409,11 +416,11 @@ public class MainViewController extends UiView implements
 
     @Async
     @Override
-    public void onFrameUpdate(int index, FrameDTO frame) {
+    public void onFrameUpdate(int frameNumber, FrameDTO frame) {
         if(frame == null)
-            cachedTags.remove(index);
+            cachedTags.remove(frameNumber);
         else
-            cachedTags.put(index, frame);
+            cachedTags.put(frameNumber, frame);
 
         displayCurrentTags();
     }
@@ -476,8 +483,20 @@ public class MainViewController extends UiView implements
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onChart);
         keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::onNotes);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::openVideoDetails);
-        //keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::pasteRecent);
-        //keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), () -> {
+            var frame = cachedTags.containsKey(indexProperty.get())
+                    ? cachedTags.get(indexProperty.get())
+                    : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
+
+            pasteRecentAction.add(frame);
+        });
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), () -> {
+            var frame = cachedTags.containsKey(indexProperty.get())
+                    ? cachedTags.get(indexProperty.get())
+                    : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
+
+            removeRecentAction.remove(frame);
+        });
         //keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redoAction);
         //keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undoAction);
         keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), I18n::clearCache);

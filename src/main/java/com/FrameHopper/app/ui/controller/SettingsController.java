@@ -88,7 +88,6 @@ public class SettingsController extends UiView implements
 
         Platform.runLater(() -> {
             var stage = (Stage) settingsView.getScene().getWindow();
-            bind(stage, "settings.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }

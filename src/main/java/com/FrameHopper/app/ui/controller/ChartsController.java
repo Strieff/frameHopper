@@ -9,8 +9,7 @@ import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
-import com.FrameHopper.app.ui.language.I18n;
-import com.FrameHopper.app.ui.utils.ChartsUtils;
+import com.FrameHopper.app.ui.utils.ChartUtils;
 import com.FrameHopper.app.ui.ve.ChartsActionEntry;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
@@ -108,17 +107,17 @@ public class ChartsController extends UiView {
         this.userSettingsAdapter = userSettingsAdapter;
         this.uiManager = uiManager;
 
-        var greenLabel = ChartsUtils.getLabel(50, 140, "charts.legend.green", chartOptionProperty);
-        greenBox = ChartsUtils.getLegendBox(greenLabel, 5, 40, GREEN, 100, 200);
+        var greenLabel = ChartUtils.getLabel(50, 140, "charts.legend.green", chartOptionProperty);
+        greenBox = ChartUtils.getLegendBox(greenLabel, 5, 40, GREEN, 100, 200);
 
-        var redLabel = ChartsUtils.getLabel(50, 140, "charts.legend.red", chartOptionProperty);
-        redBox = ChartsUtils.getLegendBox(redLabel, 5, 40, RED, 100, 200);
+        var redLabel = ChartUtils.getLabel(50, 140, "charts.legend.red", chartOptionProperty);
+        redBox = ChartUtils.getLegendBox(redLabel, 5, 40, RED, 100, 200);
 
-        var blueLabel = ChartsUtils.getLabel(50, 140, "charts.legend.blue", chartOptionProperty);
-        blueBox = ChartsUtils.getLegendBox(blueLabel, 5, 40, BLUE, 100, 200);
+        var blueLabel = ChartUtils.getLabel(50, 140, "charts.legend.blue", chartOptionProperty);
+        blueBox = ChartUtils.getLegendBox(blueLabel, 5, 40, BLUE, 100, 200);
 
-        var meanLabel = ChartsUtils.getMeanLabel(50, 140, "charts.legend.mean");
-        meanBox = ChartsUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
+        var meanLabel = ChartUtils.getMeanLabel(50, 140, "charts.legend.mean");
+        meanBox = ChartUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
     }
 
     @FXML
@@ -199,13 +198,12 @@ public class ChartsController extends UiView {
 
         legendContainer.setAlignment(Pos.CENTER);
         legendContainer.setSpacing(10);
-        ChartsUtils.populateTable(legendContainer, greenBox, redBox, meanBox);
+        ChartUtils.populateTable(legendContainer, greenBox, redBox, meanBox);
 
         addKeybinds();
 
         Platform.runLater(() -> {
             var stage = (Stage) chartView.getScene().getWindow();
-            bind(stage, "charts.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -266,7 +264,7 @@ public class ChartsController extends UiView {
         if(meanCheckbox.isSelected())
             legend.add(meanBox);
 
-        ChartsUtils.populateTable(legendContainer, legend.toArray(HBox[]::new));
+        ChartUtils.populateTable(legendContainer, legend.toArray(HBox[]::new));
 
         chartPane.getChildren().clear();
 

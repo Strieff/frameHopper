@@ -92,8 +92,6 @@ public class TagDetailsController extends UiView {
         cachedTagProperty.set(tag);
         var cachedTag = cachedTagProperty.get();
 
-        bind((Stage) tagDetailsView.getScene().getWindow(), "td.edit.stage", tag.getName());
-
         changeStatusButton.textProperty().bind(
                 Bindings.createStringBinding(
                         () -> {
@@ -128,7 +126,6 @@ public class TagDetailsController extends UiView {
     }
 
     public void init() {
-        bind((Stage) tagDetailsView.getScene().getWindow(), "td.create.stage");
         buttonBox.getChildren().addAll(cancelButton, saveButton);
     }
 

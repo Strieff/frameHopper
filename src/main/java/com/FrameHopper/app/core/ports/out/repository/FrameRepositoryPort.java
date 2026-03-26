@@ -11,4 +11,5 @@ public interface FrameRepositoryPort {
     List<Frame> getAll();
     Frame create(Frame frame);
     Frame update(Frame frame);
+    void delete(int id);
 }

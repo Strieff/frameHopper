@@ -56,5 +56,10 @@ public class JpaFrameRepositoryAdapter implements FrameRepositoryPort {
         return FrameMapper.toDomain(entity);
     }
 
+    @Override
+    public void delete(int id) {
+        frameRepository.deleteById(id);
+    }
+
 
 }

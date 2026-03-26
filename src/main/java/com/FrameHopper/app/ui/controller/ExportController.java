@@ -12,6 +12,7 @@ import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
 import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.utils.SearchUtils;
 import com.FrameHopper.app.ui.ve.ExportActionEntry;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.ui.UiView;
@@ -92,6 +93,8 @@ public class ExportController extends UiView {
 
     @FXML
     public void initialize() {
+        exportView.setOnMouseClicked(e -> exportView.requestFocus());
+
         videoNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         bind(videoNameColumn, "export.video.table.name");
         videoNameColumn.setCellFactory(new Callback<>() {
@@ -195,7 +198,6 @@ public class ExportController extends UiView {
 
         Platform.runLater(() -> {
             var stage = (Stage) exportView.getScene().getWindow();
-            bind(stage, "export.stage");
             stage.setOnCloseRequest(e -> close());
         });
     }
@@ -412,17 +414,15 @@ public class ExportController extends UiView {
 
     @FXML
     public void handleSearch() {
-        var query = searchField.getText().trim();
-        if(query.isEmpty() && !searchButton.getText().equals("X")) return;
-
-        if(searchButton.getText().equals("\uD83D\uDD0D")) {
-            videoTable.setItems(cachedVideoList.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase())));
-            searchButton.setText("X");
-        } else {
-            videoTable.setItems(cachedVideoList);
-            searchButton.setText("\uD83D\uDD0D");
-            searchField.clear();
-        }
+        SearchUtils.handleSearch(
+                searchButton,
+                searchField,
+                videoTable,
+                cachedVideoList,
+                (list, query) -> list.filtered(e ->
+                        e.getVideo().name().toLowerCase().contains(query.toLowerCase())
+                )
+        );
     }
 
     @FXML

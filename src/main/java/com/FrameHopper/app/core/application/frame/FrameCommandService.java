@@ -30,7 +30,7 @@ public class FrameCommandService implements
 
     @Override
     public void deleteFrame(int id) {
-
+        jpaFrameRepositoryAdapter.delete(id);
     }
 
     @Override

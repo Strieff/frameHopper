@@ -36,15 +36,15 @@ open class UIManager {
 }
 
 enum class UIFlag(val fileName: String, val windowName: String, val singleInstance: Boolean = true) {
-    CHARTS("ChartsViewModel", "CHARTS"),
-    EXPORT("ExportViewModel", "EXPORT"),
-    FRAME_TAG_MANAGER("FrameTagManagerViewModel", "FRAME TAG MANAGER"),
-    IMPORT_CHARTS("ImportChartViewModel", "IMPORT CHART", false),
-    MAIN("MainViewModel", "MAIN"),
-    NOTES("NotesViewModel", "NOTES"),
-    SETTINGS("SettingsViewModel", "SETTINGS"),
-    TAG_DETAILS("TagDetailsViewModel", "TAG DETAILS", false),
-    TAG_MANAGER("TagManagerViewModel", "TAG MANAGER"),
-    VIDEO_LIST("VideoManagementListViewModel", "VIDEO LIST"),
-    VIDEO_DETAILS("VideoManagementDetailsViewModel", "VIDEO DETAILS", false),
+    CHARTS("ChartsViewModel", "charts.stage"),
+    EXPORT("ExportViewModel", "export.stage"),
+    FRAME_TAG_MANAGER("FrameTagManagerViewModel", "ftm.stage"),
+    IMPORT_CHARTS("ImportChartViewModel", "charts.import.stage", false),
+    MAIN("MainViewModel", "main.stage"),
+    NOTES("NotesViewModel", "notes.stage"),
+    SETTINGS("SettingsViewModel", "settings.stage"),
+    TAG_DETAILS("TagDetailsViewModel", "td.edit.stage", false),
+    TAG_MANAGER("TagManagerViewModel", "tm.stage"),
+    VIDEO_LIST("VideoManagementListViewModel", "vl.stage"),
+    VIDEO_DETAILS("VideoManagementDetailsViewModel", "vd.stage", false),
 }
