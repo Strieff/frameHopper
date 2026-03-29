@@ -3,15 +3,15 @@ package com.FrameHopper.app.ui.eventing
 import com.FrameHopper.app.boundry.dto.FrameDTO
 
 object FrameUpdatedEventDispatcher {
-    private val listeners = mutableListOf<FrameUpdatedListener>()
+    private val listeners = mutableListOf<FrameUpdatedEventListener>()
 
     @JvmStatic
-    fun register(listener: FrameUpdatedListener) {
+    fun register(listener: FrameUpdatedEventListener) {
         listeners.add(listener)
     }
 
     @JvmStatic
-    fun unregister(listener: FrameUpdatedListener) {
+    fun unregister(listener: FrameUpdatedEventListener) {
         listeners.remove(listener)
     }
 
@@ -21,6 +21,6 @@ object FrameUpdatedEventDispatcher {
     }
 }
 
-fun interface FrameUpdatedListener {
+fun interface FrameUpdatedEventListener {
     fun onFrameUpdate(frameNumber: Int, frame: FrameDTO?)
 }

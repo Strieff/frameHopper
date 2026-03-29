@@ -51,7 +51,7 @@ import java.util.Map;
 @Component
 @Scope("prototype")
 public class MainViewController extends UiView implements
-        FrameUpdatedListener,
+        FrameUpdatedEventListener,
         TagUpdatedEventListener,
         TagDeletedEventListener,
         OpenVideoEventListener,

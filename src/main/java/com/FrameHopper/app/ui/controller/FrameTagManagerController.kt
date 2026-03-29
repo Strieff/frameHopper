@@ -2,6 +2,7 @@ package com.FrameHopper.app.ui.controller
 
 import com.FrameHopper.app.boundry.dto.FrameDTO
 import com.FrameHopper.app.boundry.dto.TagDTO
+import com.FrameHopper.app.boundry.dto.VideoDTO
 import com.FrameHopper.app.core.ports.`in`.frame.CreateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.DeleteFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.UpdateFrameCommand
@@ -12,7 +13,12 @@ import com.FrameHopper.app.ui.UiView
 import com.FrameHopper.app.ui.actions.HistoryActions
 import com.FrameHopper.app.ui.actions.PasteRecentAction
 import com.FrameHopper.app.ui.actions.RemoveRecentAction
+import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener
 import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher
+import com.FrameHopper.app.ui.eventing.FrameUpdatedEventListener
+import com.FrameHopper.app.ui.eventing.TagCreatedEventListener
+import com.FrameHopper.app.ui.eventing.TagDeletedEventListener
+import com.FrameHopper.app.ui.eventing.TagUpdatedEventListener
 import com.FrameHopper.app.ui.utils.SearchUtils
 import javafx.application.Platform
 import javafx.beans.property.*
@@ -46,7 +52,13 @@ open class FrameTagManagerController (
     private val pasteRecentAction: PasteRecentAction,
     private val removeRecentAction: RemoveRecentAction,
     private val historyActions: HistoryActions
-) : UiView() {
+) : UiView(),
+    TagDeletedEventListener,
+    TagCreatedEventListener,
+    TagUpdatedEventListener,
+    FrameUpdatedEventListener,
+    DeleteVideoEventListener
+{
     @FXML
     private lateinit var searchField: TextField
     @FXML
@@ -193,6 +205,61 @@ open class FrameTagManagerController (
         uiManager.close(UIFlag.FRAME_TAG_MANAGER)
         val stage = frameTagManagerView.scene.window as Stage
         stage.close()
+    }
+
+    override fun onTagDeleted(tag: TagDTO) {
+        val tag = cachedTagList.find { it?.tag == tag }
+        cachedTagList.remove(tag)
+    }
+
+    override fun onTagDeleted(tags: List<TagDTO>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onTagCreated(tag: TagDTO) {
+        cachedTagList.add(FrameTagManagerTableEntry(tag).apply {
+            selected.addListener { _, _, newValue ->
+                if(newValue == true) addedCache.add(tag)
+                else removedCache.add(tag)
+            }
+        })
+    }
+
+    override fun onTagCreated(tags: List<TagDTO>) {
+        cachedTagList.addAll(tags.map {
+            FrameTagManagerTableEntry(it).apply {
+                selected.addListener { _, _, newValue ->
+                    if (newValue == true) addedCache.add(tag)
+                    else removedCache.add(tag)
+                }
+            }
+        })
+    }
+
+    override fun onTagUpdated(tag: TagDTO) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onTagUpdated(tags: List<TagDTO>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onFrameUpdate(frameNumber: Int, frame: FrameDTO?) {
+        if(frameNumber != cachedFrame.frameNumber) return
+
+        cachedFrame = frame ?: FrameDTO(-1, frameNumber, cachedFrame.video, ArrayList()).apply {
+            TODO("do the list")
+        }
+
+        cachedTagList.forEach { it?.selected?.value = false }
+        TODO("handle selection list")
+
+        addedCache.clear()
+        removedCache.clear()
+    }
+
+    override fun onDeleteVideo(video: VideoDTO) {
+        if(video == cachedFrame.video()) close()
     }
 }
 

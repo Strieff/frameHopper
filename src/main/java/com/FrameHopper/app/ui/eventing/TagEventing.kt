@@ -34,7 +34,7 @@ object TagCreatedEventDispatcher : TagEventDispatcher<TagCreatedEventListener>()
 
 interface TagCreatedEventListener {
     fun onTagCreated(tag: TagDTO)
-    fun onTagCreated(tag: List<TagDTO>)
+    fun onTagCreated(tags: List<TagDTO>)
 }
 
 object TagUpdatedEventDispatcher : TagEventDispatcher<TagUpdatedEventListener>(){
