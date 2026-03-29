@@ -11,6 +11,7 @@ import com.FrameHopper.app.core.ports.in.video.LoadVideoCommand;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.actions.HistoryActions;
 import com.FrameHopper.app.ui.actions.PasteRecentAction;
 import com.FrameHopper.app.ui.actions.RemoveRecentAction;
 import com.FrameHopper.app.ui.eventing.*;
@@ -94,6 +95,7 @@ public class MainViewController extends UiView implements
     private final UserSettingsAdapter userSettingsAdapter;
     private final PasteRecentAction pasteRecentAction;
     private final RemoveRecentAction removeRecentAction;
+    private final HistoryActions historyActions;
 
     private final Map<Integer, FrameDTO> cachedTags = new HashMap<>();
 
@@ -107,7 +109,8 @@ public class MainViewController extends UiView implements
             UIManager uiManager,
             UserSettingsAdapter userSettingsAdapter,
             PasteRecentAction pasteRecentAction,
-            RemoveRecentAction removeRecentAction
+            RemoveRecentAction removeRecentAction,
+            HistoryActions historyActions
     ) {
         this.loadVideoCommand = loadVideoCommand;
         this.frameBytesQuery = frameBytesQuery;
@@ -116,6 +119,7 @@ public class MainViewController extends UiView implements
         this.userSettingsAdapter = userSettingsAdapter;
         this.pasteRecentAction = pasteRecentAction;
         this.removeRecentAction = removeRecentAction;
+        this.historyActions = historyActions;
 
         FrameUpdatedEventDispatcher.register(this);
         TagUpdatedEventDispatcher.register(this);
@@ -221,6 +225,7 @@ public class MainViewController extends UiView implements
         cacheTagData();
         displayCurrentData();
         userSettingsAdapter.setRecentlyOpenId(cachedVideoProperty.get().id());
+        historyActions.clear();
     }
 
     private void cacheTagData() {
@@ -469,6 +474,40 @@ public class MainViewController extends UiView implements
         openVideo();
     }
 
+    //region [History and Recent Actions]
+
+    private void pasteRecent() {
+        var frame = cachedTags.containsKey(indexProperty.get())
+                ? cachedTags.get(indexProperty.get())
+                : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
+
+        pasteRecentAction.add(frame);
+    }
+
+   private void removeRecent() {
+       var frame = cachedTags.containsKey(indexProperty.get())
+               ? cachedTags.get(indexProperty.get())
+               : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
+
+       removeRecentAction.remove(frame);
+   }
+
+   private void undo() {
+       historyActions.undo(
+               indexProperty.get(),
+               cachedTags.getOrDefault(indexProperty.get(), null)
+       );
+   }
+
+   private void redo() {
+       historyActions.redo(
+               indexProperty.get(),
+               cachedTags.getOrDefault(indexProperty.get(), null)
+       );
+   }
+
+   //endregion
+
     @Override
     protected void addKeybinds() {
         //keybinds
@@ -483,22 +522,10 @@ public class MainViewController extends UiView implements
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onChart);
         keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::onNotes);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::openVideoDetails);
-        keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), () -> {
-            var frame = cachedTags.containsKey(indexProperty.get())
-                    ? cachedTags.get(indexProperty.get())
-                    : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
-
-            pasteRecentAction.add(frame);
-        });
-        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), () -> {
-            var frame = cachedTags.containsKey(indexProperty.get())
-                    ? cachedTags.get(indexProperty.get())
-                    : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
-
-            removeRecentAction.remove(frame);
-        });
-        //keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redoAction);
-        //keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undoAction);
+        keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::pasteRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redo);
+        keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undo);
         keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), I18n::clearCache);
         keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), () -> {
             LanguageBundleUtils.creteBundle();

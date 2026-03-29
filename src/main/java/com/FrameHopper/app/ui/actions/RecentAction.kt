@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component
 @Component
 open class PasteRecentAction(
     private val createFrameCommand: CreateFrameCommand,
-    private val updateFrameCommand: UpdateFrameCommand
+    private val updateFrameCommand: UpdateFrameCommand,
+    private val historyActions: HistoryActions
 ) {
     private var recentlyAdded = mutableListOf<TagDTO>()
 
@@ -23,6 +24,8 @@ open class PasteRecentAction(
 
     fun add(frame: FrameDTO) {
         if(recentlyAdded.isEmpty()) return
+
+        historyActions.new(frame.frameNumber(), if (frame.id() != -1) frame else null)
 
         val tagsToAdd = recentlyAdded.filter { frame.tags?.contains(it) == false }
         frame.tags.addAll(tagsToAdd)
@@ -37,7 +40,8 @@ open class PasteRecentAction(
 @Component
 open class RemoveRecentAction(
     private val updateFrameCommand: UpdateFrameCommand,
-    private val deleteFrameCommand: DeleteFrameCommand
+    private val deleteFrameCommand: DeleteFrameCommand,
+    private val historyActions: HistoryActions
 ) {
     private var recentlyRemoved = mutableListOf<TagDTO>()
 
@@ -49,6 +53,8 @@ open class RemoveRecentAction(
 
     fun remove(frame: FrameDTO) {
         if(recentlyRemoved.isEmpty()) return
+
+        historyActions.new(frame.frameNumber(), if(frame.tags.isEmpty()) null else frame)
 
         val tagsToRemove = recentlyRemoved.filter { frame.tags?.contains(it) == true }
         frame.tags.removeAll(tagsToRemove)

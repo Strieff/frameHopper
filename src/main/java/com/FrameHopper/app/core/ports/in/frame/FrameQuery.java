@@ -6,7 +6,7 @@ import com.FrameHopper.app.boundry.dto.VideoDTO;
 import java.util.List;
 
 public interface FrameQuery {
+    FrameDTO get(int id);
     List<FrameDTO> getAllFramesOnVideo(VideoDTO video);
-
     List<FrameDTO> getAll();
 }

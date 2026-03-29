@@ -16,6 +16,15 @@ public class FrameQueryService implements FrameQuery {
     private final JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter;
 
     @Override
+    public FrameDTO get(int id) {
+        var frame = jpaFrameRepositoryAdapter.getFrameById(id);
+
+        if (frame == null) return null;
+
+        return FrameMapper.fromDomain(frame);
+    }
+
+    @Override
     public List<FrameDTO> getAllFramesOnVideo(VideoDTO video) {
         var coreVideo = VideoMapper.toDomain(video);
 

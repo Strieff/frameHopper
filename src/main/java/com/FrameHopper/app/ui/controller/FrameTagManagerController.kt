@@ -9,6 +9,7 @@ import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
 import com.FrameHopper.app.ui.UIFlag
 import com.FrameHopper.app.ui.UIManager
 import com.FrameHopper.app.ui.UiView
+import com.FrameHopper.app.ui.actions.HistoryActions
 import com.FrameHopper.app.ui.actions.PasteRecentAction
 import com.FrameHopper.app.ui.actions.RemoveRecentAction
 import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher
@@ -43,7 +44,8 @@ open class FrameTagManagerController (
     private val deleteFrameCommand: DeleteFrameCommand,
     private val uiManager: UIManager,
     private val pasteRecentAction: PasteRecentAction,
-    private val removeRecentAction: RemoveRecentAction
+    private val removeRecentAction: RemoveRecentAction,
+    private val historyActions: HistoryActions
 ) : UiView() {
     @FXML
     private lateinit var searchField: TextField
@@ -152,6 +154,7 @@ open class FrameTagManagerController (
 
         if(selected.isNullOrEmpty()) {
             if(cachedFrame.id != -1) {
+                historyActions.new(cachedFrame.frameNumber, cachedFrame)
                 deleteFrameCommand.deleteFrame(cachedFrame.id)
                 FrameUpdatedEventDispatcher.dispatch(cachedFrame.frameNumber, null)
             }
@@ -159,6 +162,9 @@ open class FrameTagManagerController (
             close()
             return
         }
+
+        if(selected.isEmpty()) historyActions.new(cachedFrame.frameNumber, null)
+        else historyActions.new(cachedFrame.frameNumber, cachedFrame)
 
         cachedFrame.tags.apply {
             clear()
