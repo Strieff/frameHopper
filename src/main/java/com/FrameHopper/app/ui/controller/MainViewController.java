@@ -548,7 +548,7 @@ public class MainViewController extends UiView implements
 
         if(cachedVideo == null) return;
 
-        if(cachedVideo.equals(videoDTO)) return;
+        if(!cachedVideo.equals(videoDTO)) return;
 
         cachedVideoProperty.set(null);
         indexProperty.set(0);

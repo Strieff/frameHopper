@@ -6,19 +6,13 @@ object FrameUpdatedEventDispatcher {
     private val listeners = mutableListOf<FrameUpdatedEventListener>()
 
     @JvmStatic
-    fun register(listener: FrameUpdatedEventListener) {
-        listeners.add(listener)
-    }
+    fun register(listener: FrameUpdatedEventListener) = listeners.add(listener)
 
     @JvmStatic
-    fun unregister(listener: FrameUpdatedEventListener) {
-        listeners.remove(listener)
-    }
+    fun unregister(listener: FrameUpdatedEventListener) = listeners.remove(listener)
 
     @JvmStatic
-    fun dispatch(frameNumber: Int, frame: FrameDTO?) {
-        listeners.forEach { it.onFrameUpdate(frameNumber, frame) }
-    }
+    fun dispatch(frameNumber: Int, frame: FrameDTO?) = listeners.forEach { it.onFrameUpdate(frameNumber, frame) }
 }
 
 fun interface FrameUpdatedEventListener {

@@ -5,13 +5,9 @@ import com.FrameHopper.app.boundry.dto.TagDTO
 abstract class TagEventDispatcher<T: Any> {
     protected val listeners = mutableListOf<T>()
 
-    fun registerListener(listener: T) {
-        listeners.add(listener)
-    }
+    fun registerListener(listener: T) = listeners.add(listener)
 
-    fun unregisterListener(listener: T) {
-        listeners.remove(listener)
-    }
+    fun unregisterListener(listener: T) = listeners.remove(listener)
 }
 
 object TagCreatedEventDispatcher : TagEventDispatcher<TagCreatedEventListener>() {
@@ -22,14 +18,10 @@ object TagCreatedEventDispatcher : TagEventDispatcher<TagCreatedEventListener>()
     fun unregister(listener: TagCreatedEventListener) = unregisterListener(listener)
 
     @JvmStatic
-    fun dispatchCreate(tag: TagDTO) {
-        listeners.forEach { it.onTagCreated(tag) }
-    }
+    fun dispatchCreate(tag: TagDTO) = listeners.forEach { it.onTagCreated(tag) }
 
     @JvmStatic
-    fun dispatchCreate(tags: List<TagDTO>) {
-        listeners.forEach { it.onTagCreated(tags) }
-    }
+    fun dispatchCreate(tags: List<TagDTO>) = listeners.forEach { it.onTagCreated(tags) }
 }
 
 interface TagCreatedEventListener {
@@ -45,14 +37,10 @@ object TagUpdatedEventDispatcher : TagEventDispatcher<TagUpdatedEventListener>()
     fun unregister(listener: TagUpdatedEventListener) = unregisterListener(listener)
 
     @JvmStatic
-    fun dispatchUpdate(tag: TagDTO) {
-        listeners.forEach { it.onTagUpdated(tag) }
-    }
+    fun dispatchUpdate(tag: TagDTO) = listeners.forEach { it.onTagUpdated(tag) }
 
     @JvmStatic
-    fun dispatchUpdate(tags: List<TagDTO>) {
-        listeners.forEach { it.onTagUpdated(tags) }
-    }
+    fun dispatchUpdate(tags: List<TagDTO>) = listeners.forEach { it.onTagUpdated(tags) }
 }
 
 interface TagUpdatedEventListener {
@@ -68,14 +56,10 @@ object TagDeletedEventDispatcher : TagEventDispatcher<TagDeletedEventListener>()
     fun unregister(listener: TagDeletedEventListener) = unregisterListener(listener)
 
     @JvmStatic
-    fun dispatchDelete(tag: TagDTO) {
-        listeners.forEach { it.onTagDeleted(tag) }
-    }
+    fun dispatchDelete(tag: TagDTO) = listeners.forEach { it.onTagDeleted(tag) }
 
     @JvmStatic
-    fun dispatchDelete(tags: List<TagDTO>) {
-        listeners.forEach { it.onTagDeleted(tags) }
-    }
+    fun dispatchDelete(tags: List<TagDTO>) = listeners.forEach { it.onTagDeleted(tags) }
 }
 
 interface TagDeletedEventListener {

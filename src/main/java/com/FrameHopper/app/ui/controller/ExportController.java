@@ -11,6 +11,10 @@ import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
+import com.FrameHopper.app.ui.eventing.DeleteVideoEventDispatcher;
+import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener;
+import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
 import com.FrameHopper.app.ui.language.I18n;
 import com.FrameHopper.app.ui.utils.SearchUtils;
 import com.FrameHopper.app.ui.ve.ExportActionEntry;
@@ -31,6 +35,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -40,7 +45,10 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class ExportController extends UiView {
+public class ExportController extends UiView implements
+        DeleteVideoEventListener,
+        VideoPathUpdatedListener
+{
     @FXML
     private TableView<ExportTableEntry> videoTable;
     @FXML
@@ -83,6 +91,9 @@ public class ExportController extends UiView {
             DataExportAdapter dataExportAdapter,
             UIManager uiManager
     ) {
+        DeleteVideoEventDispatcher.register(this);
+        VideoPathUpdatedEventDispatcher.register(this);
+
         this.frameQuery = frameQuery;
         this.videoAnalyticsQuery = videoAnalyticsQuery;
         this.tagAnalyticsQuery = tagAnalyticsQuery;
@@ -546,8 +557,23 @@ public class ExportController extends UiView {
 
     @Override
     public void close() {
+        DeleteVideoEventDispatcher.unregister(this);
+        VideoPathUpdatedEventDispatcher.unregister(this);
+
         uiManager.close(UIFlag.EXPORT);
         var stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
+    }
+
+    @Override
+    public void onDeleteVideo(@NotNull VideoDTO video) {
+        var entry = cachedVideoList.stream().filter(e -> e.getVideo().equals(video)).findFirst().orElse(null);
+        cachedVideoList.remove(entry);
+    }
+
+    @Override
+    public void onVideoPathUpdated(@NotNull VideoDTO video) {
+        var entry = cachedVideoList.stream().filter(e -> e.getVideo().equals(video)).findFirst().orElse(null);
+        entry.setVideo(video);
     }
 }

@@ -4,19 +4,13 @@ object OpenVideoEventDispatcher {
     private val listeners = mutableListOf<OpenVideoEventListener>()
 
     @JvmStatic
-    fun register(listener: OpenVideoEventListener) {
-        listeners.add(listener)
-    }
+    fun register(listener: OpenVideoEventListener) = listeners.add(listener)
 
     @JvmStatic
-    fun unregister(listener: OpenVideoEventListener) {
-        listeners.remove(listener)
-    }
+    fun unregister(listener: OpenVideoEventListener) = listeners.remove(listener)
 
     @JvmStatic
-    fun dispatch(id: Int) {
-        listeners.forEach { it.openVideo(id) }
-    }
+    fun dispatch(id: Int) = listeners.forEach { it.openVideo(id) }
 }
 
 fun interface OpenVideoEventListener {

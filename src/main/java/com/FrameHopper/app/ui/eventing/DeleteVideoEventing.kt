@@ -6,19 +6,13 @@ object DeleteVideoEventDispatcher {
     private val listeners = mutableListOf<DeleteVideoEventListener>()
 
     @JvmStatic
-    fun register(listener: DeleteVideoEventListener) {
-        listeners.add(listener)
-    }
+    fun register(listener: DeleteVideoEventListener) = listeners.add(listener)
 
     @JvmStatic
-    fun unregister(listener: DeleteVideoEventListener) {
-        listeners.remove(listener)
-    }
+    fun unregister(listener: DeleteVideoEventListener) = listeners.remove(listener)
 
     @JvmStatic
-    fun dispatch(video: VideoDTO) {
-        listeners.forEach { it.onDeleteVideo(video) }
-    }
+    fun dispatch(video: VideoDTO) = listeners.forEach { it.onDeleteVideo(video) }
 }
 
 fun interface DeleteVideoEventListener {

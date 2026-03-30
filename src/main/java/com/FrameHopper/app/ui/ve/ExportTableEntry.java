@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ExportTableEntry {
     @Getter
-    private final VideoDTO video;
+    private VideoDTO video;
     @Getter
     private final List<FrameDTO> frames;
 
@@ -25,6 +25,11 @@ public class ExportTableEntry {
 
         name = new SimpleStringProperty(video.name());
         selected = new SimpleBooleanProperty(false);
+    }
+
+    public void setVideo(VideoDTO video) {
+        this.video = video;
+        name.setValue(video.name());
     }
 
     public String getName() {

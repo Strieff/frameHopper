@@ -4,19 +4,13 @@ object NewLanguageEventDispatcher {
     private val listeners = mutableListOf<NewLanguageListener>()
 
     @JvmStatic
-    fun register(listener: NewLanguageListener) {
-        listeners.add(listener)
-    }
+    fun register(listener: NewLanguageListener) = listeners.add(listener)
 
     @JvmStatic
-    fun unregister(listener: NewLanguageListener) {
-        listeners.remove(listener)
-    }
+    fun unregister(listener: NewLanguageListener) = listeners.remove(listener)
 
     @JvmStatic
-    fun dispatch() {
-        listeners.forEach { it.newLanguageCreated() }
-    }
+    fun dispatch() = listeners.forEach { it.newLanguageCreated() }
 }
 
 fun interface NewLanguageListener {

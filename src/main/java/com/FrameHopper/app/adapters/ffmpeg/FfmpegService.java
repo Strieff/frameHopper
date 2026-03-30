@@ -28,7 +28,7 @@ public class FfmpegService {
         isExternalFfmpegPresent = isExternalFfmpegPresent();
         var isBundledFfmpegPresent = isBundledFfmpegPresent();
 
-        isFfmpegPresent = isExternalFfmpegPresent && isBundledFfmpegPresent;
+        isFfmpegPresent = isExternalFfmpegPresent || isBundledFfmpegPresent;
 
         if(!isFfmpegPresent)
             FXDialogProvider.messageDialog(Dictionary.get("ffmpeg.missing"));
