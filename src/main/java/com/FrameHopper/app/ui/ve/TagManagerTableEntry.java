@@ -1,10 +1,7 @@
 package com.FrameHopper.app.ui.ve;
 
 import com.FrameHopper.app.boundry.dto.TagDTO;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import lombok.Getter;
 
 public class TagManagerTableEntry {
@@ -14,12 +11,14 @@ public class TagManagerTableEntry {
     private final StringProperty code;
     private final DoubleProperty value;
     private final StringProperty description;
+    private final BooleanProperty visible;
 
     public TagManagerTableEntry(TagDTO tag) {
         this.tag = tag;
         this.code = new SimpleStringProperty(tag.getName());
         this.value = new SimpleDoubleProperty(tag.getValue());
         this.description = new SimpleStringProperty(tag.getDescription());
+        this.visible = new SimpleBooleanProperty(tag.getVisible());
     }
 
     public void setTag(TagDTO tag) {
@@ -27,6 +26,12 @@ public class TagManagerTableEntry {
         this.code.set(tag.getName());
         this.value.set(tag.getValue());
         this.description.set(tag.getDescription());
+        this.visible.set(tag.getVisible());
+    }
+
+    public void updateVisibility(boolean state) {
+        visible.setValue(state);
+        tag.setVisible(state);
     }
 
     public String getCode() {
@@ -40,4 +45,6 @@ public class TagManagerTableEntry {
     public String getDescription() {
         return description.get();
     }
+
+    public boolean isVisible() {return visible.get();}
 }

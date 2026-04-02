@@ -1,6 +1,7 @@
 package com.FrameHopper.app.adapters.settings;
 
 import com.FrameHopper.app.core.ports.out.UserSettingsPort;
+import com.FrameHopper.app.ui.eventing.ShowHiddenEventDispatcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -76,6 +77,7 @@ public class UserSettingsAdapter implements UserSettingsPort {
     public void changeShowHidden(boolean showHidden) {
         settings.setShowHidden(showHidden);
         save();
+        ShowHiddenEventDispatcher.dispatch();
     }
 
     @Override
