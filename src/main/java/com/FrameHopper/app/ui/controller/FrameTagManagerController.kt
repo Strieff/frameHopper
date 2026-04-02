@@ -13,12 +13,16 @@ import com.FrameHopper.app.ui.UiView
 import com.FrameHopper.app.ui.actions.HistoryActions
 import com.FrameHopper.app.ui.actions.PasteRecentAction
 import com.FrameHopper.app.ui.actions.RemoveRecentAction
-import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventListener
 import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher
 import com.FrameHopper.app.ui.eventing.FrameUpdatedEventListener
+import com.FrameHopper.app.ui.eventing.TagCreatedEventDispatcher
 import com.FrameHopper.app.ui.eventing.TagCreatedEventListener
+import com.FrameHopper.app.ui.eventing.TagDeletedEventDispatcher
 import com.FrameHopper.app.ui.eventing.TagDeletedEventListener
+import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher
 import com.FrameHopper.app.ui.eventing.TagUpdatedEventListener
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventDispatcher
 import com.FrameHopper.app.ui.utils.SearchUtils
 import javafx.application.Platform
 import javafx.beans.property.*
@@ -57,7 +61,7 @@ open class FrameTagManagerController (
     TagCreatedEventListener,
     TagUpdatedEventListener,
     FrameUpdatedEventListener,
-    DeleteVideoEventListener
+    VideoDeletedEventListener
 {
     @FXML
     private lateinit var searchField: TextField
@@ -86,6 +90,14 @@ open class FrameTagManagerController (
     private val addedCache = mutableListOf<TagDTO>()
     private val removedCache = mutableListOf<TagDTO>()
 
+    init {
+        TagDeletedEventDispatcher.register(this)
+        TagUpdatedEventDispatcher.register(this)
+        TagCreatedEventDispatcher.register(this)
+        FrameUpdatedEventDispatcher.register(this)
+        VideoDeletedEventDispatcher.register(this)
+    }
+
     @FXML
     fun initialize() {
         codeColumn.cellValueFactory = PropertyValueFactory("name")
@@ -97,6 +109,7 @@ open class FrameTagManagerController (
         selectColumn.cellValueFactory = Callback {it.value?.selected}
         selectColumn.cellFactory = CheckBoxTableCell.forTableColumn(selectColumn)
 
+
         cachedTagList = FXCollections.observableArrayList(
             tagsQuery.getAllTags()
                 ?.takeIf { it.isNotEmpty() }
@@ -107,7 +120,7 @@ open class FrameTagManagerController (
                         if(newValue == true) addedCache.add(tag)
                         else removedCache.add(tag)
                     }
-                }}
+                }} ?: emptyList()
         )
         codeTable.items = cachedTagList
 
@@ -134,7 +147,7 @@ open class FrameTagManagerController (
         if(!tags.isNullOrEmpty())
             tags.forEach { t ->
                 codeTable.items
-                    .firstOrNull { it?.tag?.id == t.id }
+                    .firstOrNull { it?.cachedTag?.id == t.id }
                     ?.setSelected(true)
             }
 
@@ -149,7 +162,7 @@ open class FrameTagManagerController (
             codeTable,
             cachedTagList
         ) { list, query ->
-            list.filtered { it?.tag?.name?.contains(query, true) == true }
+            list.filtered { it?.cachedTag?.name?.contains(query, true) == true }
         }
     }
 
@@ -161,7 +174,7 @@ open class FrameTagManagerController (
         val selected = codeTable.items
             ?.asSequence()
             ?.filter { it!!.selected.value}
-            ?.map { it!!.tag }
+            ?.map { it!!.cachedTag }
             ?.toList()
 
         if(selected.isNullOrEmpty()) {
@@ -199,6 +212,12 @@ open class FrameTagManagerController (
 
     @FXML
     override fun close() {
+        TagDeletedEventDispatcher.unregister (this)
+        TagUpdatedEventDispatcher.unregister (this)
+        TagCreatedEventDispatcher.unregister (this)
+        FrameUpdatedEventDispatcher.unregister (this)
+        VideoDeletedEventDispatcher.unregister (this)
+
         addedCache.clear()
         removedCache.clear()
 
@@ -207,13 +226,16 @@ open class FrameTagManagerController (
         stage.close()
     }
 
+    //region [LISTENERS]
+
     override fun onTagDeleted(tag: TagDTO) {
-        val tag = cachedTagList.find { it?.tag == tag }
+        val tag = cachedTagList.find { it?.cachedTag == tag }
         cachedTagList.remove(tag)
     }
 
     override fun onTagDeleted(tags: List<TagDTO>) {
-        TODO("Not yet implemented")
+        val tags = cachedTagList.filter { tags.contains(it?.cachedTag) }
+        cachedTagList.removeAll(tags)
     }
 
     override fun onTagCreated(tag: TagDTO) {
@@ -229,30 +251,35 @@ open class FrameTagManagerController (
         cachedTagList.addAll(tags.map {
             FrameTagManagerTableEntry(it).apply {
                 selected.addListener { _, _, newValue ->
-                    if (newValue == true) addedCache.add(tag)
-                    else removedCache.add(tag)
+                    if (newValue == true) addedCache.add(cachedTag)
+                    else removedCache.add(cachedTag)
                 }
             }
         })
     }
 
     override fun onTagUpdated(tag: TagDTO) {
-        TODO("Not yet implemented")
+        cachedTagList.find { it?.cachedTag == tag }?.setTag(tag)
     }
 
     override fun onTagUpdated(tags: List<TagDTO>) {
-        TODO("Not yet implemented")
+        val tagMap = tags.associateBy { it }
+        cachedTagList.forEach{ e ->
+            val updated = tagMap[e?.cachedTag] ?: return@forEach
+            e?.setTag(updated)
+        }
     }
 
     override fun onFrameUpdate(frameNumber: Int, frame: FrameDTO?) {
         if(frameNumber != cachedFrame.frameNumber) return
 
-        cachedFrame = frame ?: FrameDTO(-1, frameNumber, cachedFrame.video, ArrayList()).apply {
-            TODO("do the list")
-        }
+        cachedFrame = frame ?: FrameDTO(-1, frameNumber, cachedFrame.video, ArrayList())
 
-        cachedTagList.forEach { it?.selected?.value = false }
-        TODO("handle selection list")
+        val tagSet = cachedFrame.tags.toSet()
+
+        cachedTagList.forEach { e ->
+            e?.setSelected(e.cachedTag in tagSet)
+        }
 
         addedCache.clear()
         removedCache.clear()
@@ -261,12 +288,15 @@ open class FrameTagManagerController (
     override fun onDeleteVideo(video: VideoDTO) {
         if(video == cachedFrame.video()) close()
     }
+
+    //endregion
 }
 
-class FrameTagManagerTableEntry(val tag: TagDTO) {
+class FrameTagManagerTableEntry(var cachedTag: TagDTO) {
+
     val selected: BooleanProperty = SimpleBooleanProperty(false)
-    val name: StringProperty = SimpleStringProperty(tag.name)
-    val value: DoubleProperty = SimpleDoubleProperty(tag.value ?: 0.0)
+    val name: StringProperty = SimpleStringProperty(cachedTag.name)
+    val value: DoubleProperty = SimpleDoubleProperty(cachedTag.value ?: 0.0)
 
     fun selectedProperty(): BooleanProperty = selected
     fun nameProperty(): StringProperty = name
@@ -275,7 +305,11 @@ class FrameTagManagerTableEntry(val tag: TagDTO) {
     fun getName(): String = name.get()
     fun getValue(): Double = value.get()
 
-    fun setSelected(selected: Boolean) {
-        this.selected.set(selected)
+    fun setSelected(selected: Boolean) = this.selected.set(selected)
+
+    fun setTag(tag: TagDTO) {
+        this.cachedTag = tag
+        name.set(tag.name)
+        value.set(tag.value ?: -1.0)
     }
 }

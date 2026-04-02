@@ -5,9 +5,9 @@ import com.FrameHopper.app.boundry.dto.TagDTO
 abstract class TagEventDispatcher<T: Any> {
     protected val listeners = mutableListOf<T>()
 
-    fun registerListener(listener: T) = listeners.add(listener)
+    protected fun registerListener(listener: T) = listeners.add(listener)
 
-    fun unregisterListener(listener: T) = listeners.remove(listener)
+    protected fun unregisterListener(listener: T) = listeners.remove(listener)
 }
 
 object TagCreatedEventDispatcher : TagEventDispatcher<TagCreatedEventListener>() {

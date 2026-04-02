@@ -6,14 +6,16 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 public class ChartsTableEntry {
     @Getter
-    private final VideoDTO video;
+    private VideoDTO video;
     @Getter
-    private final List<FrameDTO> frames;
+    @Setter
+    private List<FrameDTO> frames;
 
     private final SimpleStringProperty name;
     private final BooleanProperty selected;
@@ -40,5 +42,10 @@ public class ChartsTableEntry {
 
     public BooleanProperty selectedProperty() {
         return selected;
+    }
+
+    public void setVideo(VideoDTO video) {
+        this.video = video;
+        name.set(video.name());
     }
 }

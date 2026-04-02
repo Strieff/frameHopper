@@ -2,7 +2,6 @@ package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.boundry.dto.CommentDTO;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderCommand;
@@ -12,8 +11,8 @@ import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
-import com.FrameHopper.app.ui.eventing.DeleteVideoEventDispatcher;
-import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener;
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventListener;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
 import com.FrameHopper.app.ui.language.I18n;
@@ -44,7 +43,7 @@ import java.util.Comparator;
 @Component
 @Scope("prototype")
 public class NotesController extends UiView implements
-        DeleteVideoEventListener,
+        VideoDeletedEventListener,
         VideoPathUpdatedListener
 {
     @FXML
@@ -90,7 +89,7 @@ public class NotesController extends UiView implements
         this.deleteCommentCommand = deleteCommentCommand;
         this.uiManager = uiManager;
 
-        DeleteVideoEventDispatcher.register(this);
+        VideoDeletedEventDispatcher.register(this);
         VideoPathUpdatedEventDispatcher.register(this);
     }
 
@@ -293,8 +292,10 @@ public class NotesController extends UiView implements
                     .filter(c -> c.getListingOrder() > currentNote.getListingOrder())
                     .toList();
 
-            toUpdate.forEach(c -> c.setListingOrder(c.getListingOrder() - 1));
-            changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate);
+            if(!toUpdate.isEmpty()) {
+                toUpdate.forEach(c -> c.setListingOrder(c.getListingOrder() - 1));
+                changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate);
+            }
         }
 
         currentNote = null;
@@ -334,10 +335,10 @@ public class NotesController extends UiView implements
 
     @Override
     public void close() {
-        uiManager.close(UIFlag.NOTES);
-        DeleteVideoEventDispatcher.unregister(this);
+        VideoDeletedEventDispatcher.unregister(this);
         VideoPathUpdatedEventDispatcher.unregister(this);
 
+        uiManager.close(UIFlag.NOTES);
         var stage = (Stage) notesView.getScene().getWindow();
         stage.close();
     }

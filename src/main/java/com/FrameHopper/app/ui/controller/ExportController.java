@@ -8,11 +8,12 @@ import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.TagAnalyticsQuery;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
+import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.dialog.FileChooserProvider;
-import com.FrameHopper.app.ui.eventing.DeleteVideoEventDispatcher;
-import com.FrameHopper.app.ui.eventing.DeleteVideoEventListener;
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventListener;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
 import com.FrameHopper.app.ui.language.I18n;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope("prototype")
 public class ExportController extends UiView implements
-        DeleteVideoEventListener,
+        VideoDeletedEventListener,
         VideoPathUpdatedListener
 {
     @FXML
@@ -72,6 +73,7 @@ public class ExportController extends UiView implements
     @FXML
     private ComboBox<String> fileTypeBox;
 
+    private final VideoQuery videoQuery;
     private final FrameQuery frameQuery;
     private final VideoAnalyticsQuery videoAnalyticsQuery;
     private final TagAnalyticsQuery tagAnalyticsQuery;
@@ -89,9 +91,10 @@ public class ExportController extends UiView implements
             TagAnalyticsQuery tagAnalyticsQuery,
             UserSettingsAdapter userSettingsAdapter,
             DataExportAdapter dataExportAdapter,
-            UIManager uiManager
+            UIManager uiManager,
+            VideoQuery videoQuery
     ) {
-        DeleteVideoEventDispatcher.register(this);
+        VideoDeletedEventDispatcher.register(this);
         VideoPathUpdatedEventDispatcher.register(this);
 
         this.frameQuery = frameQuery;
@@ -100,6 +103,7 @@ public class ExportController extends UiView implements
         this.userSettingsAdapter = userSettingsAdapter;
         this.dataExportAdapter = dataExportAdapter;
         this.uiManager = uiManager;
+        this.videoQuery = videoQuery;
     }
 
     @FXML
@@ -181,6 +185,8 @@ public class ExportController extends UiView implements
         });
 
         Map<VideoDTO, List<FrameDTO>> groupedFrames = frameQuery.getAll().stream().collect(Collectors.groupingBy(FrameDTO::video));
+        videoQuery.getAllVideos().forEach(v -> groupedFrames.computeIfAbsent(v, e -> new ArrayList<>()));
+
         cachedVideoList = FXCollections.observableArrayList(
                 groupedFrames.entrySet().stream().map(e -> new ExportTableEntry(e.getKey(), e.getValue())).toList()
         );
@@ -557,7 +563,7 @@ public class ExportController extends UiView implements
 
     @Override
     public void close() {
-        DeleteVideoEventDispatcher.unregister(this);
+        VideoDeletedEventDispatcher.unregister(this);
         VideoPathUpdatedEventDispatcher.unregister(this);
 
         uiManager.close(UIFlag.EXPORT);

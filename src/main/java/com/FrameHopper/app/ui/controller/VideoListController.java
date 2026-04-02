@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 public class VideoListController extends UiView implements
-        DeleteVideoEventListener,
+        VideoDeletedEventListener,
         VideoPathUpdatedListener
 {
     @FXML
@@ -49,9 +49,8 @@ public class VideoListController extends UiView implements
         this.deleteVideoCommand = deleteVideoCommand;
         this.uiManager = uiManager;
 
-        DeleteVideoEventDispatcher.register(this);
+        VideoDeletedEventDispatcher.register(this);
         VideoPathUpdatedEventDispatcher.register(this);
-
     }
 
     @FXML
@@ -122,7 +121,7 @@ public class VideoListController extends UiView implements
                 openButton.setOnAction(e -> OpenVideoEventDispatcher.dispatch(bound.getVideo().id()));
                 deleteButton.setOnAction(e -> {
                     deleteVideoCommand.deleteVideo(bound.getVideo().id());
-                    DeleteVideoEventDispatcher.dispatch(bound.getVideo());
+                    VideoDeletedEventDispatcher.dispatch(bound.getVideo());
                 });
                 editButton.setOnAction(e -> openDetails(bound.getVideo()));
             }
@@ -181,11 +180,10 @@ public class VideoListController extends UiView implements
 
     @Override
     public void close() {
-        uiManager.close(UIFlag.VIDEO_LIST);
-
-        DeleteVideoEventDispatcher.unregister(this);
+        VideoDeletedEventDispatcher.unregister(this);
         VideoPathUpdatedEventDispatcher.unregister(this);
 
+        uiManager.close(UIFlag.VIDEO_LIST);
         var stage = (Stage) listView.getScene().getWindow();
         stage.close();
     }

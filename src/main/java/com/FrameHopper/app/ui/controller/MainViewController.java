@@ -55,7 +55,7 @@ public class MainViewController extends UiView implements
         TagUpdatedEventListener,
         TagDeletedEventListener,
         OpenVideoEventListener,
-        DeleteVideoEventListener,
+        VideoDeletedEventListener,
         VideoPathUpdatedListener
 {
     @FXML
@@ -125,7 +125,7 @@ public class MainViewController extends UiView implements
         TagUpdatedEventDispatcher.register(this);
         TagDeletedEventDispatcher.register(this);
         OpenVideoEventDispatcher.register(this);
-        DeleteVideoEventDispatcher.register(this);
+        VideoDeletedEventDispatcher.register(this);
     }
 
     @FXML

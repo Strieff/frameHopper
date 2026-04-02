@@ -1,55 +1,41 @@
-package com.FrameHopper.app.ui;
+package com.FrameHopper.app.ui
 
-import com.FrameHopper.app.ui.language.I18n;
-import javafx.scene.Node;
-import javafx.scene.control.Labeled;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TextInputControl;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
-import javafx.stage.Stage;
+import com.FrameHopper.app.ui.language.I18n
+import javafx.scene.Node
+import javafx.scene.control.Labeled
+import javafx.scene.control.TableColumn
+import javafx.scene.control.TextInputControl
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyEvent
 
-import java.util.HashMap;
-import java.util.Map;
+abstract class UiView {
+    @JvmField
+    val keyActions: MutableMap<KeyCombination, Runnable> = mutableMapOf()
 
-public abstract class UiView {
-    protected final Map<KeyCombination, Runnable> keyActions = new HashMap<>();
+    protected fun handleKeyPressed(event: KeyEvent) {
+        if(isTyping(event)) return
 
-    protected void handleKeyPressed(KeyEvent event) {
-        if(isTyping(event)) return;
-
-        keyActions.keySet().stream()
-                .filter(k -> k.match(event))
-                .findFirst()
-                .ifPresent(k -> keyActions.get(k).run());
+        keyActions.keys
+            .find { it.match(event) }
+            ?.let { keyActions[it]?.run() }
     }
 
-    private boolean isTyping(KeyEvent event) {
-        Object target = event.getTarget();
+    private fun isTyping(event: KeyEvent): Boolean {
+        val target: Any? = event.getTarget()
 
-        return target instanceof TextInputControl;
+        return target is TextInputControl
     }
 
-    protected void addEventFilter(Node node) {
-        node.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
-    }
+    protected fun addEventFilter(node: Node) = node.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed)
 
-    protected void bind(Labeled node, String key, Object... args) {
-        node.textProperty().bind(I18n.bind(key, args));
-    }
+    protected fun bind(node: Labeled, key: String, vararg args: Any) = node.textProperty().bind(I18n.bind(key, *args))
 
-    protected void bind(TextInputControl node, String key, Object... args) {
-        node.promptTextProperty().bind(I18n.bind(key, args));
-    }
+    protected fun bind(node: TextInputControl, key: String, vararg args: Any) = node.promptTextProperty().bind(I18n.bind(key, *args))
 
-    protected void bind(TableColumn<?, ?> column, String key, Object... args) {
-        column.textProperty().bind(I18n.bind(key, args));
-    }
+    protected fun bind(column: TableColumn<*, *>, key: String, vararg args: Any) = column.textProperty().bind(I18n.bind(key, *args))
 
-    protected String getText(String key, Object... args) {
-        return I18n.tr(key, args);
-    }
+    protected fun getText(key: String, vararg args: Any): String = I18n.tr(key, *args)
 
-    protected abstract void addKeybinds();
-    protected abstract void close();
+    protected abstract fun addKeybinds()
+    protected abstract fun close()
 }

@@ -5,10 +5,14 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.boundry.dto.FrameDTO;
+import com.FrameHopper.app.boundry.dto.TagDTO;
+import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO;
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
+import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.utils.ChartUtils;
 import com.FrameHopper.app.ui.ve.ChartsActionEntry;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
@@ -40,6 +44,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -54,7 +59,13 @@ import static javafx.scene.paint.Color.*;
 
 @Component
 @Scope("prototype")
-public class ChartsController extends UiView {
+public class ChartsController extends UiView implements
+        VideoPathUpdatedListener,
+        VideoDeletedEventListener,
+        TagDeletedEventListener,
+        TagUpdatedEventListener,
+        FrameUpdatedEventListener
+{
     @FXML
     private BorderPane chartView;
     @FXML
@@ -118,29 +129,19 @@ public class ChartsController extends UiView {
 
         var meanLabel = ChartUtils.getMeanLabel(50, 140, "charts.legend.mean");
         meanBox = ChartUtils.getMeanLegendBox(meanLabel, ORANGE, 5, 100, 200);
+
+        VideoPathUpdatedEventDispatcher.register(this);
+        VideoDeletedEventDispatcher.register(this);
+        TagDeletedEventDispatcher.register(this);
+        TagUpdatedEventDispatcher.register(this);
+        FrameUpdatedEventDispatcher.register(this);
     }
 
     @FXML
     public void initialize() {
         bind(searchField, "charts.search-prompt");
 
-        var videos = videoQuery.getAllVideos();
-        var frames = frameQuery.getAll();
-
-        var framesByVideoId = frames.stream()
-                .filter(f -> f != null && f.video() != null)
-                .collect(Collectors.groupingBy(f -> f.video().id()));
-
-        var entries = videos.stream()
-                .map(v -> new ChartsTableEntry(
-                        v,
-                        framesByVideoId.getOrDefault(v.id(), new ArrayList<>())
-                ))
-                .toList();
-
-        entries.forEach(e -> e.selectedProperty().addListener((obs, oldVal, newVal) -> generateChart()));
-
-        cachedVideoList = FXCollections.observableArrayList(entries);
+        cachedVideoList = FXCollections.observableArrayList(cacheData());
 
         videoTable.setItems(cachedVideoList);
         selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
@@ -247,6 +248,26 @@ public class ChartsController extends UiView {
                         vd -> videoAnalyticsQuery.getTotalPoints(vd).data()
                 )))
         );
+    }
+
+    private List<ChartsTableEntry> cacheData() {
+        var videos = videoQuery.getAllVideos();
+        var frames = frameQuery.getAll();
+
+        var framesByVideoId = frames.stream()
+                .filter(f -> f != null && f.video() != null)
+                .collect(Collectors.groupingBy(f -> f.video().id()));
+
+        var entries = videos.stream()
+                .map(v -> new ChartsTableEntry(
+                        v,
+                        framesByVideoId.getOrDefault(v.id(), new ArrayList<>())
+                ))
+                .toList();
+
+        entries.forEach(e -> e.selectedProperty().addListener((obs, oldVal, newVal) -> generateChart()));
+
+        return entries;
     }
 
     //region [Chart generation]
@@ -520,8 +541,71 @@ public class ChartsController extends UiView {
 
     @Override
     public void close() {
+        VideoPathUpdatedEventDispatcher.unregister(this);
+        VideoDeletedEventDispatcher.unregister(this);
+        TagDeletedEventDispatcher.unregister(this);
+        TagUpdatedEventDispatcher.unregister(this);
+        FrameUpdatedEventDispatcher.unregister(this);
+
         uiManager.close(UIFlag.CHARTS);
         var stage = (Stage) saveArea.getScene().getWindow();
         stage.close();
+    }
+
+    @Override
+    @Async
+    public void onDeleteVideo(@NotNull VideoDTO video) {
+        var entry = cachedVideoList.stream().filter(e -> e.getVideo().equals(video)).findFirst().orElse(null);
+        cachedVideoList.remove(entry);
+        if(entry.isSelected()) generateChart();
+    }
+
+    @Override
+    @Async
+    public void onVideoPathUpdated(@NotNull VideoDTO video) {
+        var entry = cachedVideoList.stream().filter(e -> e.getVideo().equals(video)).findFirst().orElse(null);
+        entry.setVideo(video);
+        if(entry.isSelected()) generateChart();
+    }
+
+    @Override
+    @Async
+    public void onFrameUpdate(int frameNumber, FrameDTO frame) {
+        if(frame == null && cachedVideoList.stream().noneMatch(ChartsTableEntry::isSelected)) return;
+
+        cachedVideoList.clear();
+        cachedVideoList.addAll(cacheData());
+    }
+
+    @Override
+    @Async
+    public void onTagDeleted(@NotNull TagDTO tag) {
+        if(cachedVideoList.stream().noneMatch(ChartsTableEntry::isSelected)) return;
+
+        generateChart();
+    }
+
+    @Override
+    @Async
+    public void onTagDeleted(@NotNull List<TagDTO> tags) {
+        if(cachedVideoList.stream().noneMatch(ChartsTableEntry::isSelected)) return;
+
+        generateChart();
+    }
+
+    @Override
+    @Async
+    public void onTagUpdated(@NotNull TagDTO tag) {
+        if(cachedVideoList.stream().noneMatch(ChartsTableEntry::isSelected)) return;
+
+        generateChart();
+    }
+
+    @Override
+    @Async
+    public void onTagUpdated(@NotNull List<TagDTO> tags) {
+        if(cachedVideoList.stream().noneMatch(ChartsTableEntry::isSelected)) return;
+
+        generateChart();
     }
 }
