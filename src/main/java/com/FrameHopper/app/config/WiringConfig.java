@@ -50,10 +50,8 @@ public class WiringConfig {
 
     @Bean
     public TagsQuery tagsQuery(
-            JpaTagRepositoryAdapter jpaTagRepositoryAdapter,
-            UserSettingsAdapter userSettingsAdapter
-    ) {
-        return new TagQueryService(jpaTagRepositoryAdapter, userSettingsAdapter);
+            JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
+        return new TagQueryService(jpaTagRepositoryAdapter);
     }
 
     @Bean
@@ -111,8 +109,8 @@ public class WiringConfig {
     // COMMENTS
 
     @Bean
-    public CommentsQuery commentsQuery(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter) {
-        return new CommentQueryService(jpaCommentRepositoryAdapter);
+    public CommentsQuery commentsQuery(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new CommentQueryService(jpaCommentRepositoryAdapter, jpaVideoRepositoryAdapter);
     }
 
     @Bean

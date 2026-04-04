@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface TagsQuery {
     List<TagDTO> getAllTags();
-    List<Tag> getAllVisible();
     List<Tag> getTagsOnVideoFrame(Video video, int frame);
     Tag getTagByName(String name);
     Tag getTagById(int id);

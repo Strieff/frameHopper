@@ -89,11 +89,9 @@ public class VideoAnalyticsService implements VideoAnalyticsQuery {
     public double getASL(List<VideoDataDTO> videoData) {
         if(videoData.isEmpty()) return 0;
 
-        return videoData.stream().mapToDouble(d -> {
-            if(d.frames().isEmpty()) return 0;
-
-            return d.frames().stream().map(FrameDTO::tags).flatMap(List::stream).mapToDouble(TagDTO::getValue).sum();
-        }).sum() / videoData.size();
+        return videoData.stream()
+                .mapToDouble(v -> v.video().metadata().duration())
+                .sum() / videoData.size();
     }
 
     @Override

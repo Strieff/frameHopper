@@ -103,6 +103,8 @@ public class TagManagerController extends UiView implements
 
     @FXML
     private void initialize() {
+        tagManagerView.setOnMouseClicked(e -> codeTable.getSelectionModel().clearSelection());
+
         codeTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         codeColumn.setCellValueFactory(new PropertyValueFactory<>("code"));
@@ -347,17 +349,19 @@ public class TagManagerController extends UiView implements
 
     @Override
     public void onTagCreated(@NotNull TagDTO tagDTO) {
-        codeTable.getItems().add(new TagManagerTableEntry(tagDTO));
+        cachedTags.add(new TagManagerTableEntry(tagDTO));
+        refreshVisibilityFilter();
     }
 
     @Override
     public void onTagCreated(@NotNull List<TagDTO> tags) {
-        codeTable.getItems().addAll(tags.stream().map(TagManagerTableEntry::new).toList());
+        cachedTags.addAll(tags.stream().map(TagManagerTableEntry::new).toList());
+        refreshVisibilityFilter();
     }
 
     @Override
     public void onTagUpdated(@NotNull TagDTO tagDTO) {
-        var entry = codeTable.getItems().stream()
+        var entry = cachedTags.stream()
                 .filter(e ->  e.getTag().equals(tagDTO))
                 .findFirst().orElse(null);
 
@@ -369,13 +373,13 @@ public class TagManagerController extends UiView implements
 
     @Override
     public void onTagUpdated(@NotNull List<TagDTO> tags) {
-        var entries = codeTable.getItems().stream()
+        var entries = cachedTags.stream()
                 .filter(e -> tags.contains(e.getTag()))
                 .toList();
 
         if(entries.isEmpty()) return;
 
-        codeTable.getItems().forEach(e -> {
+        cachedTags.forEach(e -> {
             var tag = tags.stream().filter(t -> e.getTag().equals(t)).findFirst().orElse(null);
 
             if(tag ==null) return;
@@ -388,24 +392,14 @@ public class TagManagerController extends UiView implements
 
     @Override
     public void onTagDeleted(@NotNull TagDTO tagDTO) {
-        var entry = codeTable.getItems().stream()
-                .filter(e ->  e.getTag().equals(tagDTO))
-                .findFirst().orElse(null);
-
-        if(entry == null) return;
-
-        codeTable.getItems().remove(entry);
+        cachedTags.removeIf(e -> e.getTag().equals(tagDTO));
+        refreshVisibilityFilter();
     }
 
     @Override
     public void onTagDeleted(@NotNull List<TagDTO> tags) {
-        var entries = codeTable.getItems().stream()
-                .filter(e -> tags.contains(e.getTag()))
-                .toList();
-
-        if(entries.isEmpty()) return;
-
-        codeTable.getItems().removeAll(entries);
+        cachedTags.removeIf(e -> tags.contains(e.getTag()));
+        refreshVisibilityFilter();
     }
 
     //endregion

@@ -8,8 +8,11 @@ import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.eventing.*;
+import com.FrameHopper.app.ui.utils.SearchUtils;
 import com.FrameHopper.app.ui.ve.VideoListTableEntry;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -32,6 +35,10 @@ public class VideoListController extends UiView implements
         VideoPathUpdatedListener
 {
     @FXML
+    private TextField searchField;
+    @FXML
+    private Button searchButton;
+    @FXML
     private ListView<VideoListTableEntry> videoList;
     @FXML
     private BorderPane listView;
@@ -39,6 +46,8 @@ public class VideoListController extends UiView implements
     private final VideoQuery videoQuery;
     private final DeleteVideoCommand deleteVideoCommand;
     private final UIManager uiManager;
+
+    private ObservableList<VideoListTableEntry> cachedVideoList;
 
     public VideoListController(
             VideoQuery videoQuery,
@@ -55,6 +64,7 @@ public class VideoListController extends UiView implements
 
     @FXML
     private void initialize() {
+        listView.setOnMouseClicked(e -> listView.requestFocus());
         videoList.setCellFactory(createVideoListCellFactory());
         videoList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -63,6 +73,7 @@ public class VideoListController extends UiView implements
         addKeybinds();
 
         Platform.runLater(() -> {
+            listView.requestFocus();
             var stage = (Stage) listView.getScene().getWindow();
             stage.setOnCloseRequest(e -> close());
         });
@@ -72,8 +83,8 @@ public class VideoListController extends UiView implements
         var videos = videoQuery.getAllVideos();
 
         if(videos != null && !videos.isEmpty()) {
-            videoList.getItems().clear();
-            videoList.getItems().addAll(videos.stream().map(VideoListTableEntry::new).toList());
+            cachedVideoList = FXCollections.observableArrayList(videos.stream().map(VideoListTableEntry::new).toList());
+            videoList.setItems(cachedVideoList);
         }
     }
 
@@ -168,6 +179,17 @@ public class VideoListController extends UiView implements
     }
 
     //endregion
+
+    @FXML
+    public void handleSearch() {
+        SearchUtils.handleSearch(
+            searchButton,
+            searchField,
+            videoList,
+            cachedVideoList,
+            (list, query) -> list.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase()))
+        );
+    }
 
     @Override
     public void addKeybinds() {

@@ -7,27 +7,20 @@ import com.FrameHopper.app.core.ports.`in`.frame.CreateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.DeleteFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.UpdateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
+import com.FrameHopper.app.core.ports.out.UserSettingsPort
 import com.FrameHopper.app.ui.UIFlag
 import com.FrameHopper.app.ui.UIManager
 import com.FrameHopper.app.ui.UiView
 import com.FrameHopper.app.ui.actions.HistoryActions
 import com.FrameHopper.app.ui.actions.PasteRecentAction
 import com.FrameHopper.app.ui.actions.RemoveRecentAction
-import com.FrameHopper.app.ui.eventing.VideoDeletedEventListener
-import com.FrameHopper.app.ui.eventing.FrameUpdatedEventDispatcher
-import com.FrameHopper.app.ui.eventing.FrameUpdatedEventListener
-import com.FrameHopper.app.ui.eventing.TagCreatedEventDispatcher
-import com.FrameHopper.app.ui.eventing.TagCreatedEventListener
-import com.FrameHopper.app.ui.eventing.TagDeletedEventDispatcher
-import com.FrameHopper.app.ui.eventing.TagDeletedEventListener
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventDispatcher
-import com.FrameHopper.app.ui.eventing.TagUpdatedEventListener
-import com.FrameHopper.app.ui.eventing.VideoDeletedEventDispatcher
+import com.FrameHopper.app.ui.eventing.*
 import com.FrameHopper.app.ui.utils.SearchUtils
 import javafx.application.Platform
 import javafx.beans.property.*
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.fxml.FXML
@@ -44,6 +37,7 @@ import javafx.util.Callback
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
+import java.util.function.Predicate
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -53,6 +47,7 @@ open class FrameTagManagerController (
     private val updateFrameCommand: UpdateFrameCommand,
     private val deleteFrameCommand: DeleteFrameCommand,
     private val uiManager: UIManager,
+    private val userSettings: UserSettingsPort,
     private val pasteRecentAction: PasteRecentAction,
     private val removeRecentAction: RemoveRecentAction,
     private val historyActions: HistoryActions
@@ -61,7 +56,8 @@ open class FrameTagManagerController (
     TagCreatedEventListener,
     TagUpdatedEventListener,
     FrameUpdatedEventListener,
-    VideoDeletedEventListener
+    VideoDeletedEventListener,
+    ShowHiddenEventListener
 {
     @FXML
     private lateinit var searchField: TextField
@@ -85,7 +81,8 @@ open class FrameTagManagerController (
     private lateinit var frameTagManagerView: BorderPane
 
     private lateinit var cachedFrame: FrameDTO
-    private lateinit var cachedTagList: ObservableList<FrameTagManagerTableEntry?>
+    private val cachedTagList: ObservableList<FrameTagManagerTableEntry?> = FXCollections.observableArrayList()
+    private lateinit var filteredCache: FilteredList<FrameTagManagerTableEntry?>
 
     private val addedCache = mutableListOf<TagDTO>()
     private val removedCache = mutableListOf<TagDTO>()
@@ -96,10 +93,16 @@ open class FrameTagManagerController (
         TagCreatedEventDispatcher.register(this)
         FrameUpdatedEventDispatcher.register(this)
         VideoDeletedEventDispatcher.register(this)
+        ShowHiddenEventDispatcher.register(this)
     }
 
     @FXML
     fun initialize() {
+        frameTagManagerView.setOnMouseClicked {_ ->
+            frameTagManagerView.requestFocus()
+            codeTable.selectionModel.clearSelection()
+        }
+
         codeColumn.cellValueFactory = PropertyValueFactory("name")
         bind(codeColumn, "ftm.table.name")
 
@@ -109,20 +112,28 @@ open class FrameTagManagerController (
         selectColumn.cellValueFactory = Callback {it.value?.selected}
         selectColumn.cellFactory = CheckBoxTableCell.forTableColumn(selectColumn)
 
-
-        cachedTagList = FXCollections.observableArrayList(
-            tagsQuery.getAllTags()
-                ?.takeIf { it.isNotEmpty() }
-                ?.map { tag -> FrameTagManagerTableEntry(tag).apply {
-                    selected.addListener { _, _, newValue ->
-                        if(!::cachedFrame.isInitialized) return@addListener
-
-                        if(newValue == true) addedCache.add(tag)
-                        else removedCache.add(tag)
-                    }
-                }} ?: emptyList()
+        codeTable.stylesheets.add(
+            javaClass.classLoader?.getResource("styling/tag-table.css")?.toExternalForm()
         )
-        codeTable.items = cachedTagList
+        codeTable.setRowFactory { _: TableView<FrameTagManagerTableEntry?> ->
+            object : TableRow<FrameTagManagerTableEntry?>() {
+                override fun updateItem(item: FrameTagManagerTableEntry?, empty: Boolean) {
+                    super.updateItem(item, empty)
+
+                    styleClass.remove("hidden-tag-row")
+
+                    if (empty || item == null) {
+                        return
+                    }
+
+                    if (!item.cachedTag.visible) {
+                        styleClass.add("hidden-tag-row")
+                    }
+                }
+            }
+        }
+
+        loadTagTable()
 
         bind(cancelButton, "ftm.button.cancel")
         cancelButton.setOnAction { _: ActionEvent? -> close() }
@@ -152,6 +163,33 @@ open class FrameTagManagerController (
             }
 
         cachedFrame = frame
+    }
+
+    fun loadTagTable(){
+        cachedTagList.addAll(tagsQuery.getAllTags()
+            ?.takeIf { it.isNotEmpty() }
+            ?.map { tag -> FrameTagManagerTableEntry(tag).apply {
+                selected.addListener { _, _, newValue ->
+                    if(!::cachedFrame.isInitialized) return@addListener
+
+                    if(newValue == true) addedCache.add(tag)
+                    else removedCache.add(tag)
+                }
+            }} ?: emptyList())
+
+        filteredCache = FilteredList<FrameTagManagerTableEntry?>(cachedTagList);
+        codeTable.items = filteredCache
+
+        refreshVisibilityFilter()
+    }
+
+    fun refreshVisibilityFilter() {
+        filteredCache.predicate = Predicate { e: FrameTagManagerTableEntry? ->
+            e != null &&
+                    (userSettings.showHidden() || e.cachedTag.visible)
+        }
+
+        codeTable.refresh()
     }
 
     @FXML
@@ -217,6 +255,7 @@ open class FrameTagManagerController (
         TagCreatedEventDispatcher.unregister (this)
         FrameUpdatedEventDispatcher.unregister (this)
         VideoDeletedEventDispatcher.unregister (this)
+        ShowHiddenEventDispatcher.unregister (this)
 
         addedCache.clear()
         removedCache.clear()
@@ -260,6 +299,7 @@ open class FrameTagManagerController (
 
     override fun onTagUpdated(tag: TagDTO) {
         cachedTagList.find { it?.cachedTag == tag }?.setTag(tag)
+        refreshVisibilityFilter()
     }
 
     override fun onTagUpdated(tags: List<TagDTO>) {
@@ -268,6 +308,7 @@ open class FrameTagManagerController (
             val updated = tagMap[e?.cachedTag] ?: return@forEach
             e?.setTag(updated)
         }
+        refreshVisibilityFilter()
     }
 
     override fun onFrameUpdate(frameNumber: Int, frame: FrameDTO?) {
@@ -287,6 +328,10 @@ open class FrameTagManagerController (
 
     override fun onDeleteVideo(video: VideoDTO) {
         if(video == cachedFrame.video()) close()
+    }
+
+    override fun onSHowHiddenUpdated() {
+        refreshVisibilityFilter()
     }
 
     //endregion

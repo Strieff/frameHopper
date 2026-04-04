@@ -14,6 +14,7 @@ import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.eventing.*;
 import com.FrameHopper.app.ui.utils.ChartUtils;
+import com.FrameHopper.app.ui.utils.SearchUtils;
 import com.FrameHopper.app.ui.ve.ChartsActionEntry;
 import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
@@ -489,17 +490,13 @@ public class ChartsController extends UiView implements
 
     @FXML
     public void handleSearch() {
-        var query = searchField.getText().trim();
-        if(query.isEmpty() && !searchButton.getText().equals("X")) return;
-
-        if(searchButton.getText().equals("\uD83D\uDD0D")) {
-            videoTable.setItems(cachedVideoList.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase())));
-            searchButton.setText("X");
-        } else {
-            videoTable.setItems(cachedVideoList);
-            searchButton.setText("\uD83D\uDD0D");
-            searchField.clear();
-        }
+        SearchUtils.handleSearch(
+            searchButton,
+            searchField,
+            videoTable,
+            cachedVideoList,
+            (list, query) -> list.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase()))
+        );
     }
 
     @Async
