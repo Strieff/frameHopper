@@ -1,6 +1,6 @@
 package com.FrameHopper.app.adapters.api.exposure
 
-import com.FrameHopper.app.adapters.api.mappers.CommentMapper
+import com.FrameHopper.app.adapters.api.mappers.CommentExposureMapper
 import com.FrameHopper.app.core.ports.`in`.comment.CommentsQuery
 import com.FrameHopper.app.core.ports.`in`.video.VideoQuery
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,7 +21,7 @@ class CommentController(
     fun getNotesByVideoId(@PathVariable videoId: Int): ResponseEntity<String> {
         val video = videoQuery.getVideoById(videoId) ?: return ResponseEntity.notFound().build()
         val comments = commentsQuery.getAllCommentsByVideo(video) ?: return ResponseEntity.notFound().build()
-        val exposureData = comments.map { CommentMapper.toExposure(it) }
+        val exposureData = comments.map { CommentExposureMapper.toExposure(it) }
 
         return ResponseEntity<String>(ObjectMapper().writeValueAsString(exposureData), HttpStatus.OK)
     }
@@ -29,7 +29,7 @@ class CommentController(
     @GetMapping("commentId/{commentId}")
     fun getNoteById(@PathVariable commentId: Int): ResponseEntity<String> {
         val comment = commentsQuery.getCommentById(commentId) ?: return ResponseEntity.notFound().build()
-        val exposureData = CommentMapper.toExposure(comment)
+        val exposureData = CommentExposureMapper.toExposure(comment)
 
         return ResponseEntity<String>(ObjectMapper().writeValueAsString(exposureData), HttpStatus.OK)
     }

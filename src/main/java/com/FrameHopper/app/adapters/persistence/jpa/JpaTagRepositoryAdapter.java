@@ -1,5 +1,6 @@
 package com.FrameHopper.app.adapters.persistence.jpa;
 
+import com.FrameHopper.app.adapters.persistence.entities.FrameEntity;
 import com.FrameHopper.app.adapters.persistence.mappers.TagMapper;
 import com.FrameHopper.app.adapters.persistence.mappers.VideoMapper;
 import com.FrameHopper.app.adapters.persistence.repository.FrameRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -36,8 +38,16 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
     @Override
     public List<Tag> getAllByVideo(Video video) {
         var videoEntity = VideoMapper.fromDomain(video);
+        var frameEntities = frameRepository.getFrameEntitiesByVideoEntity(videoEntity);
 
-        return null;//TODO: join on frames
+        if(frameEntities.isEmpty()) return new ArrayList<>();
+
+        return frameEntities.stream()
+                .map(FrameEntity::getTagEntities)
+                .flatMap(List::stream)
+                .collect(Collectors.toSet()).stream()
+                .map(TagMapper::toDomain)
+                .toList();
     }
 
     @Override

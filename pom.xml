@@ -24,6 +24,7 @@
         <log4j2.version>2.23.1</log4j2.version>
         <jfx.version>23</jfx.version>
         <kotlin.version>2.2.20</kotlin.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
     <dependencies>
@@ -49,7 +50,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -133,7 +134,7 @@
     </dependencies>
 
     <build>
-        <testSourceDirectory>target/generated-test-sources/test-annotations</testSourceDirectory>
+        <!--<testSourceDirectory>target/generated-test-sources/test-annotations</testSourceDirectory>-->
         <finalName>${project.name} ${project.version}</finalName>
 
         <plugins>
@@ -176,12 +177,33 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>21</jvmTarget>
+                    <compilerPlugins>
+                        <plugin>lombok</plugin>
+                    </compilerPlugins>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-lombok</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-compile</id>

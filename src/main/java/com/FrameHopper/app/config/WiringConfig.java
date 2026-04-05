@@ -49,9 +49,8 @@ public class WiringConfig {
     // TAGS
 
     @Bean
-    public TagsQuery tagsQuery(
-            JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
-        return new TagQueryService(jpaTagRepositoryAdapter);
+    public TagsQuery tagsQuery(JpaTagRepositoryAdapter jpaTagRepositoryAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+        return new TagQueryService(jpaTagRepositoryAdapter, jpaVideoRepositoryAdapter);
     }
 
     @Bean
