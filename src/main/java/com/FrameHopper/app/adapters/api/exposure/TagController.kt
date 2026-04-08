@@ -31,7 +31,7 @@ open class TagController(
         return ResponseEntity<String>(ObjectMapper().setSerializationInclusion(Include.NON_NULL).writeValueAsString(exposureData), HttpStatus.OK)
     }
 
-    @GetMapping("tagId/{tagId}")
+    @GetMapping("id/{tagId}")
     fun getTagById(@PathVariable tagId: Int): ResponseEntity<String> {
         val tag = tagsQuery.getTagById(tagId) ?: return ResponseEntity.notFound().build()
         val exposureData = TagExposureMapper.toExposure(tag)
@@ -49,7 +49,7 @@ open class TagController(
             tag = it,
             amountUsed = tagAnalyticsQuery.getAmountUsed(it, listOf(VideoDataDTO(video, frames))).data.toInt(),
             totalPoints = tagAnalyticsQuery.getTotalPoints(it, listOf(VideoDataDTO(video, frames))).data.toDouble()
-        )}
+        ) }
 
         return ResponseEntity<String>(ObjectMapper().setSerializationInclusion(Include.NON_NULL).writeValueAsString(exposureData), HttpStatus.OK)
     }

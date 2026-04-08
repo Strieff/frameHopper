@@ -4,7 +4,7 @@ import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
 import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;

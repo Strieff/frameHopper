@@ -1,4 +1,4 @@
-package com.FrameHopper.app.adapters.settings;
+package com.FrameHopper.app.ui.settings;
 
 import com.FrameHopper.app.core.ports.out.UserSettingsPort;
 import com.FrameHopper.app.ui.eventing.ShowHiddenEventDispatcher;

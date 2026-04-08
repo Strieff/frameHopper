@@ -18,4 +18,6 @@ public interface VideoRepository extends JpaRepository<VideoEntity,Integer> {
     @EntityGraph(attributePaths = {"commentEntities"})
     @Query("select v from VideoEntity v")
     List<VideoEntity> getVideoEntitiesWithNotes();
+
+    List<VideoEntity> getVideoEntitiesByName(String name);
 }

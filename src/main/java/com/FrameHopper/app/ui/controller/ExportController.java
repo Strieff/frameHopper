@@ -1,7 +1,7 @@
 package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.adapters.DataExportAdapter;
-import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO;

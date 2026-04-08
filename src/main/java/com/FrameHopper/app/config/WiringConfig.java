@@ -5,7 +5,6 @@ import com.FrameHopper.app.adapters.persistence.jpa.JpaCommentRepositoryAdapter;
 import com.FrameHopper.app.adapters.persistence.jpa.JpaFrameRepositoryAdapter;
 import com.FrameHopper.app.adapters.persistence.jpa.JpaTagRepositoryAdapter;
 import com.FrameHopper.app.adapters.persistence.jpa.JpaVideoRepositoryAdapter;
-import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
 import com.FrameHopper.app.core.application.FrameBytesQueryService;
 import com.FrameHopper.app.core.application.analytics.TagAnalyticsQuery;
 import com.FrameHopper.app.core.application.analytics.TagAnalyticsService;

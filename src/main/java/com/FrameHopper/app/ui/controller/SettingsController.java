@@ -1,6 +1,6 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;
 import com.FrameHopper.app.ui.UiView;

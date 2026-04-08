@@ -30,6 +30,15 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
     }
 
     @Override
+    public List<Video> getByName(String name) {
+        var entities = videoRepository.getVideoEntitiesByName(name);
+
+        if(entities == null || entities.isEmpty()) return null;
+
+        return entities.stream().map(VideoMapper::toDomain).toList();
+    }
+
+    @Override
     public List<Video> getAll() {
         var entities = videoRepository.findAll();
 

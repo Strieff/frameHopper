@@ -57,6 +57,15 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
     }
 
     @Override
+    public List<VideoDTO> getVideoByName(String name) {
+        var videos = videoRepositoryPort.getByName(name);
+
+        if(videos == null || videos.isEmpty()) return null;
+
+        return videos.stream().map(VideoMapper::fromDomain).toList();
+    }
+
+    @Override
     public Video.VideoMetadata getVideoMetadataById(int id) {
         return videoRepositoryPort.getById(id).getMetadata();
     }

@@ -1,0 +1,15 @@
+###get all videos
+GET http://localhost:8080/api/videos
+Accept: application/json
+
+###get video by id without frames, comments, analytics
+GET http://localhost:8080/api/videos/id/1
+Accept: application/json
+
+###get video by id with frames, comments, analytics
+GET http://localhost:8080/api/videos/id/1?showAnalytics=true&showNotes=true
+Accept: application/json
+
+###get video by name
+GET http://localhost:8080/api/videos/name/Zabotest.mp4
+Accept: application/json

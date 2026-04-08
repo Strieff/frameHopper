@@ -1,4 +1,4 @@
-package com.FrameHopper.app.adapters.settings;
+package com.FrameHopper.app.ui.settings;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;

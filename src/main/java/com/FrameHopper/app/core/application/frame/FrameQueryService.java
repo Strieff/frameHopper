@@ -25,10 +25,23 @@ public class FrameQueryService implements FrameQuery {
     }
 
     @Override
+    public FrameDTO get(VideoDTO video, int frameNo) {
+        var coreVideo = VideoMapper.toDomain(video);
+
+        var frame = jpaFrameRepositoryAdapter.getFrameByVideoAndFrameNumber(coreVideo, frameNo);
+
+        if (frame == null) return null;
+
+        return FrameMapper.fromDomain(frame);
+    }
+
+    @Override
     public List<FrameDTO> getAllFramesOnVideo(VideoDTO video) {
         var coreVideo = VideoMapper.toDomain(video);
 
         var frames = jpaFrameRepositoryAdapter.getAllFramesOnVideo(coreVideo);
+
+        if(frames == null || frames.isEmpty()) return null;
 
         return frames.stream().map(FrameMapper::fromDomain).toList();
     }

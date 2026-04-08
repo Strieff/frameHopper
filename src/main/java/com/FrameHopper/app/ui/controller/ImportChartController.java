@@ -2,7 +2,7 @@ package com.FrameHopper.app.ui.controller;
 
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
 import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
-import com.FrameHopper.app.adapters.settings.UserSettingsAdapter;
+import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.utils.ChartUtils;
 import javafx.application.Platform;

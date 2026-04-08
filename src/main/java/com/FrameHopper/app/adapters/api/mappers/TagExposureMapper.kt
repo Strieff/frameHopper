@@ -8,7 +8,6 @@ object TagExposureMapper {
         tag: TagDTO,
         amountUsed: Int? = null,
         totalPoints: Double? = null,
-
     ): TagExposureDTO {
         return TagExposureDTO(
             tag.id,
