@@ -7,7 +7,7 @@ import com.FrameHopper.app.core.ports.`in`.frame.CreateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.DeleteFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.UpdateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
-import com.FrameHopper.app.core.ports.out.UserSettingsPort
+import com.FrameHopper.app.ui.settings.UserSettingsPort
 import com.FrameHopper.app.ui.UIFlag
 import com.FrameHopper.app.ui.UIManager
 import com.FrameHopper.app.ui.UiView
@@ -330,10 +330,7 @@ open class FrameTagManagerController (
         if(video == cachedFrame.video()) close()
     }
 
-    override fun onSHowHiddenUpdated() {
-        refreshVisibilityFilter()
-    }
-
+    override fun onSHowHiddenUpdated() = refreshVisibilityFilter()
     //endregion
 }
 

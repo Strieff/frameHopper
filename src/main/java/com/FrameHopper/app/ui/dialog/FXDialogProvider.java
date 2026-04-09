@@ -1,16 +1,12 @@
-package com.FrameHopper.app.View.Elements.FXElementsProviders;
+package com.FrameHopper.app.ui.dialog;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.View.Elements.Language.LanguageEntry;
-import com.FrameHopper.app.View.Elements.Language.LanguageManager;
+import com.FrameHopper.app.ui.language.I18n;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class FXDialogProvider {
     //ERROR MESSAGES
@@ -18,7 +14,7 @@ public class FXDialogProvider {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle(title);
-            alert.setHeaderText(Dictionary.get("error"));
+            alert.setHeaderText(I18n.tr("error"));
             alert.setContentText(message);
             alert.showAndWait();
         });
@@ -35,13 +31,13 @@ public class FXDialogProvider {
         alert.setContentText(message);
         alert.setHeaderText(null);
 
-        var yesButton = new ButtonType(Dictionary.get("yes"));
-        var noButton = new ButtonType(Dictionary.get("no"));
+        var yesButton = new ButtonType(I18n.tr("dialog.yes"));
+        var noButton = new ButtonType(I18n.tr("dialog.no"));
 
         alert.getButtonTypes().setAll(yesButton, noButton);
 
         try{
-            return alert.showAndWait().get().getText().equals(Dictionary.get("yes"));
+            return alert.showAndWait().get().getText().equals(I18n.tr("dialog.yes"));
         }catch(Exception e){
             return false;
         }
@@ -96,12 +92,12 @@ public class FXDialogProvider {
     public static String inputDialog(){
         Dialog<String> dialog = new Dialog<>();
 
-        var okButton = new ButtonType(Dictionary.get("ok"), ButtonBar.ButtonData.OK_DONE);
-        var cancelButton = new ButtonType(Dictionary.get("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        var okButton = new ButtonType(I18n.tr("dialog.ok"), ButtonBar.ButtonData.OK_DONE);
+        var cancelButton = new ButtonType(I18n.tr("dialog.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().setAll(okButton, cancelButton);
 
         var textField = new TextField();
-        textField.setPromptText(Dictionary.get("dialog.input.fileName"));
+        textField.setPromptText(I18n.tr("dialog.input.name"));
 
         var content = new VBox();
         content.getChildren().add(textField);
@@ -109,32 +105,6 @@ public class FXDialogProvider {
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(db -> db == okButton ? textField.getText() : null);
-
-        return dialog.showAndWait().orElse(null);
-    }
-
-    //GET LANGUAGE DIALOG
-    public static String languageDialog(){
-        Dialog<String> dialog = new Dialog<>();
-
-        var okButton = new ButtonType(Dictionary.get("ok"), ButtonBar.ButtonData.OK_DONE);
-        var cancelButton = new ButtonType(Dictionary.get("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().setAll(okButton, cancelButton);
-
-        List<LanguageEntry> languages = new ArrayList<>();
-        LanguageManager.getLanguages().forEach((key,value) -> languages.add(new LanguageEntry(key,value)));
-
-        ComboBox<LanguageEntry> languageBox = new ComboBox<>();
-        languageBox.getItems().addAll(languages);
-        languageBox.getSelectionModel().select(languages.stream().filter(i -> i.getCode().equals("en")).findFirst().get());
-
-        var content = new VBox();
-        content.setAlignment(Pos.CENTER);
-        content.getChildren().add(languageBox);
-        content.setSpacing(10);
-        dialog.getDialogPane().setContent(content);
-
-        dialog.setResultConverter(db -> db == okButton ? languageBox.getSelectionModel().getSelectedItem().getCode() : "en");
 
         return dialog.showAndWait().orElse(null);
     }

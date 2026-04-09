@@ -27,17 +27,13 @@ object I18n {
     fun getLocale(): Locale = locale.get()
 
     @JvmStatic
-    fun setLocale(code: String) {
-        locale.set(Locale.of(code))
-    }
+    fun setLocale(code: String) = locale.set(Locale.of(code))
 
     @JvmStatic
-    fun bind(key: String, vararg args: Any?): StringBinding {
-        return Bindings.createStringBinding(
+    fun bind(key: String, vararg args: Any?): StringBinding = Bindings.createStringBinding(
             {tr(key,*args)},
             locale
         )
-    }
 
     @JvmStatic
     fun tr(key: String, vararg args: Any?): String {
@@ -66,11 +62,9 @@ object I18n {
         }
     }
 
-    private fun getBundle(locale: Locale): ResourceBundle? {
-        return cache.getOrPut(locale) {
+    private fun getBundle(locale: Locale): ResourceBundle? = cache.getOrPut(locale) {
             loadExternalThenInternal(locale)
         }
-    }
 
     private fun loadExternalThenInternal(locale: Locale): ResourceBundle {
         val external = getExternalBundle(locale)
@@ -89,9 +83,7 @@ object I18n {
         }
     }
 
-    private fun getInternalBundle(): ResourceBundle {
-        return ResourceBundle.getBundle(INTERNAL_BASE_NAME, Locale.ENGLISH)
-    }
+    private fun getInternalBundle(): ResourceBundle = ResourceBundle.getBundle(INTERNAL_BASE_NAME, Locale.ENGLISH)
 
     @JvmStatic
     fun clearCache() {

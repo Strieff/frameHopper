@@ -8,15 +8,13 @@ object TagExposureMapper {
         tag: TagDTO,
         amountUsed: Int? = null,
         totalPoints: Double? = null,
-    ): TagExposureDTO {
-        return TagExposureDTO(
-            tag.id,
-            tag.name,
-            tag.value ?: 0.0,
-            tag.description.ifEmpty { null },
-            tag.visible,
-            amountUsed,
-            totalPoints,
-        )
-    }
+    ): TagExposureDTO = TagExposureDTO(
+        tag.id,
+        tag.name,
+        tag.value ?: 0.0,
+        tag.description.ifEmpty { null },
+        tag.visible,
+        amountUsed,
+        totalPoints,
+    )
 }

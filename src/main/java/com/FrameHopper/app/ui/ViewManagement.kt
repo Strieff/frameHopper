@@ -12,13 +12,11 @@ open class UIManager {
     val flags: EnumMap<UIFlag, Boolean> = EnumMap(UIFlag::class.java)
 
     @PostConstruct
-    fun init() {
-        UIFlag.entries.forEach { flag -> flags[flag] = false }
-    }
+    fun init() = UIFlag.entries.forEach { flag -> flags[flag] = false }
 
     fun isOpen(flag: UIFlag): Boolean = flags[flag] == true
 
-    fun open(flag: UIFlag, node: Node):  FXMLLoader {
+    fun open(flag: UIFlag, node: Node): FXMLLoader {
         val loader = FXMLViewLoader.getView(flag.fileName, flag.windowName, node)
         if (flag.singleInstance)
             flags[flag] = true
@@ -26,9 +24,7 @@ open class UIManager {
         return loader
     }
 
-    fun openMain(primaryStage: Stage) {
-        FXMLViewLoader.getMainView(UIFlag.MAIN.fileName, UIFlag.MAIN.windowName, primaryStage)
-    }
+    fun openMain(primaryStage: Stage): FXMLLoader = FXMLViewLoader.getMainView(UIFlag.MAIN.fileName, UIFlag.MAIN.windowName, primaryStage)
 
     fun close(flag: UIFlag) {
         flags[flag] = false

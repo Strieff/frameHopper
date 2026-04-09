@@ -1,13 +1,13 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
+import com.FrameHopper.app.ui.utils.FXIconLoader;
 import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.core.ports.in.tag.ChangeTagStatusCommand;
 import com.FrameHopper.app.core.ports.in.tag.CreateTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.DeleteTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
-import com.FrameHopper.app.core.ports.out.UserSettingsPort;
+import com.FrameHopper.app.ui.settings.UserSettingsPort;
 import com.FrameHopper.app.ui.FXMLViewLoader;
 import com.FrameHopper.app.ui.UIFlag;
 import com.FrameHopper.app.ui.UIManager;

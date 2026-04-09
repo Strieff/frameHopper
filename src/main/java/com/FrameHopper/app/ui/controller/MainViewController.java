@@ -1,6 +1,6 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
+import com.FrameHopper.app.ui.utils.FXIconLoader;
 import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
@@ -231,6 +231,7 @@ public class MainViewController extends UiView implements
     private void cacheTagData() {
         cachedTags.clear();
         var allFramesOnVideo = frameQuery.getAllFramesOnVideo(cachedVideoProperty.get());
+        if(allFramesOnVideo == null) return;
 
         allFramesOnVideo.forEach(f -> cachedTags.put(f.frameNumber(), f));
     }

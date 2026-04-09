@@ -31,17 +31,6 @@ open class HistoryActions (
         history.addPrevious(lastState)
 
         applySnapshot(previous, lastState, frameNum)
-
-        /*if(previous == null) {
-            deleteFrameCommand.deleteFrame(lastState?.id ?: -1)
-            FrameUpdatedEventDispatcher.dispatch(frameNum, null)
-            return
-        }
-
-        val frame = if(frameQuery.get(previous.id) == null) createFrameCommand.createFrame(previous)
-        else updateFrameCommand.updateFrame(previous)
-
-        FrameUpdatedEventDispatcher.dispatch(frameNum, frame)*/
     }
 
     fun redo(frameNum: Int, lastState: FrameDTO?){
@@ -56,18 +45,6 @@ open class HistoryActions (
         history.addNext(lastState)
 
         applySnapshot(next, lastState, frameNum)
-
-        /*if(next == null) {
-            deleteFrameCommand.deleteFrame(lastState?.id ?: -1)
-            FrameUpdatedEventDispatcher.dispatch(frameNum, null)
-            return
-        }
-
-        val frame = if(frameQuery.get(next.id) == null) createFrameCommand.createFrame(next)
-        else updateFrameCommand.updateFrame(next)
-
-        FrameUpdatedEventDispatcher.dispatch(frameNum, frame)*/
-
     }
 
     private fun applySnapshot(state: FrameDTO?, lastState: FrameDTO?, frameNum: Int) {

@@ -1,4 +1,4 @@
-package com.FrameHopper.app.View.Elements.FXElementsProviders;
+package com.FrameHopper.app.ui.utils;
 
 import javafx.scene.image.Image;
 

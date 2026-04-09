@@ -1,10 +1,9 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.video.UpdateVideoPathCommand;
 import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.dialog.FileChooserProvider;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
 import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
 import javafx.application.Platform;

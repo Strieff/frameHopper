@@ -1,8 +1,8 @@
 package com.FrameHopper.app.adapters.ffmpeg;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
+import com.FrameHopper.app.ui.dialog.FXDialogProvider;
 import com.FrameHopper.app.core.domain.Video;
+import com.FrameHopper.app.ui.language.I18n;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class FfmpegService {
         isFfmpegPresent = isExternalFfmpegPresent || isBundledFfmpegPresent;
 
         if(!isFfmpegPresent)
-            FXDialogProvider.messageDialog(Dictionary.get("ffmpeg.missing"));
+            FXDialogProvider.messageDialog(I18n.tr("error.ffmpeg-missing"));
     }
 
     public byte[] extractFrameBytes(String path, int index) throws InterruptedException, IOException {

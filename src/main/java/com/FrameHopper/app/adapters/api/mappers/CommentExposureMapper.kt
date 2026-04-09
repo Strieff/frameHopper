@@ -4,7 +4,5 @@ import com.FrameHopper.app.adapters.api.model.CommentExposureDTO
 import com.FrameHopper.app.boundry.dto.CommentDTO
 
 object CommentExposureMapper {
-    fun toExposure(comment: CommentDTO): CommentExposureDTO {
-        return CommentExposureDTO(comment.id, comment.content)
-    }
+    fun toExposure(comment: CommentDTO): CommentExposureDTO = CommentExposureDTO(comment.id, comment.content)
 }

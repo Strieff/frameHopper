@@ -1,6 +1,6 @@
 package com.FrameHopper.app.ui.utils
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider
+import com.FrameHopper.app.ui.dialog.FXDialogProvider
 import javafx.scene.image.Image
 import java.nio.file.Files
 import java.nio.file.Path

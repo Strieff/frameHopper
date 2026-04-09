@@ -1,12 +1,9 @@
-package com.FrameHopper.app.config;
+package com.FrameHopper.app.ui.settings;
 
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
-import com.FrameHopper.app.ui.settings.UserSettings;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -41,12 +38,5 @@ public class UserSettingsConfig {
             throw new RuntimeException(e);
         }
         UserSettings.setInstance(new ObjectMapper().readValue(userSettings, UserSettings.class));
-    }
-
-    @Bean(name = "SetDictionary")
-    @DependsOn("UserSettings")
-    public void setDictionary() {
-        String code = UserSettings.getInstance().getLanguage();
-        new Dictionary(code);
     }
 }

@@ -1,81 +1,89 @@
-package com.FrameHopper.app.adapters.ffmpeg;
+package com.FrameHopper.app.adapters.ffmpeg
 
-import com.FrameHopper.app.core.domain.Video;
-import com.FrameHopper.app.core.ports.out.FfmpegPort;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.FrameHopper.app.core.domain.Video
+import com.FrameHopper.app.core.ports.out.FfmpegPort
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.cancellation.CancellationException
 
 @Component
-@RequiredArgsConstructor
-public class FfmpegAdapter implements FfmpegPort {
-    private final static int PRE_LOADING_AMOUNT = 20;
-    private final Logger logger = LoggerFactory.getLogger(FfmpegAdapter.class);
+open class FfmpegAdapter(
+    val ffmpegService: FfmpegService,
+    val frameCache: FrameCache
+) : FfmpegPort {
+    private val logger = LoggerFactory.getLogger(FfmpegAdapter::class.java)
 
-    private final ExecutorService prefetchExec = Executors.newSingleThreadExecutor();
-    private final Set<Integer> inFlight = ConcurrentHashMap.newKeySet();
-
-    private final FfmpegService ffmpegService;
-    private final FrameCache frameCache;
-
-    @Override
-    public void loadVideo(Video video){
-        inFlight.clear();
-        frameCache.clear();
-
-        schedulePrefetch(video, 0);
+    companion object {
+        private const val PRE_LOADING_AMOUNT = 20
     }
 
-    @Override
-    public byte[] getFrameBytes(Video video, int index) throws InterruptedException, IOException {
-        if(frameCache.containsKey(index))
-            return frameCache.get(index);
+    private val inFlight = ConcurrentHashMap.newKeySet<Int>()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var prefetchJob: Job? = null
 
-        schedulePrefetch(video, index);
+    override fun loadVideo(video: Video) {
+        prefetchJob?.cancel()
+        inFlight.clear()
+        frameCache.clear()
 
-        return ffmpegService.extractFrameBytes(video.getPath(), index);
+        schedulePrefetch(video, 0)
     }
 
-    @Override
-    public Video.VideoMetadata getVideoMetadata(String path) throws InterruptedException, IOException {
-        return ffmpegService.getVideoInfo(path);
+    override fun getFrameBytes(
+        video: Video,
+        index: Int
+    ): ByteArray {
+        frameCache.get(index)?.let { return it }
+
+        schedulePrefetch(video, index)
+
+        return ffmpegService.extractFrameBytes(video.path, index)
     }
 
-    //region [Cache filling]
+    override fun getVideoMetadata(path: String): Video.VideoMetadata = ffmpegService.getVideoInfo(path)
 
-    @Async
-    protected void schedulePrefetch(Video video, int currentIndex) {
-        int half = PRE_LOADING_AMOUNT / 2;
-        int from = Math.max(0, currentIndex - half);
-        int to = Math.min(video.getMetadata().totalFrames() - 1, currentIndex + half);
+    private fun schedulePrefetch(video: Video, currentIndex: Int) {
+        val half = PRE_LOADING_AMOUNT/2
+        val from = maxOf(0, currentIndex - half)
+        val to = minOf(video.metadata.totalFrames - 1, currentIndex + half)
 
-        prefetchExec.submit(() -> {
-            for (int i = currentIndex + 1; i <= to; i++) singlePreFetch(video.getPath(), i);
-            for (int i = currentIndex - 1; i >= from; i--) singlePreFetch(video.getPath(), i);
-        });
-    }
+        prefetchJob?.cancel()
+        prefetchJob = scope.launch {
+            for (i in (currentIndex + 1)..to) {
+                singlePrefetch(video.path, i)
+            }
 
-    private void singlePreFetch(String path, int index) {
-        if(frameCache.containsKey(index)) return;
-        if(!inFlight.add(index)) return;
-
-        try {
-            var bytes = ffmpegService.extractFrameBytes(path, index);
-            frameCache.put(index, bytes);
-        } catch (InterruptedException | IOException e) {
-            logger.error("Failed to prefetch video data for index {}", index, e);
-        } finally {
-            inFlight.remove(index);
+            for (i in (currentIndex - 1) downTo from) {
+                singlePrefetch(video.path, i)
+            }
         }
     }
 
-    //endregion
+    private suspend fun singlePrefetch(path: String, index: Int) {
+        if (frameCache.containsKey(index)) return
+        if(!inFlight.add(index)) return
+
+        try {
+            val bytes = withContext(Dispatchers.IO) {
+                ffmpegService.extractFrameBytes(path, index)
+            }
+            frameCache.put(index, bytes)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            logger.error("Failed to prefetch video data for index {}", index, e)
+        } catch (e: InterruptedException) {
+            logger.error("Failed to prefetch video data for index {}", index, e)
+        } finally {
+            inFlight.remove(index)
+        }
+    }
 }

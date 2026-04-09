@@ -1,6 +1,6 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
+import com.FrameHopper.app.ui.utils.FXIconLoader;
 import com.FrameHopper.app.boundry.dto.CommentDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;

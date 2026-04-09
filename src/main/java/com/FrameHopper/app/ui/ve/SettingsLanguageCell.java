@@ -1,6 +1,5 @@
 package com.FrameHopper.app.ui.ve;
 
-import com.FrameHopper.app.View.Elements.Language.LanguageEntry;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.image.ImageView;
@@ -30,10 +29,10 @@ public class SettingsLanguageCell extends ListCell<SettingsLanguageEntry> {
 
             if (language.getFlagIcon() != null) {
                 imageView.setImage(language.getFlagIcon());
-                imageView.setFitHeight(16); // Set desired icon size
+                imageView.setFitHeight(16);
                 imageView.setFitWidth(24);
             } else {
-                imageView.setImage(null); // No image if flag is missing
+                imageView.setImage(null);
             }
 
             setGraphic(hbox);

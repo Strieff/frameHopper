@@ -1,9 +1,8 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FileChooserProvider;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
+import com.FrameHopper.app.ui.dialog.FXDialogProvider;
+import com.FrameHopper.app.ui.dialog.FileChooserProvider;
+import com.FrameHopper.app.ui.utils.FXIconLoader;
 import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
 import com.FrameHopper.app.boundry.dto.TagDTO;
@@ -172,7 +171,6 @@ public class ChartsController extends UiView implements
         bind(colorMean, "charts.chart-options.color-mean");
 
         generateButton.setOnMouseClicked(e -> generateChart());
-        generateButton.setText(Dictionary.get("chart.generate"));
         bind(generateButton, "charts.button.generate");
 
         bind(yAxisLabel, "charts.y-axis-options.label");
@@ -447,7 +445,7 @@ public class ChartsController extends UiView implements
     @FXML
     public void handleExport() {
         try {
-            var fileDir = com.FrameHopper.app.ui.dialog.FileChooserProvider.locationFileSaveChooser(
+            var fileDir = FileChooserProvider.locationFileSaveChooser(
                     (Stage) chartPane.getScene().getWindow(),
                     ".csv",
                     userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""
@@ -458,7 +456,7 @@ public class ChartsController extends UiView implements
             var processedData = option.apply(data);
 
             final StringBuilder output = new StringBuilder()
-                    .append("name;").append(option.getLabel()); //TODO: change to use dictionary
+                    .append("name;").append(option.getLabel()); //TODO: change to use I18n
 
             processedData.forEach((key, value) -> output
                     .append("\n")
@@ -503,7 +501,7 @@ public class ChartsController extends UiView implements
     @FXML
     public void handleSave() {
         try {
-            var fileDir = com.FrameHopper.app.ui.dialog.FileChooserProvider.locationFileSaveChooser(
+            var fileDir = FileChooserProvider.locationFileSaveChooser(
                     (Stage)chartPane.getScene().getWindow(),
                     ".png",
                     userSettingsAdapter.useRecentExportPath() ? userSettingsAdapter.getRecentExportPath() : ""

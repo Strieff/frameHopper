@@ -1,7 +1,6 @@
 package com.FrameHopper.app.ui.dialog;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.Language.Dictionary;
+import com.FrameHopper.app.ui.language.I18n;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -79,20 +78,20 @@ public class FileChooserProvider {
 
         while (new File(finalPath).exists()) {
             var res = FXDialogProvider.customDialog(
-                    Dictionary.get("dialog.export.exists"),
+                    I18n.tr("dialog.save.file-exists"),
                     0,
-                    Dictionary.get("cancel"),
-                    Dictionary.get("dialog.export.option.rename"),
-                    Dictionary.get("dialog.export.option.overwrite")
+                    I18n.tr("dialog.cancel"),
+                    I18n.tr("dialog.save.rename"),
+                    I18n.tr("dialog.save.rename.overwrite")
             );
 
             switch (res) {
                 case 0:
-                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
+                    FXDialogProvider.messageDialog(I18n.tr("message.cancelled"));
                     break;
                 case 1:
                     name = FXDialogProvider.inputDialog();
-                    if (name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+                    if (name.isBlank()) FXDialogProvider.errorDialog(I18n.tr("error.dialog.name-empty"));
                     finalPath = selectedLocation.getAbsolutePath() + File.separator + name;
                     break;
             }
@@ -113,20 +112,20 @@ public class FileChooserProvider {
 
         while (saveDirectory.exists()) {
             var res = FXDialogProvider.customDialog(
-                    Dictionary.get("dialog.export.exists"),
+                    I18n.tr("dialog.save.file-exists"),
                     0,
-                    Dictionary.get("cancel"),
-                    Dictionary.get("dialog.export.option.rename"),
-                    Dictionary.get("dialog.export.option.overwrite")
+                    I18n.tr("dialog.cancel"),
+                    I18n.tr("dialog.save.rename"),
+                    I18n.tr("dialog.save.rename.overwrite")
             );
 
             switch (res) {
                 case 0:
-                    FXDialogProvider.messageDialog(Dictionary.get("cancelled"));
+                    FXDialogProvider.messageDialog(I18n.tr("message.cancelled"));
                     break;
                 case 1:
                     name = FXDialogProvider.inputDialog();
-                    if (name.isBlank()) FXDialogProvider.errorDialog(Dictionary.get("error.export.no-name"));
+                    if (name.isBlank()) FXDialogProvider.errorDialog(I18n.tr("error.dialog.name-empty"));
                     break;
             }
 

@@ -1,7 +1,7 @@
 package com.FrameHopper.app.ui.controller;
 
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXDialogProvider;
-import com.FrameHopper.app.View.Elements.FXElementsProviders.FXIconLoader;
+import com.FrameHopper.app.ui.dialog.FXDialogProvider;
+import com.FrameHopper.app.ui.utils.FXIconLoader;
 import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.ui.UiView;
 import com.FrameHopper.app.ui.utils.ChartUtils;
@@ -60,7 +60,7 @@ public class ImportChartController extends UiView {
     @FXML
     public void initialize(){
         saveButtonIcon.setImage(FXIconLoader.getLargeIcon("save.png"));
-        closeButtonIcon.setImage(FXIconLoader.getLargeIcon("x.png"));
+        closeButtonIcon.setImage(FXIconLoader.getLargeIcon("close.png"));
 
         addKeybinds();
 

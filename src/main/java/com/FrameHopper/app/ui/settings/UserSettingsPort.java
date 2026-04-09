@@ -1,4 +1,4 @@
-package com.FrameHopper.app.core.ports.out;
+package com.FrameHopper.app.ui.settings;
 
 public interface UserSettingsPort {
     void setLanguage(String code);
