@@ -9,4 +9,10 @@ public interface ExcelExportAdapter {
             Map<String, Map<String, Number>> tagExportData,
             String fileDir
     );
+
+    byte[] exportToExcel(
+            Map<String, Map<String, Number>> videoExportData,
+            Map<String, Number> videoSummaryExportData,
+            Map<String, Map<String, Number>> tagExportData
+    );
 }

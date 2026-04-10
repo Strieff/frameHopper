@@ -12,8 +12,8 @@ import java.io.FileWriter;
 public class UserSettingsAdapter implements UserSettingsPort {
     private final UserSettings settings;
 
-    public UserSettingsAdapter() {
-        this.settings = UserSettings.getInstance();
+    public UserSettingsAdapter(UserSettings settings) {
+        this.settings = settings;
     }
 
     @Override

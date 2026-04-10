@@ -250,7 +250,15 @@ public class MainViewController extends UiView implements
         try {
             var index = indexProperty.get();
             var frameBytes = frameBytesQuery.getVideoFrame(cachedVideoProperty.get(), index);
-            Image fxImage = new Image(new ByteArrayInputStream(frameBytes));
+            displayCurrentFrame(frameBytes, index);
+        } catch (IOException | InterruptedException e) {
+            logger.error(e.getMessage(),e);
+        }
+    }
+
+    private void displayCurrentFrame(byte[] bytes, int index) {
+        try {
+            Image fxImage = new Image(new ByteArrayInputStream(bytes));
 
             if(fxImage.isError())
                 throw new IOException("JavaFX failed to decode frame image for index " + index);
@@ -263,7 +271,7 @@ public class MainViewController extends UiView implements
             frameView.setPickOnBounds(true);
             frameView.fitWidthProperty().bind(framePane.widthProperty());
             frameView.fitHeightProperty().bind(framePane.heightProperty());
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             logger.error(e.getMessage(),e);
         }
     }
@@ -507,6 +515,38 @@ public class MainViewController extends UiView implements
        );
    }
 
+    //endregion
+
+    //region [FRAME MANIPULATION]
+
+   private void flipHorizontally() {
+       try {
+           var index = indexProperty.get();
+           var flippedFrame = frameBytesQuery.flipFrame(
+                   cachedVideoProperty.get(),
+                   indexProperty.get(),
+                   true
+           );
+           displayCurrentFrame(flippedFrame, index);
+       } catch (IOException | InterruptedException e) {
+           throw new RuntimeException(e);
+       }
+   }
+
+    private void flipVertically() {
+        try {
+            var index = indexProperty.get();
+            var flippedFrame = frameBytesQuery.flipFrame(
+                    cachedVideoProperty.get(),
+                    indexProperty.get(),
+                    false
+            );
+            displayCurrentFrame(flippedFrame, index);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
    //endregion
 
     @Override
@@ -514,6 +554,9 @@ public class MainViewController extends UiView implements
         //keybinds
         keyActions.put(new KeyCodeCombination(KeyCode.COMMA), this::moveLeft);
         keyActions.put(new KeyCodeCombination(KeyCode.PERIOD), this::moveRight);
+        keyActions.put(new KeyCodeCombination(KeyCode.H), this::flipHorizontally);
+        keyActions.put(new KeyCodeCombination(KeyCode.V), this::flipVertically);
+
         keyActions.put(new KeyCodeCombination(KeyCode.M, KeyCombination.SHIFT_DOWN), this::onAdd);
         keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.SHIFT_DOWN), this::onManager);
         keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.SHIFT_DOWN), this::onManager);
@@ -523,10 +566,12 @@ public class MainViewController extends UiView implements
         keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onChart);
         keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::onNotes);
         keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::openVideoDetails);
+
         keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::pasteRecent);
         keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
         keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redo);
         keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undo);
+
         keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), I18n::clearCache);
         keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), () -> {
             LanguageBundleUtils.creteBundle();

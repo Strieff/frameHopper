@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.application.comment;
 
 import com.FrameHopper.app.boundry.dto.CommentDTO;
-import com.FrameHopper.app.boundry.mappers.CommentMapper;
+import com.FrameHopper.app.boundry.mappers.BoundaryCommentMapper;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;
 import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderCommand;
 import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
@@ -23,7 +23,7 @@ public class CommentCommandService implements
 
     @Override
     public CommentDTO updateCommentContent(CommentDTO comment) {
-        var coreComment = CommentMapper.toDomain(comment);
+        var coreComment = BoundaryCommentMapper.toDomain(comment);
         var coreVideo = videoRepositoryPort.getById(comment.getVideoId());
 
         if(coreVideo == null)
@@ -31,7 +31,7 @@ public class CommentCommandService implements
 
         coreComment = commentRepositoryPort.update(coreComment, coreVideo);
 
-        return CommentMapper.fromDomain(coreComment);
+        return BoundaryCommentMapper.fromDomain(coreComment);
     }
 
     @Override
@@ -47,10 +47,10 @@ public class CommentCommandService implements
         if(coreVideo == null)
             throw new IllegalArgumentException("Video not found");
 
-        var coreComments = comments.stream().map(CommentMapper::toDomain).toList();
+        var coreComments = comments.stream().map(BoundaryCommentMapper::toDomain).toList();
         coreComments = commentRepositoryPort.update(coreComments, coreVideo);
 
-        return coreComments.stream().map(CommentMapper::fromDomain).toList();
+        return coreComments.stream().map(BoundaryCommentMapper::fromDomain).toList();
     }
 
     @Override
@@ -58,7 +58,7 @@ public class CommentCommandService implements
         if(comment.getVideoId() < 0)
             throw new IllegalArgumentException("Invalid video id");
 
-        var coreComment = CommentMapper.toDomain(comment);
+        var coreComment = BoundaryCommentMapper.toDomain(comment);
         var coreVideo = videoRepositoryPort.getById(comment.getVideoId());
 
         if(coreVideo == null)
@@ -66,7 +66,7 @@ public class CommentCommandService implements
 
         var createdComment = commentRepositoryPort.create(coreComment,coreVideo);
 
-        return CommentMapper.fromDomain(createdComment);
+        return BoundaryCommentMapper.fromDomain(createdComment);
     }
 
     @Override

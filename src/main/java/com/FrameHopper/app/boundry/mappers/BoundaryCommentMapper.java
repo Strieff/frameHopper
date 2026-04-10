@@ -3,7 +3,7 @@ package com.FrameHopper.app.boundry.mappers;
 import com.FrameHopper.app.boundry.dto.CommentDTO;
 import com.FrameHopper.app.core.domain.Comment;
 
-public class CommentMapper {
+public class BoundaryCommentMapper {
     public static CommentDTO fromDomain(Comment comment) {
         return new CommentDTO(
                 comment.getId(),

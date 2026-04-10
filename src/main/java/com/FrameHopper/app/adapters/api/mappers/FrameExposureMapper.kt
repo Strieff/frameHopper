@@ -1,6 +1,6 @@
 package com.FrameHopper.app.adapters.api.mappers
 
-import com.FrameHopper.app.adapters.api.model.FrameExposureDTO
+import com.FrameHopper.app.adapters.api.model.out.FrameExposureDTO
 import com.FrameHopper.app.boundry.dto.FrameDTO
 
 object FrameExposureMapper {

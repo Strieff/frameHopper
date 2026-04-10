@@ -15,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor
 public class TagEntity {
     @Id
-    @GeneratedValue(generator = "sequence_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
     @Column(name = "name")

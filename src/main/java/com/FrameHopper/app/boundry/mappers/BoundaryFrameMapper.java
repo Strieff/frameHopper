@@ -8,16 +8,16 @@ import com.FrameHopper.app.core.domain.Tag;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class FrameMapper {
+public class BoundaryFrameMapper {
     public static FrameDTO fromDomain(Frame frame) {
         var tags = frame.getTags() == null || frame.getTags().isEmpty() ?
                 new ArrayList<TagDTO>() :
-                new LinkedList<>(frame.getTags().stream().map(TagMapper::fromDomain).toList());
+                new LinkedList<>(frame.getTags().stream().map(BoundaryTagMapper::fromDomain).toList());
 
         return new FrameDTO(
                 frame.getId(),
                 frame.getFrameNumber(),
-                frame.getVideo() == null ? null : VideoMapper.fromDomain(frame.getVideo()),
+                frame.getVideo() == null ? null : BoundaryVideoMapper.fromDomain(frame.getVideo()),
                 tags
         );
     }
@@ -25,12 +25,12 @@ public class FrameMapper {
     public static Frame toDomain(FrameDTO frameDTO) {
         var tags = frameDTO.tags() == null || frameDTO.tags().isEmpty() ?
                 new ArrayList<Tag>() :
-                frameDTO.tags().stream().map(TagMapper::toDomain).toList();
+                frameDTO.tags().stream().map(BoundaryTagMapper::toDomain).toList();
 
         return new Frame(
                 frameDTO.id(),
                 frameDTO.frameNumber(),
-                frameDTO.video() == null ? null : VideoMapper.toDomain(frameDTO.video()),
+                frameDTO.video() == null ? null : BoundaryVideoMapper.toDomain(frameDTO.video()),
                 tags
         );
     }

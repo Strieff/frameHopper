@@ -3,7 +3,7 @@ package com.FrameHopper.app.boundry.mappers;
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.boundry.dto.TagDTO;
 
-public class TagMapper {
+public class BoundaryTagMapper {
     public static Tag toDomain(TagDTO tagDTO) {
         return new Tag(
                 tagDTO.getId(),

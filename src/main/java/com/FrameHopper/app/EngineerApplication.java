@@ -1,7 +1,6 @@
 package com.FrameHopper.app;
 
 import com.FrameHopper.app.ui.dialog.FXDialogProvider;
-import com.FrameHopper.app.ui.settings.UserSettings;
 import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
 import com.FrameHopper.app.ui.FXMLViewLoader;
@@ -11,8 +10,8 @@ import com.FrameHopper.app.ui.language.I18n;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -60,7 +59,7 @@ public class EngineerApplication extends Application {
     }
 
     private static void openRecent(ConfigurableApplicationContext context){
-        var videoId = UserSettings.getInstance().getRecentlyOpenedId();
+        var videoId = context.getBean(UserSettingsAdapter.class).getRecentlyOpenId();
         if(videoId == -1)
             return;
 

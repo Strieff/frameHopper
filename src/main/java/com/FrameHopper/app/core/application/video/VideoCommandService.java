@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.application.video;
 
 import com.FrameHopper.app.boundry.dto.VideoDTO;
-import com.FrameHopper.app.boundry.mappers.VideoMapper;
+import com.FrameHopper.app.boundry.mappers.BoundaryVideoMapper;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.in.video.*;
 import com.FrameHopper.app.core.ports.out.FfmpegPort;
@@ -35,11 +35,11 @@ public class VideoCommandService implements
         if(existingVideo != null)
             throw new IllegalArgumentException("Video already exists");
 
-        var toChange = VideoMapper.toDomain(video);
+        var toChange = BoundaryVideoMapper.toDomain(video);
         toChange.changePath(newPath);
         toChange = videoRepositoryPort.update(toChange);
 
-        return VideoMapper.fromDomain(toChange);
+        return BoundaryVideoMapper.fromDomain(toChange);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class VideoCommandService implements
         }
 
         ffmpegPort.loadVideo(loadedVideo);
-        return VideoMapper.fromDomain(loadedVideo);
+        return BoundaryVideoMapper.fromDomain(loadedVideo);
     }
 
     @Override
@@ -78,6 +78,6 @@ public class VideoCommandService implements
             throw new IllegalArgumentException("Video with id " + id + " not found");
 
         ffmpegPort.loadVideo(loadedVideo);
-        return VideoMapper.fromDomain(loadedVideo);
+        return BoundaryVideoMapper.fromDomain(loadedVideo);
     }
 }

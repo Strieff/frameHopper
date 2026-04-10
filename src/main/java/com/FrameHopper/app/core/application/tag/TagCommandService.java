@@ -6,7 +6,7 @@ import com.FrameHopper.app.core.ports.in.tag.DeleteTagCommand;
 import com.FrameHopper.app.core.ports.in.tag.UpdateTagCommand;
 import com.FrameHopper.app.core.ports.out.repository.TagRepositoryPort;
 import com.FrameHopper.app.boundry.dto.TagDTO;
-import com.FrameHopper.app.boundry.mappers.TagMapper;
+import com.FrameHopper.app.boundry.mappers.BoundaryTagMapper;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -35,10 +35,10 @@ public class TagCommandService implements
         if(!message.isEmpty())
             throw new IllegalArgumentException(message);
 
-        var tag = TagMapper.toDomain(tagDto);
+        var tag = BoundaryTagMapper.toDomain(tagDto);
         var savedTag = tagRepositoryPort.create(tag);
 
-        return TagMapper.fromDomain(savedTag);
+        return BoundaryTagMapper.fromDomain(savedTag);
     }
 
     @Override
@@ -48,12 +48,12 @@ public class TagCommandService implements
             if(!message.isEmpty())
                 throw new IllegalArgumentException(message);
 
-            return TagMapper.toDomain(t);
+            return BoundaryTagMapper.toDomain(t);
         }).toList();
 
         domainTags = tagRepositoryPort.create(domainTags);
 
-        return domainTags.stream().map(TagMapper::fromDomain).toList();
+        return domainTags.stream().map(BoundaryTagMapper::fromDomain).toList();
     }
 
     private String validateTag(TagDTO dto) {
@@ -85,10 +85,10 @@ public class TagCommandService implements
         if(tagDto.getValue() == null || tagDto.getValue().isNaN())
             throw new IllegalArgumentException("Value must be a number");
 
-        var tag = TagMapper.toDomain(tagDto);
+        var tag = BoundaryTagMapper.toDomain(tagDto);
         var updatedTag = tagRepositoryPort.update(tag);
 
-        return TagMapper.fromDomain(updatedTag);
+        return BoundaryTagMapper.fromDomain(updatedTag);
     }
 
     @Override

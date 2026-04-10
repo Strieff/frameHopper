@@ -10,10 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
 public class UserSettings {
-    @Getter
-    @Setter
-    private static UserSettings instance;
-
     private Boolean showHidden = false;
     private Boolean openRecent = false;
     private Boolean useRecentExportPath = false;

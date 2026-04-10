@@ -145,7 +145,7 @@ open class FrameTagManagerController (
 
         Platform.runLater {
             val stage = frameTagManagerView.scene.window as Stage
-            stage.onCloseRequest = EventHandler { _: WindowEvent? -> close() }
+            stage.onCloseRequest = EventHandler { close() }
             frameTagManagerView.requestFocus()
         }
     }

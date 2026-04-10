@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class VideoMapper {
+public class BoundaryVideoMapper {
     public static VideoDTO fromDomain(Video video) {
         MetadataDto metadata = null;
 
@@ -25,7 +25,7 @@ public class VideoMapper {
 
         var list = video.getNotes();
         ArrayList<CommentDTO> commentDTOs = (list == null || list.isEmpty()) ? new ArrayList<>() :
-                list.stream().map(CommentMapper::fromDomain).collect(Collectors.toCollection(ArrayList::new));
+                list.stream().map(BoundaryCommentMapper::fromDomain).collect(Collectors.toCollection(ArrayList::new));
 
 
         return new VideoDTO(
@@ -51,7 +51,7 @@ public class VideoMapper {
 
         var dtoList = videoDTO.comments();
         List<Comment> comments = (dtoList == null || dtoList.isEmpty()) ? new ArrayList<>() :
-                dtoList.stream().map(CommentMapper::toDomain).toList();
+                dtoList.stream().map(BoundaryCommentMapper::toDomain).toList();
 
         return new Video(
                 videoDTO.id(),

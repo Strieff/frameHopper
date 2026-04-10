@@ -2,9 +2,7 @@ package com.FrameHopper.app.core.application.comment;
 
 import com.FrameHopper.app.boundry.dto.CommentDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
-import com.FrameHopper.app.boundry.mappers.CommentMapper;
-import com.FrameHopper.app.core.domain.Comment;
-import com.FrameHopper.app.core.domain.Video;
+import com.FrameHopper.app.boundry.mappers.BoundaryCommentMapper;
 import com.FrameHopper.app.core.ports.in.comment.CommentsQuery;
 import com.FrameHopper.app.core.ports.out.repository.CommentRepositoryPort;
 import com.FrameHopper.app.core.ports.out.repository.VideoRepositoryPort;
@@ -24,7 +22,7 @@ public class CommentQueryService implements CommentsQuery {
 
         if(comment == null) return null;
 
-        return CommentMapper.fromDomain(comment);
+        return BoundaryCommentMapper.fromDomain(comment);
     }
 
     @Override
@@ -37,7 +35,7 @@ public class CommentQueryService implements CommentsQuery {
 
         if(coreComments == null || coreComments.isEmpty()) return new ArrayList<>();
 
-        return coreComments.stream().map(CommentMapper::fromDomain).toList();
+        return coreComments.stream().map(BoundaryCommentMapper::fromDomain).toList();
     }
 
     @Override

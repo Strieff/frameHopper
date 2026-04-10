@@ -9,4 +9,8 @@ public interface CSVExportAdapter {
             Map<String, Map<String, Number>> tagExportData,
             String dir
     );
+
+    String getVideosData(Map<String, Map<String, Number>> videoExportData);
+    String getVideosSummaryData(Map<String, Number> videoSummaryExportData);
+    String getTagsData(Map<String, Map<String, Number>> tagExportData);
 }

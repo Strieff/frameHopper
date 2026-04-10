@@ -2,7 +2,7 @@ package com.FrameHopper.app.core.application.frame;
 
 import com.FrameHopper.app.adapters.persistence.jpa.JpaFrameRepositoryAdapter;
 import com.FrameHopper.app.boundry.dto.FrameDTO;
-import com.FrameHopper.app.boundry.mappers.FrameMapper;
+import com.FrameHopper.app.boundry.mappers.BoundaryFrameMapper;
 import com.FrameHopper.app.core.ports.in.frame.CreateFrameCommand;
 import com.FrameHopper.app.core.ports.in.frame.DeleteFrameCommand;
 import com.FrameHopper.app.core.ports.in.frame.UpdateFrameCommand;
@@ -18,14 +18,14 @@ public class FrameCommandService implements
 
     @Override
     public FrameDTO createFrame(FrameDTO frame) {
-        var toCreate = FrameMapper.toDomain(frame);
+        var toCreate = BoundaryFrameMapper.toDomain(frame);
 
         if (toCreate.getFrameNumber() < 0)
             throw new IllegalArgumentException("Frame number must be greater than or equal to 0");
 
         var created = jpaFrameRepositoryAdapter.create(toCreate);
 
-        return FrameMapper.fromDomain(created);
+        return BoundaryFrameMapper.fromDomain(created);
     }
 
     @Override
@@ -43,9 +43,9 @@ public class FrameCommandService implements
         if(jpaFrameRepositoryAdapter.getFrameById(frame.id()) == null)
             throw new IllegalArgumentException("Frame not found");
 
-        var updated = FrameMapper.toDomain(frame);
+        var updated = BoundaryFrameMapper.toDomain(frame);
         updated = jpaFrameRepositoryAdapter.update(updated);
 
-        return FrameMapper.fromDomain(updated);
+        return BoundaryFrameMapper.fromDomain(updated);
     }
 }

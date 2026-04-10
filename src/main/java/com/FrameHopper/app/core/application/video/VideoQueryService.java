@@ -1,7 +1,7 @@
 package com.FrameHopper.app.core.application.video;
 
 import com.FrameHopper.app.boundry.dto.VideoDTO;
-import com.FrameHopper.app.boundry.mappers.VideoMapper;
+import com.FrameHopper.app.boundry.mappers.BoundaryVideoMapper;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.in.video.VideoMetadataQuery;
 import com.FrameHopper.app.core.ports.in.video.VideoQuery;
@@ -25,7 +25,7 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
         if(videos == null || videos.isEmpty())
             return new ArrayList<>();
 
-        return videos.stream().map(VideoMapper::fromDomain).toList();
+        return videos.stream().map(BoundaryVideoMapper::fromDomain).toList();
     }
 
     @Override
@@ -35,7 +35,7 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
         if(videos == null || videos.isEmpty())
             return new ArrayList<>();
 
-        return videos.stream().map(VideoMapper::fromDomain).toList();
+        return videos.stream().map(BoundaryVideoMapper::fromDomain).toList();
     }
 
     @Override
@@ -48,7 +48,7 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
         if(video == null)
             throw new IllegalArgumentException("Video with id " + id + " not found");
 
-        return VideoMapper.fromDomain(video);
+        return BoundaryVideoMapper.fromDomain(video);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
 
         if(videos == null || videos.isEmpty()) return null;
 
-        return videos.stream().map(VideoMapper::fromDomain).toList();
+        return videos.stream().map(BoundaryVideoMapper::fromDomain).toList();
     }
 
     @Override

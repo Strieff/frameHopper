@@ -1,7 +1,7 @@
 package com.FrameHopper.app.adapters.api.mappers
 
-import com.FrameHopper.app.adapters.api.model.VideoExposureDTO
-import com.FrameHopper.app.adapters.api.model.VideoMetadataExposureDTO
+import com.FrameHopper.app.adapters.api.model.out.VideoExposureDTO
+import com.FrameHopper.app.adapters.api.model.out.VideoMetadataExposureDTO
 import com.FrameHopper.app.boundry.dto.CommentDTO
 import com.FrameHopper.app.boundry.dto.FrameDTO
 import com.FrameHopper.app.boundry.dto.VideoDTO

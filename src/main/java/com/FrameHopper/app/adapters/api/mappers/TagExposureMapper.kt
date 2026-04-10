@@ -1,6 +1,6 @@
 package com.FrameHopper.app.adapters.api.mappers
 
-import com.FrameHopper.app.adapters.api.model.TagExposureDTO
+import com.FrameHopper.app.adapters.api.model.out.TagExposureDTO
 import com.FrameHopper.app.boundry.dto.TagDTO
 
 object TagExposureMapper {

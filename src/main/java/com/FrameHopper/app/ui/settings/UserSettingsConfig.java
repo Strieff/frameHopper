@@ -16,7 +16,7 @@ public class UserSettingsConfig {
 
     @SneakyThrows
     @Bean(name = "UserSettings")
-    public void getUserSettings() {
+    public UserSettings getUserSettings() {
         String userSettings;
         try {
             Path path = Path.of(SETTINGS_PATH).toAbsolutePath().normalize();
@@ -37,6 +37,6 @@ public class UserSettingsConfig {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        UserSettings.setInstance(new ObjectMapper().readValue(userSettings, UserSettings.class));
+        return new ObjectMapper().readValue(userSettings, UserSettings.class);
     }
 }

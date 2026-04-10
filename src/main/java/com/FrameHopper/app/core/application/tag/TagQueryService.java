@@ -2,7 +2,7 @@ package com.FrameHopper.app.core.application.tag;
 
 import com.FrameHopper.app.boundry.dto.TagDTO;
 import com.FrameHopper.app.boundry.dto.VideoDTO;
-import com.FrameHopper.app.boundry.mappers.TagMapper;
+import com.FrameHopper.app.boundry.mappers.BoundaryTagMapper;
 import com.FrameHopper.app.core.domain.Tag;
 import com.FrameHopper.app.core.domain.Video;
 import com.FrameHopper.app.core.ports.in.tag.TagsQuery;
@@ -23,7 +23,7 @@ public class TagQueryService implements TagsQuery {
 
         if(coreTags == null || coreTags.isEmpty()) return null;
 
-        return coreTags.stream().map(TagMapper::fromDomain).toList();
+        return coreTags.stream().map(BoundaryTagMapper::fromDomain).toList();
     }
 
     @Override
@@ -36,7 +36,7 @@ public class TagQueryService implements TagsQuery {
 
         if(coreTags == null) return null;
 
-        return coreTags.stream().map(TagMapper::fromDomain).toList();
+        return coreTags.stream().map(BoundaryTagMapper::fromDomain).toList();
     }
 
     @Override
@@ -45,7 +45,7 @@ public class TagQueryService implements TagsQuery {
 
         if(tag == null) return null;
 
-        return TagMapper.fromDomain(tag);
+        return BoundaryTagMapper.fromDomain(tag);
     }
 
     @Override
@@ -56,7 +56,11 @@ public class TagQueryService implements TagsQuery {
     }
 
     @Override
-    public Tag getTagByName(String name) {
-        return tagRepositoryPort.getByName(name);
+    public TagDTO getTagByName(String name) {
+        var tag = tagRepositoryPort.getByName(name);
+
+        if(tag == null) return null;
+
+        return BoundaryTagMapper.fromDomain(tag);
     }
 }

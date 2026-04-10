@@ -23,16 +23,37 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
             Map<String, Map<String, Number>> tagExportData,
             String dir
     ) {
-        var videoData = getCSVData(videoExportData, "video");
+        var videoData = getVideosData(videoExportData);
 
-        var summaryData = getCSVSummaryData(videoSummaryExportData);
+        var summaryData = getVideosSummaryData(videoSummaryExportData);
         var dummySummaryPath = dir + File.separator + "summary.csv";
 
-        var tagData = getCSVData(tagExportData, "tags");
+        var tagData = getTagsData(tagExportData);
 
         writeToFile(videoData, getCSVFilePath(dir,"video"));
         writeToFile(summaryData, dummySummaryPath);
         writeToFile(tagData, getCSVFilePath(dir,"tags"));
+    }
+
+    @Override
+    public String getVideosData(Map<String, Map<String, Number>> videoExportData) {
+        return getCSVData(videoExportData, "video");
+    }
+
+    @Override
+    public String getVideosSummaryData(Map<String, Number> videoSummaryExportData) {
+        List<List<String>> data = new LinkedList<>();
+        data.add(videoSummaryExportData.keySet().stream().filter(e -> !e.contains("undefined")).toList());
+        data.add(videoSummaryExportData.values().stream().filter(Objects::nonNull).map(Number::toString).toList());
+
+        return data.stream()
+                .map(row -> String.join(";", row))
+                .collect(Collectors.joining("\n"));
+    }
+
+    @Override
+    public String getTagsData(Map<String, Map<String, Number>> tagExportData) {
+        return getCSVData(tagExportData, "tags");
     }
 
     //region [CSV Helpers]
@@ -58,16 +79,6 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
 
         return rows.stream()
                 .map(row -> String.join(";",row))
-                .collect(Collectors.joining("\n"));
-    }
-
-    private String getCSVSummaryData(Map<String, Number> summaryData) {
-        List<List<String>> data = new LinkedList<>();
-        data.add(summaryData.keySet().stream().filter(e -> !e.contains("undefined")).toList());
-        data.add(summaryData.values().stream().filter(Objects::nonNull).map(Number::toString).toList());
-
-        return data.stream()
-                .map(row -> String.join(";", row))
                 .collect(Collectors.joining("\n"));
     }
 
@@ -100,29 +111,57 @@ public class DataExportAdapter implements ExcelExportAdapter, CSVExportAdapter {
             String fileDir
     ) {
         try(
-                Workbook workbook = WorkbookFactory.create(true);
+                Workbook workbook = createWorkbook(videoExportData, videoSummaryExportData, tagExportData);
                 var fos = new FileOutputStream(fileDir)
         ) {
-            var videoDataSheet = setUpExcelSheet(workbook, "video", videoExportData);
-
-            addSummaryData(videoDataSheet, videoSummaryExportData);
-
-            setUpExcelSheet(workbook, "tags", tagExportData);
-
-            CellStyle decimalStyle = workbook.createCellStyle();
-            DataFormat df = workbook.createDataFormat();
-            decimalStyle.setDataFormat(df.getFormat("0.000"));
-
             workbook.write(fos);
             fos.flush();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public byte[] exportToExcel(
+            Map<String, Map<String, Number>> videoExportData,
+            Map<String, Number> videoSummaryExportData,
+            Map<String, Map<String, Number>> tagExportData
+    ) {
+        try (
+                Workbook workbook = createWorkbook(videoExportData, videoSummaryExportData, tagExportData);
+                ByteArrayOutputStream bos = new ByteArrayOutputStream()
+        ) {
+            workbook.write(bos);
+            workbook.close();
+
+            return bos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     //region [Excel Helpers]
+
+    private Workbook createWorkbook(
+            Map<String, Map<String, Number>> videoExportData,
+            Map<String, Number> videoSummaryExportData,
+            Map<String, Map<String, Number>> tagExportData) {
+        try {
+            Workbook workbook = WorkbookFactory.create(true);
+
+            var videoDataSheet = setUpExcelSheet(workbook, "video", videoExportData);
+            addSummaryData(videoDataSheet, videoSummaryExportData);
+            setUpExcelSheet(workbook, "tags", tagExportData);
+
+            CellStyle decimalStyle = workbook.createCellStyle();
+            DataFormat df = workbook.createDataFormat();
+            decimalStyle.setDataFormat(df.getFormat("0.000"));
+
+            return workbook;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private void addSummaryData(Sheet sheet, Map<String, Number> summaryData) {
         var lastColumn =  sheet.getLastRowNum();

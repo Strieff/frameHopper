@@ -11,6 +11,6 @@ public interface TagsQuery {
     List<TagDTO> getAllTags();
     List<TagDTO> getAllOnVideo(VideoDTO video);
     List<Tag> getTagsOnVideoFrame(Video video, int frame);
-    Tag getTagByName(String name);
+    TagDTO getTagByName(String name);
     TagDTO getTagById(int id);
 }
