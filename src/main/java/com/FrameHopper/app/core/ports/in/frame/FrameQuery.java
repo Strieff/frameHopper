@@ -9,5 +9,6 @@ public interface FrameQuery {
     FrameDTO get(int id);
     FrameDTO get(VideoDTO video, int frameNo);
     List<FrameDTO> getAllFramesOnVideo(VideoDTO video);
+    List<FrameDTO> getAllFramesOnVideos(List<VideoDTO> video);
     List<FrameDTO> getAll();
 }

@@ -21,12 +21,12 @@ import java.net.Socket;
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.FrameHopper.app.adapters.persistence.repository")
 @EntityScan(basePackages = {"com.FrameHopper.app.adapters.persistence.entities"})
-public class EngineerApplication extends Application {
+public class FrameHopperApplication extends Application {
     private ConfigurableApplicationContext context;
 
     @Override
     public void init() {
-        SpringApplicationBuilder builder = new SpringApplicationBuilder(EngineerApplication.class).headless(false);
+        SpringApplicationBuilder builder = new SpringApplicationBuilder(FrameHopperApplication.class).headless(false);
         context = builder.run();
         new FXMLViewLoader(context);
     }

@@ -20,4 +20,7 @@ public interface VideoRepository extends JpaRepository<VideoEntity,Integer> {
     List<VideoEntity> getVideoEntitiesWithNotes();
 
     List<VideoEntity> getVideoEntitiesByName(String name);
+
+    @Query("select v from VideoEntity v where v.id in :ids")
+    List<VideoEntity> getVideoEntitiesById(List<Integer> ids);
 }

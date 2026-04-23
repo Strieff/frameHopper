@@ -9,6 +9,7 @@ public interface VideoQuery {
     List<VideoDTO> getAllVideos();
     List<VideoDTO> getAllWithNotes();
     VideoDTO getVideoById(int id);
+    List<VideoDTO> getVideosByIds(List<Integer> ids);
     Video getVideoByPath(String path);
     List<VideoDTO> getVideoByName(String name);
 }

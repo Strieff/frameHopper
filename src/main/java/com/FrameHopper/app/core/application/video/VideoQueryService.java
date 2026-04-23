@@ -52,6 +52,19 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
     }
 
     @Override
+    public List<VideoDTO> getVideosByIds(List<Integer> ids) {
+        if(ids == null || ids.isEmpty())
+            throw new IllegalArgumentException("id list cannot be empty");
+
+        var videos = videoRepositoryPort.getByIds(ids);
+
+        if(videos == null || videos.isEmpty())
+            return null;
+
+        return videos.stream().map(BoundaryVideoMapper::fromDomain).toList();
+    }
+
+    @Override
     public Video getVideoByPath(String path) {
         return videoRepositoryPort.getByPath(path);
     }

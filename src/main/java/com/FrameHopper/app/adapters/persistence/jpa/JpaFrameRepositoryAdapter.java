@@ -26,6 +26,16 @@ public class JpaFrameRepositoryAdapter implements FrameRepositoryPort {
     }
 
     @Override
+    public List<Frame> getAllFramesOnVideos(List<Video> videos) {
+        var videoEntities = videos.stream().map(VideoMapper::fromDomain).toList();
+        var entities = frameRepository.getFrameEntitiesByVideoEntities(videoEntities);
+
+        if (entities.isEmpty()) return new ArrayList<>();
+
+        return entities.stream().map(FrameMapper::toDomain).toList();
+    }
+
+    @Override
     public Frame getFrameById(int id) {
         var entity = frameRepository.findFrameEntityById(id);
 

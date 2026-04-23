@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface VideoRepositoryPort {
     Video getById(int id);
+    List<Video> getByIds(List<Integer> ids);
     Video getByPath(String path);
     List<Video> getByName(String name);
     List<Video> getAll();

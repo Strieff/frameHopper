@@ -48,7 +48,7 @@ public class VideoCommandService implements
     }
 
     @Override
-    public VideoDTO loadVideo(String path) throws IOException, InterruptedException {
+    public VideoDTO loadVideo(String path) throws IOException {
         if (!new File(path).exists())
             throw new FileNotFoundException(path);
 

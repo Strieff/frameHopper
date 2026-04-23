@@ -152,8 +152,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!--use to generate swagger.json file-->
                     <!--<mainClass>com.FrameHopper.app.FrameHopperApiApplication</mainClass>-->
-                    <mainClass>com.FrameHopper.app.EngineerApplication</mainClass>
+                    <mainClass>com.FrameHopper.app.FrameHopperApplication</mainClass>
                     <jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
                     <wait>1000</wait>
                     <maxAttempts>180</maxAttempts>

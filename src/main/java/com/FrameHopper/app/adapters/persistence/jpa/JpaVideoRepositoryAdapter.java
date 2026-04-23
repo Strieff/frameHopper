@@ -23,6 +23,15 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
     }
 
     @Override
+    public List<Video> getByIds(List<Integer> ids) {
+        var entities = videoRepository.getVideoEntitiesById(ids);
+
+        if(entities.isEmpty()) return null;
+
+        return entities.stream().map(VideoMapper::toDomain).toList();
+    }
+
+    @Override
     public Video getByPath(String path) {
         var entity = videoRepository.getVideoEntityByPath(path);
 
@@ -33,7 +42,7 @@ public class JpaVideoRepositoryAdapter implements VideoRepositoryPort {
     public List<Video> getByName(String name) {
         var entities = videoRepository.getVideoEntitiesByName(name);
 
-        if(entities == null || entities.isEmpty()) return null;
+        if(entities == null || entities.isEmpty()) return new ArrayList<>();
 
         return entities.stream().map(VideoMapper::toDomain).toList();
     }
