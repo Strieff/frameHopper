@@ -23,7 +23,7 @@ public class JpaCommentRepositoryAdapter implements CommentRepositoryPort {
 
     @Override
     public List<Comment> getAllByVideo(Video video) {
-        var entities = commentRepository.findCommentEntitiesByVideoEntity(VideoMapper.fromDomain(video));
+        var entities = commentRepository.findCommentEntitiesByVideoEntityOrderByListingOrderAsc(VideoMapper.fromDomain(video));
 
         return entities.stream().map(CommentMapper::toDomain).toList();
     }

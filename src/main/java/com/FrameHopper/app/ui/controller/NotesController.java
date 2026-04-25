@@ -284,7 +284,7 @@ public class NotesController extends UiView implements
         var comments = selected.getVideo().comments();
         if(comments.isEmpty()) return;
 
-        deleteCommentCommand.DeleteComment(currentNote.getId());
+        deleteCommentCommand.deleteComment(currentNote.getId());
         comments.remove(currentNote);
 
         if(!comments.isEmpty()) {

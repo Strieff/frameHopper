@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity,Integer> {
     @EntityGraph(attributePaths = {"videoEntity"})
-    List<CommentEntity> findCommentEntitiesByVideoEntity(VideoEntity videoEntity);
+    List<CommentEntity> findCommentEntitiesByVideoEntityOrderByListingOrderAsc(VideoEntity videoEntity);
 
     @Override
     @EntityGraph(attributePaths = {"videoEntity"})

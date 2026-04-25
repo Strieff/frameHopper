@@ -22,9 +22,9 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -167,6 +167,10 @@ class VideoController(
                 description = "Video created and returned",
             ),
             ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
+            ),
+            ApiResponse(
                 responseCode = "404",
                 description = "File not found",
             )
@@ -196,6 +200,10 @@ class VideoController(
             ApiResponse(
                 responseCode = "200",
                 description = "Analytics calculated for requested videos",
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
             ),
             ApiResponse(
                 responseCode = "404",
@@ -232,12 +240,16 @@ class VideoController(
                 description = "Video updated and returned",
             ),
             ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
+            ),
+            ApiResponse(
                 responseCode = "404",
                 description = "Video not found",
             )
         ]
     )
-    @PutMapping("/update")
+    @PatchMapping("/update")
     fun updateVideo(
         @Parameter(description = "Video input")
         @RequestBody @Valid videoInput: VideoInputDTO

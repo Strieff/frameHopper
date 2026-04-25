@@ -70,7 +70,7 @@ public class CommentCommandService implements
     }
 
     @Override
-    public void DeleteComment(int id) {
+    public void deleteComment(int id) {
         commentRepositoryPort.delete(id);
     }
 }
