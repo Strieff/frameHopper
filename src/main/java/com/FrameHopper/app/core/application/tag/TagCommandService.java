@@ -63,17 +63,11 @@ public class TagCommandService implements
         if(tagRepositoryPort.getByName(dto.getName()) != null)
             return "Tag with that name already exists";
 
-        if(dto.getValue() == null)
-            return "value is required";
-
-        if(dto.getValue().isNaN())
-            return "Value must be a number";
-
         return "";
     }
 
     @Override
-    public void DeleteTag(int id) {
+    public void deleteTag(int id) {
         tagRepositoryPort.delete(id);
     }
 
@@ -82,9 +76,6 @@ public class TagCommandService implements
         if (tagDto.getName().isBlank())
             throw new IllegalArgumentException("name is required");
 
-        if(tagDto.getValue() == null || tagDto.getValue().isNaN())
-            throw new IllegalArgumentException("Value must be a number");
-
         var tag = BoundaryTagMapper.toDomain(tagDto);
         var updatedTag = tagRepositoryPort.update(tag);
 
@@ -92,7 +83,7 @@ public class TagCommandService implements
     }
 
     @Override
-    public void DeleteTags(List<Integer> ids) {
+    public void deleteTags(List<Integer> ids) {
         if (ids == null || ids.isEmpty())
             throw new IllegalArgumentException("ids is required"); //TODO
 

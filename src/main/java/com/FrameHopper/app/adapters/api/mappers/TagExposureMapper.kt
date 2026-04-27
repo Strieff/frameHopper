@@ -1,5 +1,6 @@
 package com.FrameHopper.app.adapters.api.mappers
 
+import com.FrameHopper.app.adapters.api.model.`in`.TagInputDTO
 import com.FrameHopper.app.adapters.api.model.out.TagExposureDTO
 import com.FrameHopper.app.boundry.dto.TagDTO
 
@@ -11,10 +12,17 @@ object TagExposureMapper {
     ): TagExposureDTO = TagExposureDTO(
         tag.id,
         tag.name,
-        tag.value ?: 0.0,
-        tag.description.ifEmpty { null },
+        tag.value,
+        tag.description?.ifEmpty { null },
         tag.visible,
         amountUsed,
         totalPoints,
+    )
+
+    fun TagInputDTO.fromExposure(): TagDTO = TagDTO(
+        id = this.id ?: -1,
+        name = this.name,
+        value = this.value,
+        description = this.description,
     )
 }

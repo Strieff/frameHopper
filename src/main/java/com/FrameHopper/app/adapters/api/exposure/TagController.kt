@@ -1,19 +1,29 @@
 package com.FrameHopper.app.adapters.api.exposure
 
 import com.FrameHopper.app.adapters.api.mappers.TagExposureMapper
+import com.FrameHopper.app.adapters.api.mappers.TagExposureMapper.fromExposure
+import com.FrameHopper.app.adapters.api.model.`in`.TagInputDTO
 import com.FrameHopper.app.adapters.api.model.out.TagExposureDTO
+import com.FrameHopper.app.boundry.dto.TagDTO
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO
 import com.FrameHopper.app.core.application.analytics.TagAnalyticsQuery
 import com.FrameHopper.app.core.ports.`in`.frame.FrameQuery
+import com.FrameHopper.app.core.ports.`in`.tag.CreateTagCommand
+import com.FrameHopper.app.core.ports.`in`.tag.DeleteTagCommand
 import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
+import com.FrameHopper.app.core.ports.`in`.tag.UpdateTagCommand
 import com.FrameHopper.app.core.ports.`in`.video.VideoQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -21,10 +31,14 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/tags")
 open class TagController(
     val tagsQuery: TagsQuery,
+    val createTagCommand: CreateTagCommand,
+    val updateTagCommand: UpdateTagCommand,
+    val deleteTagCommand: DeleteTagCommand,
     val videoQuery: VideoQuery,
     val frameQuery: FrameQuery,
     val tagAnalyticsQuery: TagAnalyticsQuery
 ) {
+    //region GET
     @Operation(summary = "Get all tags")
     @ApiResponses(
         value = [
@@ -120,4 +134,99 @@ open class TagController(
 
         return ResponseEntity.ok(exposureData)
     }
+    //endregion
+
+    //region POST
+    @Operation(summary = "Create tags")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Tags created",
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
+            )
+        ]
+    )
+    @PostMapping("/create")
+    fun createTags(
+        @Parameter(description = "List of tag inputs")
+        @RequestBody @Valid tagInput: List<TagInputDTO>
+    ): ResponseEntity<List<TagExposureDTO>> {
+        val exposureData = tagInput.map {
+            TagDTO(
+                name = it.name,
+                value = it.value,
+                description = it.description,
+            )
+        }.let {
+            createTagCommand.CreateTags(it)
+        }.map {
+            TagExposureMapper.toExposure(it)
+        }
+
+        return ResponseEntity.ok(exposureData)
+    }
+    //endregion
+
+    //region PATCH
+    @Operation(summary = "Update tag")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Tag updated",
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Tag not found",
+            )
+        ]
+    )
+    @PatchMapping("/update")
+    fun updateTag(
+        @Parameter(description = "Tag input")
+        @RequestBody @Valid tagInput: TagInputDTO
+    ): ResponseEntity<TagExposureDTO> {
+        tagsQuery.getTagById(tagInput.id ?: return ResponseEntity.notFound().build())
+         val tagDto = tagInput.fromExposure()
+        val exposureData = updateTagCommand.UpdateTag(tagDto).let {
+            TagExposureMapper.toExposure(it)
+        }
+
+        return ResponseEntity.ok(exposureData)
+    }
+    //endregion
+
+    //region DELETE
+    @Operation(summary = "Delete tag")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Tag deleted",
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Tag not found",
+            )
+        ]
+    )
+    @PatchMapping("/delete/{id}")
+    fun deleteTag(
+        @Parameter(description = "ID of the tag", example = "5")
+        @PathVariable id: Int
+    ): ResponseEntity<Void> {
+        tagsQuery.getTagById(id) ?: return ResponseEntity.notFound().build()
+        deleteTagCommand.deleteTag(id)
+
+        return ResponseEntity.ok().build()
+    }
+    //endregion
 }

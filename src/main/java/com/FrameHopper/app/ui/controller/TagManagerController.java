@@ -128,7 +128,7 @@ public class TagManagerController extends UiView implements
                 deleteColumn,
                 "bin.png",
                 e -> {
-                    deleteTagCommand.DeleteTag(e.getTag().getId());
+                    deleteTagCommand.deleteTag(e.getTag().getId());
                     TagDeletedEventDispatcher.dispatchDelete(e.getTag());
                 });
 
@@ -335,7 +335,7 @@ public class TagManagerController extends UiView implements
                 .toList();
         var selectedIds = selected.stream().map(TagDTO::getId).toList();
 
-        deleteTagCommand.DeleteTags(selectedIds);
+        deleteTagCommand.deleteTags(selectedIds);
         TagDeletedEventDispatcher.dispatchDelete(selected);
     }
 

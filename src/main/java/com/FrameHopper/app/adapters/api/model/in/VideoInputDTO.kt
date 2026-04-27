@@ -17,4 +17,5 @@ data class VideoInputDTO (
 
 data class VideoAnalyticsInputDTO (
     val videoIds: List<Int>,
+    //todo("add enum to choose analytics from")
 )

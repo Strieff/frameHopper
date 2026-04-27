@@ -9,7 +9,7 @@ data class TagExposureDTO(
         description = "ID of the tag",
         example = "1",
     )
-    val id: Int,
+    val id: Int?,
     @field:Schema(
         description = "Name of the tag",
         example = "Tag",

@@ -41,127 +41,82 @@ public class WiringConfig {
     // --------------------
 
     @Bean
-    public FrameBytesQuery frameBytesQuery(FfmpegPort ffmpegPort) {
+    public FrameBytesQueryService frameBytesQuery(FfmpegPort ffmpegPort) {
         return new FrameBytesQueryService(ffmpegPort);
     }
 
-    // TAGS
-
+    //region TAGS
     @Bean
-    public TagsQuery tagsQuery(JpaTagRepositoryAdapter jpaTagRepositoryAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+    public TagQueryService tagQuery(
+            JpaTagRepositoryAdapter jpaTagRepositoryAdapter,
+            JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter
+    ) {
         return new TagQueryService(jpaTagRepositoryAdapter, jpaVideoRepositoryAdapter);
     }
 
     @Bean
-    public CreateTagCommand createTagCommand(JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
+    public TagCommandService tagCommand(JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
         return new TagCommandService(jpaTagRepositoryAdapter);
     }
+    //endregion
 
+    //region VIDEOS
     @Bean
-    public UpdateTagCommand updateTagCommand(JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
-        return new TagCommandService(jpaTagRepositoryAdapter);
-    }
-
-    @Bean
-    public DeleteTagCommand deleteTagCommand(JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
-        return new TagCommandService(jpaTagRepositoryAdapter);
-    }
-
-    @Bean
-    public ChangeTagStatusCommand changeTagStatusCommand(JpaTagRepositoryAdapter jpaTagRepositoryAdapter) {
-        return new TagCommandService(jpaTagRepositoryAdapter);
-    }
-
-    // VIDEOS
-
-    @Bean
-    public VideoQuery videoQuery(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+    public VideoQueryService videoQuery(
+            FfmpegAdapter ffmpegAdapter,
+            JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter
+    ) {
         return new VideoQueryService(ffmpegAdapter, jpaVideoRepositoryAdapter);
     }
 
     @Bean
-    public VideoMetadataQuery videoMetadataQuery(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoQueryService(ffmpegAdapter, jpaVideoRepositoryAdapter);
-    }
-
-    @Bean
-    public UpdateVideoPathCommand updateVideoPathCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+    public VideoCommandService videoCommand(
+            FfmpegAdapter ffmpegAdapter,
+            JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter
+    ) {
         return new VideoCommandService(jpaVideoRepositoryAdapter, ffmpegAdapter);
     }
+    //endregion
 
+    //region COMMENTS
     @Bean
-    public CreateVideoCommand createVideoCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter, ffmpegAdapter);
-    }
-
-    @Bean
-    public DeleteVideoCommand deleteVideoCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
-    }
-
-    @Bean
-    public LoadVideoCommand loadVideoCommand(FfmpegAdapter ffmpegAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
-        return new VideoCommandService(jpaVideoRepositoryAdapter,ffmpegAdapter);
-    }
-
-    // COMMENTS
-
-    @Bean
-    public CommentsQuery commentsQuery(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter) {
+    public CommentQueryService commentsQuery(
+            JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter,
+            JpaVideoRepositoryAdapter jpaVideoRepositoryAdapter
+    ) {
         return new CommentQueryService(jpaCommentRepositoryAdapter, jpaVideoRepositoryAdapter);
     }
 
     @Bean
-    public ChangeCommentContentCommand changeCommentContentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
+    public CommentCommandService commentCommand(
+            JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter,
+            VideoRepositoryPort videoRepositoryPort
+    ) {
         return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
     }
-
-    @Bean
-    public ChangeCommentListingOrderCommand changeCommentListingOrderCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
-    }
-
-    @Bean
-    public CreateCommentCommand createCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
-    }
-
-    @Bean
-    public DeleteCommentCommand deleteCommentCommand(JpaCommentRepositoryAdapter jpaCommentRepositoryAdapter, VideoRepositoryPort videoRepositoryPort) {
-        return new CommentCommandService(jpaCommentRepositoryAdapter, videoRepositoryPort);
-    }
+    //endregion
 
     // FRAMES
 
     @Bean
-    public FrameQuery frameQuery(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
+    public FrameQueryService frameQuery(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
         return new FrameQueryService(jpaFrameRepositoryAdapter);
     }
 
     @Bean
-    public CreateFrameCommand createFrameCommand(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
-        return new FrameCommandService(jpaFrameRepositoryAdapter);
-    }
-
-    @Bean
-    public UpdateFrameCommand updateFrameCommand(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
-        return new FrameCommandService(jpaFrameRepositoryAdapter);
-    }
-
-    @Bean
-    public DeleteFrameCommand deleteFrameCommand(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
+    public FrameCommandService frameCommand(JpaFrameRepositoryAdapter jpaFrameRepositoryAdapter) {
         return new FrameCommandService(jpaFrameRepositoryAdapter);
     }
 
     // ANALYTICS
 
     @Bean
-    public VideoAnalyticsQuery videoAnalyticsQuery() {
+    public VideoAnalyticsService videoAnalyticsQuery() {
         return new VideoAnalyticsService();
     }
 
     @Bean
-    public TagAnalyticsQuery tagAnalyticsQuery() {
+    public TagAnalyticsService tagAnalyticsQuery() {
         return new TagAnalyticsService();
     }
 }

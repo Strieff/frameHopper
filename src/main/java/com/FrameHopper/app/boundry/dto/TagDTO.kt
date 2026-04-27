@@ -5,8 +5,8 @@ import java.util.Objects
 data class TagDTO @JvmOverloads constructor(
     val id: Int = -1,
     var name: String,
-    var value: Double?,
-    var description: String,
+    var value: Double,
+    var description: String?,
     var visible: Boolean = true,
 ) {
     fun changeStatus() {
