@@ -29,6 +29,15 @@ public class JpaTagRepositoryAdapter implements TagRepositoryPort {
     }
 
     @Override
+    public List<Tag> getByIds(List<Integer> ids) {
+        var entities = tagRepository.findTagEntitiesById(ids);
+
+        if (entities.isEmpty()) return new ArrayList<>();
+
+        return entities.stream().map(TagMapper::toDomain).toList();
+    }
+
+    @Override
     public Tag getByName(String name) {
         var entity = tagRepository.findTagEntityByName(name);
 

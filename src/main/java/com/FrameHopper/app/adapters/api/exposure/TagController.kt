@@ -1,8 +1,11 @@
 package com.FrameHopper.app.adapters.api.exposure
 
-import com.FrameHopper.app.adapters.api.mappers.TagExposureMapper
 import com.FrameHopper.app.adapters.api.mappers.TagExposureMapper.fromExposure
+import com.FrameHopper.app.adapters.api.mappers.TagExposureMapper.toExposure
+import com.FrameHopper.app.adapters.api.model.AvailableTagAnalytics
+import com.FrameHopper.app.adapters.api.model.`in`.TagAnalyticsInputDTO
 import com.FrameHopper.app.adapters.api.model.`in`.TagInputDTO
+import com.FrameHopper.app.adapters.api.model.out.TagDataAnalyticsExposureDTO
 import com.FrameHopper.app.adapters.api.model.out.TagExposureDTO
 import com.FrameHopper.app.boundry.dto.TagDTO
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO
@@ -51,7 +54,7 @@ open class TagController(
     @GetMapping
     fun getTags(): ResponseEntity<List<TagExposureDTO>> {
         val tags = tagsQuery.getAllTags() ?: return ResponseEntity.ok().build()
-        val exposureData = tags.map(TagExposureMapper::toExposure)
+        val exposureData = tags.map {it.toExposure()}
 
         return ResponseEntity.ok(exposureData)
     }
@@ -75,7 +78,7 @@ open class TagController(
         @PathVariable tagId: Int
     ): ResponseEntity<TagExposureDTO> {
         val tag = tagsQuery.getTagById(tagId) ?: return ResponseEntity.notFound().build()
-        val exposureData = TagExposureMapper.toExposure(tag)
+        val exposureData = tag.toExposure()
 
         return ResponseEntity.ok(exposureData)
     }
@@ -99,7 +102,7 @@ open class TagController(
         @PathVariable name: String
     ): ResponseEntity<TagExposureDTO> {
         val tag = tagsQuery.getTagByName(name) ?: return ResponseEntity.notFound().build()
-        val exposureData = TagExposureMapper.toExposure(tag)
+        val exposureData = tag.toExposure()
 
         return ResponseEntity.ok(exposureData)
     }
@@ -126,8 +129,7 @@ open class TagController(
         val tags = tagsQuery.getAllOnVideo(video) ?: return ResponseEntity.ok().build()
         val frames = frameQuery.getAllFramesOnVideo(video) ?: mutableListOf()
 
-        val exposureData = tags.map { TagExposureMapper.toExposure(
-            tag = it,
+        val exposureData = tags.map { it.toExposure(
             amountUsed = tagAnalyticsQuery.getAmountUsed(it, listOf(VideoDataDTO(video, frames))).data.toInt(),
             totalPoints = tagAnalyticsQuery.getTotalPoints(it, listOf(VideoDataDTO(video, frames))).data.toDouble()
         ) }
@@ -164,8 +166,46 @@ open class TagController(
         }.let {
             createTagCommand.CreateTags(it)
         }.map {
-            TagExposureMapper.toExposure(it)
+            it.toExposure()
         }
+
+        return ResponseEntity.ok(exposureData)
+    }
+
+    @Operation(summary = "Get analytics of requested tags")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Analytics calculated for requested tags",
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "All tags/videos not found",
+            )
+        ]
+    )
+    @PostMapping("/analytics")
+    fun getAnalytics(
+        @Parameter(description = "Analytics input")
+        @RequestBody @Valid analyticsInput: TagAnalyticsInputDTO
+    ): ResponseEntity<TagDataAnalyticsExposureDTO> {
+        val videoData = videoQuery.getVideosByIds(analyticsInput.videoIds) ?: return ResponseEntity.notFound().build()
+        val tagData = tagsQuery.getTagsByIds(analyticsInput.tagIds) ?: return ResponseEntity.notFound().build()
+        val analytics = analyticsInput.analytics ?: AvailableTagAnalytics.entries.toList()
+
+        val grouped = frameQuery.getAllFramesOnVideos(videoData).groupBy { it.video }
+        val exposureData = videoData.associateWith { video ->
+            grouped[video] ?: emptyList()
+        }.map {
+            VideoDataDTO(it.key, it.value)
+        }.let {
+            tagAnalyticsQuery.getAnalytics(tagData, it)
+        }.toExposure(analytics)
 
         return ResponseEntity.ok(exposureData)
     }
@@ -196,9 +236,7 @@ open class TagController(
     ): ResponseEntity<TagExposureDTO> {
         tagsQuery.getTagById(tagInput.id ?: return ResponseEntity.notFound().build())
          val tagDto = tagInput.fromExposure()
-        val exposureData = updateTagCommand.UpdateTag(tagDto).let {
-            TagExposureMapper.toExposure(it)
-        }
+        val exposureData = updateTagCommand.UpdateTag(tagDto).toExposure()
 
         return ResponseEntity.ok(exposureData)
     }

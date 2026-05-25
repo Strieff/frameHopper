@@ -49,10 +49,23 @@ public class TagQueryService implements TagsQuery {
     }
 
     @Override
-    public List<Tag> getTagsOnVideoFrame(Video video, int frame) {
+    public List<TagDTO> getTagsByIds(List<Integer> ids) {
+        var tags = tagRepositoryPort.getByIds(ids);
+
+        if(tags == null || tags.isEmpty()) return null;
+
+        return tags.stream().map(BoundaryTagMapper::fromDomain).toList();
+    }
+
+    @Override
+    public List<TagDTO> getTagsOnVideoFrame(VideoDTO videoDTO, int frame) {
+        var video = videoRepositoryPort.getById(videoDTO.id());
+
         var tags = tagRepositoryPort.getTagsOnVideoFrame(video, frame);
 
-        return tags;
+        if(tags == null || tags.isEmpty()) return null;
+
+        return tags.stream().map(BoundaryTagMapper::fromDomain).toList();
     }
 
     @Override

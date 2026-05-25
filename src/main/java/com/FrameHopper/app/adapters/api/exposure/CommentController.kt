@@ -1,6 +1,7 @@
 package com.FrameHopper.app.adapters.api.exposure
 
-import com.FrameHopper.app.adapters.api.mappers.CommentExposureMapper
+import com.FrameHopper.app.adapters.api.mappers.CommentExposureMapper.fromExposure
+import com.FrameHopper.app.adapters.api.mappers.CommentExposureMapper.toExposure
 import com.FrameHopper.app.adapters.api.model.`in`.CommentInputDTO
 import com.FrameHopper.app.adapters.api.model.out.CommentExposureDTO
 import com.FrameHopper.app.boundry.dto.CommentDTO
@@ -56,7 +57,7 @@ class CommentController(
     ): ResponseEntity<List<CommentExposureDTO>> {
         val video = videoQuery.getVideoById(videoId) ?: return ResponseEntity.notFound().build()
         val comments = commentsQuery.getAllCommentsByVideo(video) ?: return ResponseEntity.ok(mutableListOf())
-        val exposureData = comments.map { CommentExposureMapper.toExposure(it) }
+        val exposureData = comments.map { it.toExposure() }
 
         return ResponseEntity.ok(exposureData)
     }
@@ -80,7 +81,7 @@ class CommentController(
         @PathVariable commentId: Int
     ): ResponseEntity<CommentExposureDTO> {
         val comment = commentsQuery.getCommentById(commentId) ?: return ResponseEntity.notFound().build()
-        val exposureData = CommentExposureMapper.toExposure(comment)
+        val exposureData = comment.toExposure()
 
         return ResponseEntity.ok(exposureData)
     }
@@ -113,25 +114,12 @@ class CommentController(
         val comments = commentsQuery.getAllCommentsByVideo(video)
         val listingOrder = commentInput.listingOrder ?: if (!comments.isNullOrEmpty()) comments.size - 1 else 0
 
-        val exposureData = CommentDTO(
-            -1,
-            commentInput.content,
-            listingOrder,
-            commentInput.videoId,
-        ).let {
-            createCommentCommand.CreateComment(it)
-        }?.let {
-            CommentExposureMapper.toExposure(it)
-        }
+        val exposureData = commentInput.fromExposure(listingOrder = listingOrder)
+            .let {
+                createCommentCommand.CreateComment(it)
+            }?.toExposure()
 
-        if(!comments.isEmpty()) {
-            val toUpdate = comments.filter { it.listingOrder >= (commentInput.listingOrder ?: comments.size) }
-
-            if(!toUpdate.isNotEmpty()) {
-                toUpdate.forEach { it.listingOrder += 1 }
-                changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate)
-            }
-        }
+        if(!comments.isEmpty()) updateListingOrder(comments, commentInput)
 
         return ResponseEntity.ok(exposureData)
     }
@@ -161,24 +149,14 @@ class CommentController(
         @RequestBody @Valid commentInput: CommentInputDTO
     ): ResponseEntity<CommentExposureDTO> {
         val video = videoQuery.getVideoById(commentInput.videoId) ?: return ResponseEntity.notFound().build()
-        val comment = commentsQuery.getCommentById(commentInput.id ?: return ResponseEntity.notFound().build())
+        commentsQuery.getCommentById(commentInput.id ?: return ResponseEntity.notFound().build())
         val comments = commentsQuery.getAllCommentsByVideo(video) ?: mutableListOf()
 
-        comment.content = commentInput.content
-        comment.listingOrder = commentInput.listingOrder ?: comments.size
+        val exposureData = updateCommentCommand.updateCommentContent(
+            commentInput.fromExposure(listingOrder = commentInput.listingOrder ?: comments.size)
+        ).toExposure()
 
-        val exposureData = updateCommentCommand.updateCommentContent(comment).let {
-            CommentExposureMapper.toExposure(it)
-        }
-
-        if(!comments.isEmpty()) {
-            val toUpdate = comments.filter { it.listingOrder >= (commentInput.listingOrder ?: comments.size) }
-
-            if(!toUpdate.isNotEmpty()) {
-                toUpdate.forEach { it.listingOrder += 1 }
-                changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate)
-            }
-        }
+        if(!comments.isEmpty()) updateListingOrder(comments, commentInput)
 
         return ResponseEntity.ok(exposureData)
     }
@@ -221,4 +199,13 @@ class CommentController(
         return ResponseEntity.ok().build()
     }
     //endregion
+
+    private fun updateListingOrder(comments: List<CommentDTO>, commentInput: CommentInputDTO) {
+        val toUpdate = comments.filter { it.listingOrder >= (commentInput.listingOrder ?: comments.size) }
+
+        if(!toUpdate.isNotEmpty()) {
+            toUpdate.forEach { it.listingOrder += 1 }
+            changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate)
+        }
+    }
 }

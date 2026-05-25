@@ -1,11 +1,12 @@
 package com.FrameHopper.app.adapters.api.exposure
 
-import com.FrameHopper.app.adapters.api.mappers.VideoExposureMapper
+import com.FrameHopper.app.adapters.api.mappers.VideoExposureMapper.toExposure
+import com.FrameHopper.app.adapters.api.model.AvailableVideoAnalytics
 import com.FrameHopper.app.adapters.api.model.`in`.VideoAnalyticsInputDTO
 import com.FrameHopper.app.adapters.api.model.`in`.VideoInputDTO
+import com.FrameHopper.app.adapters.api.model.out.VideoDataAnalyticsExposureDTO
 import com.FrameHopper.app.adapters.api.model.out.VideoExposureDTO
 import com.FrameHopper.app.boundry.dto.VideoDTO
-import com.FrameHopper.app.boundry.dto.analytics.VideoDataAnalyticsDTO
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery
 import com.FrameHopper.app.core.ports.`in`.comment.CommentsQuery
@@ -55,7 +56,7 @@ class VideoController(
     fun getVideos(): ResponseEntity<List<VideoExposureDTO>> {
         val videos = videoQuery.allVideos
         if(videos.isNullOrEmpty()) return ResponseEntity.ok().build()
-        val exposureData = videos.map(VideoExposureMapper::toExposure)
+        val exposureData = videos.map {it.toExposure()}
 
         return ResponseEntity.ok(exposureData)
     }
@@ -96,8 +97,7 @@ class VideoController(
         val totalPoints = if(showAnalytics) videoAnalyticsQuery.getTotalPoints(VideoDataDTO(video, frames)).data.toDouble() else null
         val complexity = if(showAnalytics) videoAnalyticsQuery.getComplexity(VideoDataDTO(video, frames)).data.toDouble() else null
 
-        val exposureData = VideoExposureMapper.toExposure(
-            video = video,
+        val exposureData = video.toExposure(
             frames = frames,
             notes = comments,
             uniqueTags = uniqueTags,
@@ -144,8 +144,7 @@ class VideoController(
             val totalPoints = if(showAnalytics) videoAnalyticsQuery.getTotalPoints(VideoDataDTO(it, frames)).data.toDouble() else null
             val complexity = if(showAnalytics) videoAnalyticsQuery.getComplexity(VideoDataDTO(it, frames)).data.toDouble() else null
 
-            VideoExposureMapper.toExposure(
-                video = it,
+            it.toExposure(
                 frames = frames,
                 notes = comments,
                 uniqueTags = uniqueTags,
@@ -189,7 +188,7 @@ class VideoController(
             return ResponseEntity.notFound().build()
         }
 
-        val exposureData = VideoExposureMapper.toExposure(video)
+        val exposureData = video.toExposure()
 
         return ResponseEntity.ok(exposureData)
     }
@@ -215,17 +214,18 @@ class VideoController(
     fun getAnalytics(
         @Parameter(description = "Analytics input")
         @RequestBody @Valid analyticsInput: VideoAnalyticsInputDTO
-    ): ResponseEntity<VideoDataAnalyticsDTO> {
+    ): ResponseEntity<VideoDataAnalyticsExposureDTO> {
         val videosData = videoQuery.getVideosByIds(analyticsInput.videoIds) ?: return ResponseEntity.notFound().build()
-        val frames = frameQuery.getAllFramesOnVideos(videosData)
+        val analytics = analyticsInput.analytics ?: AvailableVideoAnalytics.entries.toList()
 
-        val grouped = frames.groupBy { it.video }
-        val data = videosData.associateWith { video ->
+        val grouped = frameQuery.getAllFramesOnVideos(videosData).groupBy { it.video }
+        val exposureData = videosData.associateWith { video ->
             grouped[video] ?: emptyList()
         }.map {
             VideoDataDTO(it.key, it.value)
-        }
-        val exposureData = videoAnalyticsQuery.getAnalytics(data)
+        }.let {
+            videoAnalyticsQuery.getAnalytics(it)
+        }.toExposure(analytics)
 
         return ResponseEntity.ok(exposureData)
     }
@@ -256,9 +256,7 @@ class VideoController(
     ): ResponseEntity<VideoExposureDTO> {
         val video = videoQuery.getVideoById(videoInput.id ?: return ResponseEntity.badRequest().build()) ?: return ResponseEntity.notFound().build()
 
-        val updatedVideo = updateVideoPathCommand.updateVideoPath(video, videoInput.path)
-
-        val exposureData = VideoExposureMapper.toExposure(updatedVideo)
+        val exposureData = updateVideoPathCommand.updateVideoPath(video, videoInput.path).toExposure()
 
         return ResponseEntity.ok(exposureData)
     }

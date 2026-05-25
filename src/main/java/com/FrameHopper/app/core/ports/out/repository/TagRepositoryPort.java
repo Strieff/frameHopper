@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface TagRepositoryPort {
     Tag getById(int id);
+    List<Tag> getByIds(List<Integer> ids);
     Tag getByName(String name);
     List<Tag> getAllByVideo(Video video);
     List<Tag> getTagsOnVideoFrame(Video video, int frame);

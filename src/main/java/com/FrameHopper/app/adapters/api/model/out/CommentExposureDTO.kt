@@ -9,6 +9,7 @@ data class CommentExposureDTO(
         example = "1",
     )
     val id: Int,
+
     @field:Schema(
         description = "Content of the comment",
         example = "This is a nice comment!",

@@ -8,12 +8,14 @@ data class FrameExposureDTO(
         description = "ID of the frame",
         example = "1",
     )
-    val videoId: Int,
+    val id: Int,
+
     @field:Schema(
         description = "Number of the frame in sequence",
         example = "1",
     )
     val frameNumber: Int,
+
     @field:Schema(description = "Tags on the frame")
     val tags: List<TagExposureDTO>
 )
