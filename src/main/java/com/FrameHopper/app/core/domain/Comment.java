@@ -15,12 +15,6 @@ public class Comment {
     private int listingOrder;
     private int videoId;
 
-    public void changeListingOrder(int listingOrder) {
-        if(listingOrder < 0)
-            throw new IllegalArgumentException("Listing order cannot be negative");
-        this.listingOrder = listingOrder;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Comment comment)) return false;
