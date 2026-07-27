@@ -65,8 +65,12 @@ public class VideoQueryService implements VideoQuery, VideoMetadataQuery {
     }
 
     @Override
-    public Video getVideoByPath(String path) {
-        return videoRepositoryPort.getByPath(path);
+    public VideoDTO getVideoByPath(String path) {
+        var video = videoRepositoryPort.getByPath(path);
+
+        if(video == null) return null;
+
+        return BoundaryVideoMapper.fromDomain(video);
     }
 
     @Override

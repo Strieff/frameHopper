@@ -5,16 +5,21 @@ import com.FrameHopper.app.adapters.api.mappers.FrameExposureMapper.toExposure
 import com.FrameHopper.app.adapters.api.model.`in`.FrameInputDTO
 import com.FrameHopper.app.adapters.api.model.`in`.FrameOperation
 import com.FrameHopper.app.adapters.api.model.out.FrameExposureDTO
+import com.FrameHopper.app.boundry.dto.VideoDTO
+import com.FrameHopper.app.core.ports.`in`.FrameBytesQuery
 import com.FrameHopper.app.core.ports.`in`.frame.CreateFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.DeleteFrameCommand
 import com.FrameHopper.app.core.ports.`in`.frame.FrameQuery
 import com.FrameHopper.app.core.ports.`in`.tag.TagsQuery
+import com.FrameHopper.app.core.ports.`in`.video.VideoMetadataQuery
 import com.FrameHopper.app.core.ports.`in`.video.VideoQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -23,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -32,7 +38,9 @@ class FrameController(
     val createFrameCommand: CreateFrameCommand,
     val deleteFrameCommand: DeleteFrameCommand,
     val videoQuery: VideoQuery,
-    val tagsQuery: TagsQuery
+    val tagsQuery: TagsQuery,
+    val videoMetadataQuery: VideoMetadataQuery,
+    val frameBytesQuery: FrameBytesQuery
 ) {
     //region GET
     @Operation(summary = "Get frame of a video by video id and frame number")
@@ -93,6 +101,36 @@ class FrameController(
         val exposureData = frames.map {it.toExposure()}
 
         return ResponseEntity.ok(exposureData)
+    }
+
+    @GetMapping("/frame")
+    fun getFrameBytes(
+        @Parameter(description = "ID of the video", example = "5")
+        @RequestParam(required = false) videoId: Int?,
+
+        @Parameter(description = "Path of the video", example = "5")
+        @RequestParam(required = false) videoPath: String?,
+
+        @Parameter(description = "ID of the video", example = "5")
+        @RequestParam frameNo: Int
+    ): ResponseEntity<ByteArray> {
+        if (videoId != null && videoPath != null) return ResponseEntity.badRequest().build()
+        val metadata = if (videoId == null) videoMetadataQuery.getVideoMetadataByPath(videoPath)
+            else videoMetadataQuery.getVideoMetadataById(videoId)
+        if (frameNo > metadata.totalFrames) return ResponseEntity.badRequest().build()
+
+        val video = if (videoId == null) videoQuery.getVideoByPath(videoPath) ?: VideoDTO(-1, "", videoPath, null, null)
+            else videoQuery.getVideoById(videoId) ?: return ResponseEntity.notFound().build()
+
+        try {
+            val exposureData = frameBytesQuery.getVideoFrame(video, frameNo)
+            return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${frameNo}.png\"")
+                .body(exposureData)
+        } catch (_: Exception) {
+            return ResponseEntity.internalServerError().build()
+        }
     }
     //endregion
 
