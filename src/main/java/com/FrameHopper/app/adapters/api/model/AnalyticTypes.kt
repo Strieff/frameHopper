@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "Available tag analytics")
 enum class AvailableTagAnalytics {
+    VALUE,
     AMOUNT_USED,
     TOTAL_POINTS
 }

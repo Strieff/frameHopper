@@ -1,13 +1,17 @@
 package com.FrameHopper.app.adapters.api.exposure
 
+import com.FrameHopper.app.adapters.api.mappers.AnalyticsMapper.toExport
 import com.FrameHopper.app.adapters.api.mappers.VideoExposureMapper.toExposure
+import com.FrameHopper.app.adapters.api.model.AvailableTagAnalytics
 import com.FrameHopper.app.adapters.api.model.AvailableVideoAnalytics
+import com.FrameHopper.app.adapters.api.model.`in`.FileAnalyticsInputDTO
 import com.FrameHopper.app.adapters.api.model.`in`.VideoAnalyticsInputDTO
 import com.FrameHopper.app.adapters.api.model.`in`.VideoInputDTO
 import com.FrameHopper.app.adapters.api.model.out.VideoDataAnalyticsExposureDTO
 import com.FrameHopper.app.adapters.api.model.out.VideoExposureDTO
 import com.FrameHopper.app.boundry.dto.VideoDTO
 import com.FrameHopper.app.boundry.dto.analytics.VideoDataDTO
+import com.FrameHopper.app.boundry.dto.export.ExportDataInput
 import com.FrameHopper.app.core.application.analytics.VideoAnalyticsQuery
 import com.FrameHopper.app.core.ports.`in`.comment.CommentsQuery
 import com.FrameHopper.app.core.ports.`in`.frame.FrameQuery
@@ -15,6 +19,8 @@ import com.FrameHopper.app.core.ports.`in`.video.DeleteVideoCommand
 import com.FrameHopper.app.core.ports.`in`.video.LoadVideoCommand
 import com.FrameHopper.app.core.ports.`in`.video.UpdateVideoPathCommand
 import com.FrameHopper.app.core.ports.`in`.video.VideoQuery
+import com.FrameHopper.app.core.ports.out.export.CSVExportPort
+import com.FrameHopper.app.core.ports.out.export.ExcelExportPort
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -40,7 +46,9 @@ class VideoController(
     val updateVideoPathCommand: UpdateVideoPathCommand,
     val deleteVideoCommand: DeleteVideoCommand,
     val commentsQuery: CommentsQuery,
-    val videoAnalyticsQuery: VideoAnalyticsQuery
+    val videoAnalyticsQuery: VideoAnalyticsQuery,
+    val excelExportPort: ExcelExportPort,
+    val csvExportPort: CSVExportPort,
 ) {
     //region GET
     @Operation(summary = "Get all videos")
@@ -229,6 +237,36 @@ class VideoController(
 
         return ResponseEntity.ok(exposureData)
     }
+
+    @PostMapping("/analytics-file")
+    fun getAnalyticsFile(
+        @Parameter(description = "Analytics input")
+        @RequestBody @Valid analyticsInput: FileAnalyticsInputDTO,
+
+        @Parameter(description = "Indicate format", example = "csv")
+        @RequestParam(required = true, defaultValue = "CSV") fileFormat: AnalyticsFormat = AnalyticsFormat.CSV,
+    ): ResponseEntity<ByteArray> {
+        val videos = videoQuery.getVideosByIds(analyticsInput.videoIds) ?: return ResponseEntity.notFound().build()
+        val videoAnalytics = (analyticsInput.videoAnalytics ?: AvailableVideoAnalytics.entries.toList()).mapNotNull { it.toExport() }
+        val tagAnalytics = (analyticsInput.tagAnalytics ?: AvailableTagAnalytics.entries.toList()).map { it.toExport() }
+
+        when (fileFormat) {
+            AnalyticsFormat.CSV -> csvExportPort.exportToZipByteArray(ExportDataInput(
+                language = analyticsInput.language,
+                videos = videos,
+                chosenVideoAnalytics = videoAnalytics,
+                chosenTagAnalytics = tagAnalytics
+            ))
+            AnalyticsFormat.XLSX -> excelExportPort.exportToExcelByteArray(ExportDataInput(
+                language = analyticsInput.language,
+                videos = videos,
+                chosenVideoAnalytics = videoAnalytics,
+                chosenTagAnalytics = tagAnalytics
+            ))
+        }
+
+        return ResponseEntity.ok().build()
+    }
     //endregion
 
     //region PATCH
@@ -287,4 +325,9 @@ class VideoController(
         return ResponseEntity.ok().build()
     }
     //endregion
+}
+
+enum class AnalyticsFormat {
+    CSV,
+    XLSX
 }
