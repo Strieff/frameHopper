@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.collections.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
+
+<BorderPane fx:id="chartView" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.NewChartsController">
+    <top>
+        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <Button onAction="#handleImport">
+                <graphic>
+                    <ImageView fx:id="importButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                </graphic>
+            </Button>
+            <Button onAction="#handleExport">
+                <graphic>
+                    <ImageView fx:id="exportButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                </graphic>
+            </Button>
+            <Button onAction="#handleClear">
+                <graphic>
+                    <ImageView fx:id="clearButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                </graphic>
+            </Button>
+            <Button onAction="#handleSave">
+                <graphic>
+                    <ImageView fx:id="saveButtonIcon" fitHeight="32.0" fitWidth="32.0" />
+                </graphic>
+            </Button>
+        </ToolBar>
+    </top>
+
+    <!-- Center: The Bar Chart -->
+    <center>
+        <WebView fx:id="webView" />
+    </center>
+
+    <!-- Left: Table for Video Selection -->
+    <left>
+        <VBox prefWidth="300" BorderPane.alignment="CENTER">
+            <HBox alignment="CENTER" prefWidth="316.0" spacing="5">
+                <TextField fx:id="searchField" prefHeight="25.0" prefWidth="260.0" promptText="Search" />
+                <Button fx:id="searchButton" onAction="#handleSearch" text="🔍" />
+                <padding>
+                    <Insets bottom="10.0" top="10.0" />
+                </padding>
+            </HBox>
+
+            <TableView fx:id="videoTable" editable="true" prefHeight="603.0" prefWidth="300.0">
+                <columns>
+                    <!-- Checkbox Column -->
+                    <TableColumn fx:id="selectColumn" maxWidth="40.0" minWidth="20.0" prefWidth="40.0">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="selected" />
+                        </cellValueFactory>
+                    </TableColumn>
+                    <!-- Name Column -->
+                    <TableColumn fx:id="nameColumn" prefWidth="238.0" text="Video Name">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="videoName" />
+                        </cellValueFactory>
+                    </TableColumn>
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                </columnResizePolicy>
+            </TableView>
+        </VBox>
+    </left>
+
+    <!-- Right: Options for Y-axis and Mean -->
+    <right>
+        <VBox prefWidth="200" BorderPane.alignment="CENTER">
+            <VBox prefHeight="43.0" prefWidth="200.0">
+                <padding>
+                    <Insets bottom="5.0" top="10.0" />
+                </padding>
+                <Label fx:id="yAxisLabel" text="Y-Axis Options:" />
+                <!-- ComboBox for Y-axis -->
+                <ComboBox fx:id="yAxisOptions" promptText="Choose Y-axis option">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList" />
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <!-- Checkbox for showing/hiding mean -->
+            <CheckBox fx:id="meanCheckbox" selected="true" text="Show Mean" wrapText="true">
+                <padding>
+                    <Insets bottom="5.0" top="5.0" />
+                </padding></CheckBox>
+            <CheckBox fx:id="colorMean" selected="true" text="Color above/below mean" wrapText="true">
+                <padding>
+                    <Insets bottom="5.0" top="5.0" />
+                </padding></CheckBox>
+            <HBox prefHeight="24.0" prefWidth="200.0">
+                <Label fx:id="tickLabel" prefHeight="25.0" prefWidth="60.0" text="Ticks:" />
+                <TextField fx:id="tickField" prefHeight="25.0" prefWidth="80.0" text="10">
+                    <HBox.margin>
+                        <Insets left="10.0" />
+                    </HBox.margin></TextField>
+                <padding>
+                    <Insets bottom="5.0" top="5.0" />
+                </padding>
+            </HBox>
+            <Button fx:id="generateButton" text="Generate">
+                <VBox.margin>
+                    <Insets bottom="5.0" />
+                </VBox.margin></Button>
+        </VBox>
+    </right>
+</BorderPane>

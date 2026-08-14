@@ -2,6 +2,7 @@ package com.FrameHopper.app.ui
 
 import com.FrameHopper.app.ui.language.I18n
 import javafx.scene.Node
+import javafx.scene.control.ComboBoxBase
 import javafx.scene.control.Labeled
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TextInputControl
@@ -29,6 +30,8 @@ abstract class UiView {
     protected fun addEventFilter(node: Node) = node.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed)
 
     protected fun bind(node: Labeled, key: String, vararg args: Any) = node.textProperty().bind(I18n.bind(key, *args))
+
+    protected fun bind(node: ComboBoxBase<Any>, key: String, vararg args: Any) = node.promptTextProperty().bind(I18n.bind(key, *args))
 
     protected fun bind(node: TextInputControl, key: String, vararg args: Any) = node.promptTextProperty().bind(I18n.bind(key, *args))
 
