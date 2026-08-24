@@ -297,11 +297,6 @@ public class MainViewController extends UiView implements
 
     @FXML
     protected void onAdd() {
-        //TODO: error when open
-
-        if(uiManager.isOpen(UIFlag.FRAME_TAG_MANAGER))
-            return;
-
         var index = indexProperty.get();
 
         var loader = uiManager.open(UIFlag.FRAME_TAG_MANAGER, mainView);
@@ -315,55 +310,31 @@ public class MainViewController extends UiView implements
 
     @FXML
     protected void onSettings() {
-        //TODO: error when open
-        if(uiManager.isOpen(UIFlag.SETTINGS))
-            return;
-
         uiManager.open(UIFlag.SETTINGS, mainView);
     }
 
     @FXML
     protected void onVideoList() {
-        //TODO: error when open
-        if(uiManager.isOpen(UIFlag.VIDEO_LIST))
-            return;
-
         uiManager.open(UIFlag.VIDEO_LIST, mainView);
     }
 
     @FXML
     protected void onExport() {
-        //TODO: error when open
-        if(uiManager.isOpen(UIFlag.EXPORT))
-            return;
-
         uiManager.open(UIFlag.EXPORT, mainView);
     }
 
     @FXML
     protected void onChart(){
-        //TODO: error when open
-        if(uiManager.isOpen(UIFlag.CHARTS))
-            return;
-
         uiManager.open(UIFlag.CHARTS, mainView);
     }
 
     @FXML
     protected void onManager() {
-        //TODO: error when open
-        if(uiManager.isOpen(UIFlag.TAG_MANAGER))
-            return;
-
         uiManager.open(UIFlag.TAG_MANAGER, mainView);
     }
 
     @FXML
     protected void onNotes() {
-        //TODO: error when open
-        if(uiManager.isOpen(UIFlag.NOTES))
-            return;
-
         uiManager.open(UIFlag.NOTES, mainView);
     }
 

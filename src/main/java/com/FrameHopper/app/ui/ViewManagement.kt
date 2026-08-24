@@ -1,5 +1,7 @@
 package com.FrameHopper.app.ui
 
+import com.FrameHopper.app.ui.dialog.FXDialogProvider
+import com.FrameHopper.app.ui.language.I18n
 import jakarta.annotation.PostConstruct
 import javafx.fxml.FXMLLoader
 import javafx.scene.Node
@@ -17,6 +19,11 @@ open class UIManager {
     fun isOpen(flag: UIFlag): Boolean = flags[flag] == true
 
     fun open(flag: UIFlag, node: Node): FXMLLoader {
+        if (flag.singleInstance && isOpen(flag)) {
+            FXDialogProvider.errorDialog(I18n.tr(flag.errorMessage.orEmpty()))
+            throw Exception(flag.errorMessage)
+        }
+
         val loader = FXMLViewLoader.getView(flag.fileName, flag.windowName, node)
         if (flag.singleInstance)
             flags[flag] = true
@@ -31,16 +38,65 @@ open class UIManager {
     }
 }
 
-enum class UIFlag(val fileName: String, val windowName: String, val singleInstance: Boolean = true) {
-    CHARTS("ChartsViewModel", "charts.stage"),
-    EXPORT("ExportViewModel", "export.stage"),
-    FRAME_TAG_MANAGER("FrameTagManagerViewModel", "ftm.stage"),
-    IMPORT_CHARTS("ImportChartViewModel", "charts.import.stage", false),
-    MAIN("MainViewModel", "main.stage"),
-    NOTES("NotesViewModel", "notes.stage"),
-    SETTINGS("SettingsViewModel", "settings.stage"),
-    TAG_DETAILS("TagDetailsViewModel", "td.edit.stage", false),
-    TAG_MANAGER("TagManagerViewModel", "tm.stage"),
-    VIDEO_LIST("VideoManagementListViewModel", "vl.stage"),
-    VIDEO_DETAILS("VideoManagementDetailsViewModel", "vd.stage", false),
+enum class UIFlag(
+    val fileName: String,
+    val windowName: String,
+    val singleInstance: Boolean = true,
+    val errorMessage: String? = null,
+)
+{
+    CHARTS(
+        fileName = "ChartsViewModel",
+        windowName = "charts.stage",
+        errorMessage = "charts.error.already-open"
+    ),
+    EXPORT(
+        fileName = "ExportViewModel",
+        windowName = "export.stage",
+        errorMessage = "export.error.already-open"
+    ),
+    FRAME_TAG_MANAGER(
+        fileName = "FrameTagManagerViewModel",
+        windowName = "ftm.stage",
+        errorMessage = "ftm.error.already-open"
+    ),
+    IMPORT_CHARTS(
+        fileName = "ImportChartViewModel",
+        windowName = "charts.import.stage",
+        singleInstance = false
+    ),
+    MAIN(
+        fileName = "MainViewModel",
+        windowName = "main.stage",
+    ),
+    NOTES(
+        fileName = "NotesViewModel",
+        windowName = "notes.stage",
+        errorMessage = "notes.error.already-open"
+    ),
+    SETTINGS(
+        fileName = "SettingsViewModel",
+        windowName = "settings.stage",
+        errorMessage = "settings.error.already-open"
+    ),
+    TAG_DETAILS(
+        fileName = "TagDetailsViewModel",
+        windowName = "td.edit.stage",
+        singleInstance = false
+    ),
+    TAG_MANAGER(
+        fileName = "TagManagerViewModel",
+        windowName = "tm.stage",
+        errorMessage = "tm.error.already-open"
+    ),
+    VIDEO_LIST(
+        fileName = "VideoManagementListViewModel",
+        windowName = "vl.stage",
+        errorMessage = "vl.error.already-open"
+    ),
+    VIDEO_DETAILS(
+        fileName = "VideoManagementDetailsViewModel",
+        windowName = "vd.stage",
+        singleInstance = false
+    ),
 }
