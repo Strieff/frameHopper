@@ -1,0 +1,585 @@
+package com.FrameHopper.app.ui.controller;
+
+import com.FrameHopper.app.ui.utils.FXIconLoader;
+import com.FrameHopper.app.ui.settings.UserSettingsAdapter;
+import com.FrameHopper.app.boundry.dto.FrameDTO;
+import com.FrameHopper.app.boundry.dto.TagDTO;
+import com.FrameHopper.app.boundry.dto.VideoDTO;
+import com.FrameHopper.app.core.ports.in.FrameBytesQuery;
+import com.FrameHopper.app.core.ports.in.frame.FrameQuery;
+import com.FrameHopper.app.core.ports.in.video.LoadVideoCommand;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
+import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.actions.HistoryActions;
+import com.FrameHopper.app.ui.actions.PasteRecentAction;
+import com.FrameHopper.app.ui.actions.RemoveRecentAction;
+import com.FrameHopper.app.ui.eventing.*;
+import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.utils.LanguageBundleUtils;
+import com.FrameHopper.app.ui.ve.MainViewTagTableEntry;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+//TODO: move to dictionary adapter
+@Component
+@Scope("prototype")
+public class MainViewController extends UiView implements
+        FrameUpdatedEventListener,
+        TagUpdatedEventListener,
+        TagDeletedEventListener,
+        OpenVideoEventListener,
+        VideoDeletedEventListener,
+        VideoPathUpdatedListener
+{
+    @FXML
+    private TextField frameInput;
+    @FXML
+    private Label dropLabel, statusLabel;
+    @FXML
+    private TableView<MainViewTagTableEntry> tableView;
+    @FXML
+    private TableColumn<MainViewTagTableEntry,String> nameColumn;
+    @FXML
+    private TableColumn<MainViewTagTableEntry,Double> valueColumn;
+    @FXML
+    private ImageView
+            addButtonIcon,
+            settingsButtonIcon,
+            exportButtonIcon,
+            chartButtonIcon,
+            tagManagerIcon,
+            notesButtonIcon,
+            videoListButtonIcon;
+    @FXML
+    private BorderPane mainView;
+    @FXML
+    private Button jumpButton;
+    @FXML
+    private ImageView frameView;
+    @FXML
+    private StackPane framePane;
+
+    private final Logger logger = LoggerFactory.getLogger(MainViewController.class);
+
+    private final LoadVideoCommand loadVideoCommand;
+    private final FrameQuery frameQuery;
+    private final FrameBytesQuery frameBytesQuery;
+    private final UIManager uiManager;
+    private final UserSettingsAdapter userSettingsAdapter;
+    private final PasteRecentAction pasteRecentAction;
+    private final RemoveRecentAction removeRecentAction;
+    private final HistoryActions historyActions;
+
+    private final Map<Integer, FrameDTO> cachedTags = new HashMap<>();
+
+    private final ObjectProperty<VideoDTO> cachedVideoProperty = new SimpleObjectProperty<>(null);
+    private final IntegerProperty indexProperty = new SimpleIntegerProperty(0);
+
+    public MainViewController(
+            LoadVideoCommand loadVideoCommand,
+            FrameBytesQuery frameBytesQuery,
+            FrameQuery frameQuery,
+            UIManager uiManager,
+            UserSettingsAdapter userSettingsAdapter,
+            PasteRecentAction pasteRecentAction,
+            RemoveRecentAction removeRecentAction,
+            HistoryActions historyActions
+    ) {
+        this.loadVideoCommand = loadVideoCommand;
+        this.frameBytesQuery = frameBytesQuery;
+        this.frameQuery = frameQuery;
+        this.uiManager = uiManager;
+        this.userSettingsAdapter = userSettingsAdapter;
+        this.pasteRecentAction = pasteRecentAction;
+        this.removeRecentAction = removeRecentAction;
+        this.historyActions = historyActions;
+
+        FrameUpdatedEventDispatcher.register(this);
+        TagUpdatedEventDispatcher.register(this);
+        TagDeletedEventDispatcher.register(this);
+        OpenVideoEventDispatcher.register(this);
+        VideoDeletedEventDispatcher.register(this);
+    }
+
+    @FXML
+    public void initialize(){
+        mainView.setOnMouseClicked(e -> mainView.requestFocus());
+
+        bind(dropLabel, "main.drop-placeholder");
+
+        //drag and drop
+        framePane.setOnDragOver(this::handleDragOver);
+        framePane.setOnDragDropped(this::handleDragDropped);
+
+        //set cell factories for the table
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        bind(nameColumn, "main.table.name");
+        valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        bind(valueColumn, "main.table.value");
+
+        //set up button icons
+        addButtonIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
+        settingsButtonIcon.setImage(FXIconLoader.getLargeIcon("settings.png"));
+        chartButtonIcon.setImage(FXIconLoader.getLargeIcon("chart.png"));
+        exportButtonIcon.setImage(FXIconLoader.getLargeIcon("export.png"));
+        tagManagerIcon.setImage(FXIconLoader.getLargeIcon("tag.png"));
+        notesButtonIcon.setImage(FXIconLoader.getLargeIcon("notes.png"));
+        videoListButtonIcon.setImage(FXIconLoader.getLargeIcon("video-player.png"));
+
+        //jump section
+        bind(jumpButton, "main.jump.button");
+        bind(frameInput, "main.jump.prompt");
+
+        //status label
+        statusLabel.textProperty().bind(
+                Bindings.createStringBinding(
+                        () -> {
+                            var video = cachedVideoProperty.get();
+
+                            if(video == null)
+                                return I18n.tr("main.video-info.no-video");
+
+                            return I18n.tr(
+                                    "main.video-info",
+                                    indexProperty.get() + 1,
+                                    video.metadata().totalFrames(),
+                                    video.metadata().frameRate()
+                            );
+                        },
+                        I18n.localeProperty(),
+                        indexProperty,
+                        cachedVideoProperty
+                )
+        );
+
+        addKeybinds();
+
+        Platform.runLater(() -> {
+            var stage = (Stage) mainView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> System.exit(0));
+            mainView.requestFocus();
+        });
+    }
+
+    //region [Drag and Drop]
+
+    //drag event
+    private void handleDragOver(DragEvent event) {
+        if(event.getDragboard().hasFiles())
+            event.acceptTransferModes(TransferMode.COPY);
+        event.consume();
+    }
+
+    //drop event
+    private void handleDragDropped(DragEvent event){
+        Dragboard db = event.getDragboard();
+        var success = false;
+
+        if(db.hasFiles()){
+            success = true;
+            var file = db.getFiles().getFirst();
+
+            try {
+                cachedVideoProperty.set(loadVideoCommand.loadVideo(file.getPath()));
+                openVideo();
+            }catch (Exception e){
+                logger.error(e.getMessage(),e);
+            }
+        }
+
+        event.setDropCompleted(success);
+        event.consume();
+    }
+
+    //endregion
+
+    private void openVideo(){
+        indexProperty.set(0);
+        cacheTagData();
+        displayCurrentData();
+        userSettingsAdapter.setRecentlyOpenId(cachedVideoProperty.get().id());
+        historyActions.clear();
+    }
+
+    private void cacheTagData() {
+        cachedTags.clear();
+        var allFramesOnVideo = frameQuery.getAllFramesOnVideo(cachedVideoProperty.get());
+        if(allFramesOnVideo == null) return;
+
+        allFramesOnVideo.forEach(f -> cachedTags.put(f.frameNumber(), f));
+    }
+
+    private void displayCurrentData() {
+        if(!dropLabel.getText().isBlank())
+            dropLabel.setVisible(false);
+
+        displayCurrentFrame();
+        displayCurrentTags();
+    }
+
+    //region [Display loaders]
+
+    private void displayCurrentFrame() {
+        try {
+            var index = indexProperty.get();
+            var frameBytes = frameBytesQuery.getVideoFrame(cachedVideoProperty.get(), index);
+            displayCurrentFrame(frameBytes, index);
+        } catch (IOException | InterruptedException e) {
+            logger.error(e.getMessage(),e);
+        }
+    }
+
+    private void displayCurrentFrame(byte[] bytes, int index) {
+        try {
+            Image fxImage = new Image(new ByteArrayInputStream(bytes));
+
+            if(fxImage.isError())
+                throw new IOException("JavaFX failed to decode frame image for index " + index);
+
+            frameView.setImage(fxImage);
+
+            frameView.setPreserveRatio(true);
+            frameView.setSmooth(true);
+            frameView.setManaged(true);
+            frameView.setPickOnBounds(true);
+            frameView.fitWidthProperty().bind(framePane.widthProperty());
+            frameView.fitHeightProperty().bind(framePane.heightProperty());
+        } catch (IOException e) {
+            logger.error(e.getMessage(),e);
+        }
+    }
+
+    private void displayCurrentTags() {
+        var index = indexProperty.get();
+
+        if(!cachedTags.containsKey(index)) {
+            tableView.getItems().clear();
+            return;
+        }
+
+        var currentTags = cachedTags.get(index).tags();
+        tableView.getItems().clear();
+
+        if (!currentTags.isEmpty())
+            tableView.getItems().addAll(currentTags.stream().map(MainViewTagTableEntry::new).toList());
+    }
+
+    //endregion
+
+    //region FXML
+
+    @FXML
+    protected void onAdd() {
+        var index = indexProperty.get();
+
+        var loader = uiManager.open(UIFlag.FRAME_TAG_MANAGER, mainView);
+
+        FrameTagManagerController controller = loader.getController();
+
+        var frame = cachedTags.getOrDefault(index, new FrameDTO(-1, index, cachedVideoProperty.get(), new ArrayList<>()));
+
+        controller.init(frame);
+    }
+
+    @FXML
+    protected void onSettings() {
+        uiManager.open(UIFlag.SETTINGS, mainView);
+    }
+
+    @FXML
+    protected void onVideoList() {
+        uiManager.open(UIFlag.VIDEO_LIST, mainView);
+    }
+
+    @FXML
+    protected void onExport() {
+        uiManager.open(UIFlag.EXPORT, mainView);
+    }
+
+    @FXML
+    protected void onChart(){
+        uiManager.open(UIFlag.CHARTS, mainView);
+    }
+
+    @FXML
+    protected void onManager() {
+        uiManager.open(UIFlag.TAG_MANAGER, mainView);
+    }
+
+    @FXML
+    protected void onNotes() {
+        uiManager.open(UIFlag.NOTES, mainView);
+    }
+
+    //endregion
+
+    private void openVideoDetails(){
+        var cachedVideo = cachedVideoProperty.get();
+
+        if(cachedVideo == null) return;
+
+        var loader = uiManager.open(UIFlag.VIDEO_DETAILS, mainView);
+
+        VideoDetailsController controller = loader.getController();
+        controller.init(cachedVideo);
+    }
+
+    //region Movement
+
+    private void moveRight() {
+        var cachedVideo = cachedVideoProperty.get();
+        var index = indexProperty.get();
+
+        if(cachedVideo == null) return;
+
+        if(index + 1 > cachedVideo.metadata().totalFrames() - 1) return;
+
+        indexProperty.set(++index);
+        displayCurrentData();
+    }
+
+    private void moveLeft() {
+        var cachedVideo = cachedVideoProperty.get();
+        var index = indexProperty.get();
+
+        if(cachedVideo == null) return;
+
+        if(index - 1 < 0) return;
+
+        indexProperty.set(--index);
+        displayCurrentData();
+    }
+
+    @FXML
+    protected void onJumpToFrame() {
+        var cachedVideo = cachedVideoProperty.get();
+
+        if(cachedVideo == null) return;
+
+        int frame;
+        try{
+            frame = Integer.parseInt(frameInput.getText()) - 1;
+        } catch (NumberFormatException e){
+            return;
+        }
+
+        if(frame - 1 < 0 || frame > cachedVideo.metadata().totalFrames()) return;
+
+        indexProperty.set(frame);
+
+        displayCurrentData();
+    }
+
+    //endregion
+
+    @Async
+    @Override
+    public void onFrameUpdate(int frameNumber, FrameDTO frame) {
+        if(frame == null)
+            cachedTags.remove(frameNumber);
+        else
+            cachedTags.put(frameNumber, frame);
+
+        displayCurrentTags();
+    }
+
+    //region [TAG LIST UPDATE]
+
+    @Async
+    @Override
+    public void onTagUpdated(@NotNull TagDTO tagDTO) {
+        if(cachedVideoProperty.get() == null) return;
+        cacheTagData();
+        displayCurrentTags();
+    }
+
+    @Async
+    @Override
+    public void onTagUpdated(@NotNull List<TagDTO> tagsDTO) {
+        if(cachedVideoProperty.get() == null) return;
+
+        cacheTagData();
+        displayCurrentTags();
+    }
+
+    @Async
+    @Override
+    public void onTagDeleted(@NotNull TagDTO tagDTO) {
+        if(cachedVideoProperty.get() == null) return;
+
+        cacheTagData();
+        displayCurrentTags();
+    }
+
+    @Override
+    public void onTagDeleted(@NotNull List<TagDTO> tags) {
+        if(cachedVideoProperty.get() == null) return;
+
+        cacheTagData();
+        displayCurrentTags();
+    }
+
+    //endregion
+
+    @Override
+    public void openVideo(int id) {
+        cachedVideoProperty.set(loadVideoCommand.loadVideo(id));
+        openVideo();
+    }
+
+    //region [History and Recent Actions]
+
+    private void pasteRecent() {
+        var frame = cachedTags.containsKey(indexProperty.get())
+                ? cachedTags.get(indexProperty.get())
+                : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
+
+        pasteRecentAction.add(frame);
+    }
+
+   private void removeRecent() {
+       var frame = cachedTags.containsKey(indexProperty.get())
+               ? cachedTags.get(indexProperty.get())
+               : new FrameDTO(-1, indexProperty.get(), cachedVideoProperty.get(), new ArrayList<>());
+
+       removeRecentAction.remove(frame);
+   }
+
+   private void undo() {
+       historyActions.undo(
+               indexProperty.get(),
+               cachedTags.getOrDefault(indexProperty.get(), null)
+       );
+   }
+
+   private void redo() {
+       historyActions.redo(
+               indexProperty.get(),
+               cachedTags.getOrDefault(indexProperty.get(), null)
+       );
+   }
+
+    //endregion
+
+    //region [FRAME MANIPULATION]
+
+   private void flipHorizontally() {
+       try {
+           var index = indexProperty.get();
+           var flippedFrame = frameBytesQuery.flipFrame(
+                   cachedVideoProperty.get(),
+                   indexProperty.get(),
+                   true
+           );
+           displayCurrentFrame(flippedFrame, index);
+       } catch (IOException | InterruptedException e) {
+           throw new RuntimeException(e);
+       }
+   }
+
+    private void flipVertically() {
+        try {
+            var index = indexProperty.get();
+            var flippedFrame = frameBytesQuery.flipFrame(
+                    cachedVideoProperty.get(),
+                    indexProperty.get(),
+                    false
+            );
+            displayCurrentFrame(flippedFrame, index);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+   //endregion
+
+    @Override
+    protected void addKeybinds() {
+        //keybinds
+        keyActions.put(new KeyCodeCombination(KeyCode.COMMA), this::moveLeft);
+        keyActions.put(new KeyCodeCombination(KeyCode.PERIOD), this::moveRight);
+        keyActions.put(new KeyCodeCombination(KeyCode.H), this::flipHorizontally);
+        keyActions.put(new KeyCodeCombination(KeyCode.V), this::flipVertically);
+
+        keyActions.put(new KeyCodeCombination(KeyCode.M, KeyCombination.SHIFT_DOWN), this::onAdd);
+        keyActions.put(new KeyCodeCombination(KeyCode.F, KeyCombination.SHIFT_DOWN), this::onManager);
+        keyActions.put(new KeyCodeCombination(KeyCode.T, KeyCombination.SHIFT_DOWN), this::onManager);
+        keyActions.put(new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN), this::onSettings);
+        keyActions.put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN), this::onExport);
+        keyActions.put(new KeyCodeCombination(KeyCode.L, KeyCombination.SHIFT_DOWN), this::onVideoList);
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::onChart);
+        keyActions.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHIFT_DOWN), this::onNotes);
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.SHIFT_DOWN), this::openVideoDetails);
+
+        keyActions.put(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::pasteRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::removeRecent);
+        keyActions.put(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN), this::redo);
+        keyActions.put(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN), this::undo);
+
+        keyActions.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), I18n::clearCache);
+        keyActions.put(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN), () -> {
+            LanguageBundleUtils.creteBundle();
+            NewLanguageEventDispatcher.dispatch();
+        });
+
+        //add key binds
+        addEventFilter(mainView);
+    }
+
+    @Override
+    protected void close() {
+
+    }
+
+    @Async
+    @Override
+    public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
+        var cachedVideo = cachedVideoProperty.get();
+
+        if(cachedVideo == null) return;
+
+        if(!cachedVideo.equals(videoDTO)) return;
+
+        cachedVideoProperty.set(null);
+        indexProperty.set(0);
+
+        cachedTags.clear();
+        tableView.getItems().clear();
+
+        frameView.setImage(null);
+        dropLabel.setVisible(true);
+    }
+
+    @Override
+    public void onVideoPathUpdated(@NotNull VideoDTO video) {
+        if(cachedVideoProperty.get().equals(video))
+            cachedVideoProperty.set(video);
+    }
+}

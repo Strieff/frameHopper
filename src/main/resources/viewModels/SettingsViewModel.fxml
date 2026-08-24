@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="settingsView" prefHeight="222.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.Settings.SettingsController">
+<BorderPane fx:id="settingsView" prefHeight="222.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.SettingsController">
    <center>
         <VBox alignment="TOP_CENTER" prefHeight="223.0" prefWidth="300.0" spacing="10" BorderPane.alignment="CENTER">
             <!-- Language ComboBox at the top -->

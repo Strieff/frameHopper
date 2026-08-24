@@ -1,0 +1,20 @@
+.table-row-cell.hidden-tag-row {
+    -fx-background-color: #909090;
+}
+
+.table-row-cell.hidden-tag-row:selected {
+    -fx-background-color: -fx-selection-bar;
+}
+
+.table-row-cell.hidden-tag-row:selected .text {
+    -fx-fill: -fx-selection-bar-text;
+}
+
+.table-row-cell.hidden-tag-row .table-cell {
+    -fx-background-color: #909090;
+}
+
+.table-row-cell.hidden-tag-row:selected .table-cell {
+    -fx-background-color: -fx-selection-bar;
+    -fx-text-fill: -fx-selection-bar-text;
+}

@@ -4,11 +4,15 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="notesView" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.Notes.NotesController">
+<BorderPane fx:id="notesView" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.NotesController">
 
     <!-- Left -->
     <left>
         <VBox maxWidth="320.0" minWidth="220.0" prefWidth="260.0" spacing="8.0" style="-fx-padding: 10;" BorderPane.alignment="CENTER">
+            <HBox alignment="CENTER" prefWidth="316.0" spacing="5">
+                <TextField fx:id="searchField" prefHeight="25.0" prefWidth="207.0" promptText="Search" />
+                <Button fx:id="searchButton" onAction="#handleSearch" text="🔍" />
+            </HBox>
             <ListView fx:id="notesList" VBox.vgrow="ALWAYS" />
         </VBox>
     </left>
@@ -21,8 +25,7 @@
             <HBox alignment="CENTER_LEFT" spacing="8.0">
                 <!-- Scrollable tabs -->
                 <ScrollPane fitToHeight="true" fitToWidth="true" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
-                    <HBox fx:id="noteTabsBar" alignment="CENTER_LEFT" prefWidth="462.0" spacing="8.0"
-                          style="-fx-padding: 6 4 6 4;">
+                    <HBox fx:id="noteTabsBar" alignment="CENTER_LEFT" prefWidth="462.0" spacing="8.0" style="-fx-padding: 6 4 6 4;">
                         <!-- ToggleButtons (1..N) injected from controller -->
                     </HBox>
                 </ScrollPane>

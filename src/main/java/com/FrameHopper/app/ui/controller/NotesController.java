@@ -1,0 +1,361 @@
+package com.FrameHopper.app.ui.controller;
+
+import com.FrameHopper.app.ui.utils.FXIconLoader;
+import com.FrameHopper.app.boundry.dto.CommentDTO;
+import com.FrameHopper.app.boundry.dto.VideoDTO;
+import com.FrameHopper.app.core.ports.in.comment.ChangeCommentContentCommand;
+import com.FrameHopper.app.core.ports.in.comment.ChangeCommentListingOrderCommand;
+import com.FrameHopper.app.core.ports.in.comment.CreateCommentCommand;
+import com.FrameHopper.app.core.ports.in.comment.DeleteCommentCommand;
+import com.FrameHopper.app.core.ports.in.video.VideoQuery;
+import com.FrameHopper.app.ui.UIFlag;
+import com.FrameHopper.app.ui.UIManager;
+import com.FrameHopper.app.ui.UiView;
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.VideoDeletedEventListener;
+import com.FrameHopper.app.ui.eventing.VideoPathUpdatedEventDispatcher;
+import com.FrameHopper.app.ui.eventing.VideoPathUpdatedListener;
+import com.FrameHopper.app.ui.language.I18n;
+import com.FrameHopper.app.ui.ve.NotesVideoTableEntry;
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+import javafx.util.Callback;
+import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+
+@Component
+@Scope("prototype")
+public class NotesController extends UiView implements
+        VideoDeletedEventListener,
+        VideoPathUpdatedListener
+{
+    @FXML
+    private BorderPane notesView;
+    @FXML
+    private TextArea noteEditor;
+    @FXML
+    private ListView<NotesVideoTableEntry> notesList;
+    @FXML
+    private ImageView addNoteIcon, deleteNoteIcon;
+    @FXML
+    private HBox noteTabsBar;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private Button searchButton;
+
+    private final PauseTransition saveDebounce = new PauseTransition(Duration.millis(300));
+    private final ToggleGroup toggleGroup = new ToggleGroup();
+
+    private final VideoQuery videoQuery;
+    private final ChangeCommentContentCommand changeCommentContentCommand;
+    private final ChangeCommentListingOrderCommand changeCommentListingOrderCommand;
+    private final CreateCommentCommand createCommentCommand;
+    private final DeleteCommentCommand deleteCommentCommand;
+    private final UIManager uiManager;
+
+    private CommentDTO currentNote;
+    private ObservableList<NotesVideoTableEntry> cachedVideoList;
+
+    public NotesController(
+            VideoQuery videoQuery,
+            ChangeCommentContentCommand changeCommentContentCommand,
+            ChangeCommentListingOrderCommand changeCommentListingOrderCommand,
+            CreateCommentCommand createCommentCommand,
+            DeleteCommentCommand deleteCommentCommand,
+            UIManager uiManager
+    ) {
+        this.videoQuery = videoQuery;
+        this.changeCommentContentCommand = changeCommentContentCommand;
+        this.changeCommentListingOrderCommand = changeCommentListingOrderCommand;
+        this.createCommentCommand = createCommentCommand;
+        this.deleteCommentCommand = deleteCommentCommand;
+        this.uiManager = uiManager;
+
+        VideoDeletedEventDispatcher.register(this);
+        VideoPathUpdatedEventDispatcher.register(this);
+    }
+
+    @FXML
+    public void initialize() {
+        notesView.setOnMouseClicked(e -> notesView.requestFocus());
+
+        bind(noteEditor, "notes.editor-prompt");
+        bind(searchField, "notes.search-prompt");
+
+        noteEditor.textProperty().addListener((obs, oldV, newV) -> {
+            saveDebounce.stop();
+            saveDebounce.playFromStart();
+        });
+
+        saveDebounce.setOnFinished(e -> saveCurrent());
+
+        notesList.setCellFactory(createNotesCellFactory());
+        cachedVideoList = FXCollections.observableArrayList(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+        notesList.setItems(cachedVideoList);
+
+        notesList.getSelectionModel().selectedItemProperty().addListener((obs, old, entry) -> {
+            if(entry == null) return;
+            currentNote = null;
+            noteEditor.clear();
+            loadCurrentTabs();
+        });
+
+        addNoteIcon.setImage(FXIconLoader.getLargeIcon("plus.png"));
+        deleteNoteIcon.setImage(FXIconLoader.getLargeIcon("bin.png"));
+
+        addKeybinds();
+
+        Platform.runLater(() -> {
+            var stage = (Stage) notesView.getScene().getWindow();
+
+            stage.setOnCloseRequest(e -> close());
+        });
+    }
+
+    private Callback<ListView<NotesVideoTableEntry>, ListCell<NotesVideoTableEntry>> createNotesCellFactory() {
+        return lv -> new ListCell<>() {
+
+            private final Label nameLabel = new Label();
+            private final Label notesLabel = new Label();
+            private final Label arrowLabel = new Label("›");
+
+            private final VBox textBox = new VBox(2, nameLabel, notesLabel);
+            private final Region spacer = new Region();
+            private final HBox root = new HBox(10, textBox, spacer, arrowLabel);
+
+            private NotesVideoTableEntry bound;
+
+            {
+                // Layout
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                root.setAlignment(Pos.CENTER_LEFT);
+                root.setPadding(new Insets(6, 8, 6, 8));
+
+                // Styling
+                nameLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold;");
+                notesLabel.setStyle("-fx-font-size: 11; -fx-text-fill: -fx-text-inner-color;");
+                arrowLabel.setStyle("-fx-font-size: 18; -fx-opacity: 0.6;");
+
+                // Optional hover cue
+                root.setStyle("""
+                
+                        -fx-background-radius: 6;
+                """);
+
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            }
+
+            @Override
+            protected void updateItem(NotesVideoTableEntry item, boolean empty) {
+                super.updateItem(item, empty);
+
+                // Unbind previous
+                if (bound != null) {
+                    nameLabel.textProperty().unbind();
+                    notesLabel.textProperty().unbind();
+                    bound = null;
+                }
+
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    bound = item;
+
+                    nameLabel.textProperty().bind(item.nameProperty());
+                    notesLabel.textProperty().bind(
+                            Bindings.createStringBinding(
+                                    () -> I18n.tr("notes.list.note-count", item.notesCountProperty().get()),
+                                    I18n.localeProperty(),
+                                    item.notesCountProperty()
+                            )
+                    );
+
+                    setGraphic(root);
+                }
+            }
+        };
+    }
+
+    private void loadCurrentTabs() {
+        noteTabsBar.getChildren().clear();
+        toggleGroup.getToggles().clear();
+        noteEditor.clear();
+
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected == null) return;
+
+        var notes = selected.getVideo().comments();
+        if(notes.isEmpty()) {
+            currentNote = null;
+            noteEditor.clear();
+            return;
+        }
+
+        var sorted = notes.stream()
+                .sorted(Comparator.comparingInt(CommentDTO::getListingOrder))
+                .toList();
+
+        sorted.forEach(n -> {
+            var btn = new ToggleButton(Integer.toString(n.getListingOrder()));
+
+            //styling
+            btn.setMinWidth(Region.USE_PREF_SIZE);
+            btn.setPrefWidth(Region.USE_COMPUTED_SIZE);
+            btn.setMaxWidth(Region.USE_COMPUTED_SIZE);
+
+            btn.setToggleGroup(toggleGroup);
+            btn.setOnAction(e -> openNote(n));
+            noteTabsBar.getChildren().add(btn);
+        });
+
+        openNote(sorted.getFirst());
+
+        addKeybinds();
+
+        Platform.runLater(() -> {
+            notesView.requestFocus();
+            var stage = (Stage) notesView.getScene().getWindow();
+            stage.setOnCloseRequest(e -> close());
+        });
+    }
+
+    private void openNote(CommentDTO comment) {
+        ((ToggleButton) noteTabsBar.getChildren().get(comment.getListingOrder()-1)).setSelected(true);
+        currentNote = comment;
+        noteEditor.setText(currentNote.getContent());
+    }
+
+    private void saveCurrent() {
+        if(currentNote == null) return;
+
+        if(currentNote.getContent().equals(noteEditor.getText())) return;
+
+        currentNote.setContent(noteEditor.getText());
+        var updated = changeCommentContentCommand.updateCommentContent(currentNote);
+        currentNote.setContent(updated.getContent());
+    }
+
+    @FXML
+    public void onAddNote() {
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected == null) return;
+
+        var notes = selected.getVideo().comments();
+        var count = selected.getNotesCount();
+        var created = createCommentCommand.CreateComment(new CommentDTO(
+                -1,
+                "",
+                count + 1,
+                selected.getVideo().id()
+        ));
+        notes.add(created);
+
+        loadCurrentTabs();
+        openNote(notes.getLast());
+
+        selected.updateNotesCount();
+    }
+
+    @FXML
+    public void onDeleteNote() {
+        var selected = notesList.getSelectionModel().getSelectedItem();
+        if(selected == null) return;
+
+        if(currentNote == null) return;
+
+        var comments = selected.getVideo().comments();
+        if(comments.isEmpty()) return;
+
+        deleteCommentCommand.deleteComment(currentNote.getId());
+        comments.remove(currentNote);
+
+        if(!comments.isEmpty()) {
+            var toUpdate = comments.stream()
+                    .filter(c -> c.getListingOrder() > currentNote.getListingOrder())
+                    .toList();
+
+            if(!toUpdate.isEmpty()) {
+                toUpdate.forEach(c -> c.setListingOrder(c.getListingOrder() - 1));
+                changeCommentListingOrderCommand.changeCommentListingOrder(toUpdate);
+            }
+        }
+
+        currentNote = null;
+        selected.updateNotesCount();
+        loadCurrentTabs();
+    }
+
+    @FXML
+    public void handleSearch() {
+        var query = searchField.getText().trim();
+        if(query.isEmpty() && !searchButton.getText().equals("X")) return;
+
+        if(searchButton.getText().equals("\uD83D\uDD0D")) {
+            notesList.setItems(cachedVideoList.filtered(e -> e.getVideo().name().toLowerCase().contains(query.toLowerCase())));
+            searchButton.setText("X");
+
+            var selected = notesList.getSelectionModel().getSelectedItem();
+            if(selected != null) return;
+
+            currentNote = null;
+            loadCurrentTabs();
+        } else {
+            notesList.setItems(cachedVideoList);
+            searchButton.setText("\uD83D\uDD0D");
+            searchField.clear();
+        }
+    }
+
+    @Override
+    public void addKeybinds() {
+        keyActions.put(new KeyCodeCombination(KeyCode.C, KeyCombination.SHIFT_DOWN), this::close);
+
+        keyActions.put(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN), this::onAddNote);
+
+        addEventFilter(notesView);
+    }
+
+    @Override
+    public void close() {
+        VideoDeletedEventDispatcher.unregister(this);
+        VideoPathUpdatedEventDispatcher.unregister(this);
+
+        uiManager.close(UIFlag.NOTES);
+        var stage = (Stage) notesView.getScene().getWindow();
+        stage.close();
+    }
+
+    @Override
+    public void onDeleteVideo(@NotNull VideoDTO videoDTO) {
+        notesList.getItems().clear();
+        cachedVideoList = FXCollections.observableArrayList(videoQuery.getAllWithNotes().stream().map(NotesVideoTableEntry::new).toList());
+        notesList.setItems(cachedVideoList);
+    }
+
+    @Override
+    public void onVideoPathUpdated(@NotNull VideoDTO video) {
+        var videos = cachedVideoList.stream().map(NotesVideoTableEntry::getVideo).toList();
+        var index = videos.indexOf(video);
+        if(index == -1) return;
+
+        cachedVideoList.get(index).setName(video);
+    }
+}

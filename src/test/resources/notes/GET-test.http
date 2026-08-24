@@ -1,0 +1,3 @@
+###get all comments by video id
+GET http://localhost:8080/api/notes/videoId/1
+Accept: application/json

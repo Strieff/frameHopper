@@ -1,6 +1,5 @@
 HELP.md
 target/
-out/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -8,9 +7,11 @@ application/old.jar
 application/tęst
 cache/
 data/
-application/
-ffmpeg/
+/application/
+/ffmpeg/
 .mvn
+todo.md
+js/
 
 
 ### STS ###
@@ -46,10 +47,6 @@ docker-compose.yml
 *.sql
 Util.java
 .DS_Store
-
-application/data/
-application/cache/
-"application/settings/user settings.json"
 
 test-videos/
 settings/user settings.json

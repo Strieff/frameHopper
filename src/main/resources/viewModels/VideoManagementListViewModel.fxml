@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="listView" prefHeight="360.0" prefWidth="510.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.View.FXViews.VideoManagementList.VideoManagementListController">
+<BorderPane fx:id="listView" prefHeight="360.0" prefWidth="510.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.FrameHopper.app.ui.controller.VideoListController">
+    <top>
+        <HBox alignment="CENTER" prefWidth="500.0" spacing="5">
+            <TextField fx:id="searchField" prefHeight="25.0" prefWidth="460.0" promptText="Search" />
+            <Button fx:id="searchButton" onAction="#handleSearch" text="🔍" />
+            <padding>
+                <Insets bottom="10.0" top="10.0" />
+            </padding>
+        </HBox>
+    </top>
+
     <center>
         <VBox prefWidth="500.0" spacing="8.0" style="-fx-padding: 5;" BorderPane.alignment="CENTER">
             <ListView fx:id="videoList" VBox.vgrow="ALWAYS" />
