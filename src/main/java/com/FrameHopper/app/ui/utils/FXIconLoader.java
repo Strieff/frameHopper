@@ -51,6 +51,4 @@ public class FXIconLoader {
                 false
         );
     }
-
-
 }

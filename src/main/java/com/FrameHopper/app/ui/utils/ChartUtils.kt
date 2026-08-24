@@ -39,6 +39,10 @@ object ChartUtils {
 
     private const val PLOTLY_NEW_PLOT =  "Plotly.newPlot(target_plotDiv, data, layout);"
     private val PLOTLY_CUSTOM_NEW_PLOT = """
+            data.forEach(trace => {
+                trace.hovertemplate = '%{x}: <b>%{y}</b><extra></extra>';
+            });
+        
             Plotly.newPlot(
                 target_plotDiv,
                 data,
@@ -63,7 +67,9 @@ object ChartUtils {
         data: List<Pair<String, Double>>,
         showMean: Boolean,
         colorBars: Boolean,
-        tick: Int
+        tick: Int,
+        height: Int,
+        width: Int,
     ) : String
     {
         val header = headers.second
@@ -199,6 +205,8 @@ object ChartUtils {
 
         return Layout.builder()
             .title(header)
+            .width(width - 20)
+            .height(height - 20)
             .showLegend(true)
             .hoverMode(Layout.HoverMode.CLOSEST)
             .yAxis(

@@ -19,6 +19,7 @@ import com.FrameHopper.app.ui.settings.UserSettingsAdapter
 import com.FrameHopper.app.ui.utils.ChartUtils
 import com.FrameHopper.app.ui.utils.FXIconLoader
 import com.FrameHopper.app.ui.utils.SearchUtils
+import javafx.animation.PauseTransition
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.BooleanProperty
@@ -41,6 +42,7 @@ import javafx.scene.text.Text
 import javafx.scene.web.WebView
 import javafx.stage.Stage
 import javafx.util.Callback
+import javafx.util.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -136,6 +138,7 @@ class ChartsController(
     private val uiScope = MainScope()
     private val chartExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private val localeProperty: ObjectProperty<Locale> = localeProperty()
+    val resizePause = PauseTransition(Duration.millis(200.0))
 
     init {
         VideoPathUpdatedEventDispatcher.register(this)
@@ -197,11 +200,19 @@ class ChartsController(
 
         localeProperty.addListener { Platform.runLater { generateChart() } }
 
+        resizePause.setOnFinished {
+            generateChart()
+        }
+
+        webView.engine.isJavaScriptEnabled = true
+
         addKeybinds()
 
         Platform.runLater {
             (chartView.scene.window as Stage).apply {
                 onCloseRequest = EventHandler { this@ChartsController.close() }
+                widthProperty().addListener { scheduleResize() }
+                heightProperty().addListener { scheduleResize() }
             }
         }
     }
@@ -216,7 +227,7 @@ class ChartsController(
 
         return videos
             .map { NewChartsTableEntry(it, framesByVideoId[it].orEmpty()) }
-            .onEach { it.selected.addListener { _, _, _ -> generateChart()} }
+            .onEach { it.selected.addListener { generateChart()} }
     }
 
     private fun createChartOptionCell(): ListCell<NewChartsActionEntry> =
@@ -236,6 +247,10 @@ class ChartsController(
                 }
             }
         }
+
+    fun scheduleResize() {
+        resizePause.playFromStart()
+    }
 
     //endregion
 
@@ -266,11 +281,12 @@ class ChartsController(
                 data = data,
                 showMean = mean,
                 colorBars = colors,
-                tick = ticks
+                tick = ticks,
+                height = webView.height.toInt(),
+                width = webView.width.toInt()
             )
         }
 
-        webView.engine.isJavaScriptEnabled = true
         webView.engine.loadContent(html)
     }
 

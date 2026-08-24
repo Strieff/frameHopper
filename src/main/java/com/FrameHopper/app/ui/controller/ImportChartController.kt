@@ -45,6 +45,8 @@ class ImportChartController(
     fun initialize() {
         saveButtonIcon.image = FXIconLoader.getLargeIcon("save.png")
 
+        webView.engine.isJavaScriptEnabled = true
+
         localeProperty.addListener { Platform.runLater { generateChart() } }
 
         addKeybinds()
@@ -80,10 +82,11 @@ class ImportChartController(
                 data,
                 showMean,
                 colorMean,
-                tick
+                tick,
+                height = webView.height.toInt(),
+                width = webView.width.toInt()
             )
 
-            webView.engine.isJavaScriptEnabled = true
             webView.engine.loadContent(html)
         }
     }
