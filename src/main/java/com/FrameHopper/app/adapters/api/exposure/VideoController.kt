@@ -252,13 +252,11 @@ class VideoController(
 
         when (fileFormat) {
             AnalyticsFormat.CSV -> csvExportPort.exportToZipByteArray(ExportDataInput(
-                language = analyticsInput.language,
                 videos = videos,
                 chosenVideoAnalytics = videoAnalytics,
                 chosenTagAnalytics = tagAnalytics
             ))
             AnalyticsFormat.XLSX -> excelExportPort.exportToExcelByteArray(ExportDataInput(
-                language = analyticsInput.language,
                 videos = videos,
                 chosenVideoAnalytics = videoAnalytics,
                 chosenTagAnalytics = tagAnalytics

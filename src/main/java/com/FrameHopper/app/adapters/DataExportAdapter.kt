@@ -112,7 +112,6 @@ class DataExportAdapter(
             }
         }
 
-
     private fun resizeCells(sheet: Sheet, to: Int) = (0 until to).forEach { i ->
             sheet.autoSizeColumn(i)
         }
