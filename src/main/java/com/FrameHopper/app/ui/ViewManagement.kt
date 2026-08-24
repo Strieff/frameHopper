@@ -32,7 +32,7 @@ open class UIManager {
 }
 
 enum class UIFlag(val fileName: String, val windowName: String, val singleInstance: Boolean = true) {
-    CHARTS("NewChartsViewModel", "charts.stage"),
+    CHARTS("ChartsViewModel", "charts.stage"),
     EXPORT("ExportViewModel", "export.stage"),
     FRAME_TAG_MANAGER("FrameTagManagerViewModel", "ftm.stage"),
     IMPORT_CHARTS("ImportChartViewModel", "charts.import.stage", false),

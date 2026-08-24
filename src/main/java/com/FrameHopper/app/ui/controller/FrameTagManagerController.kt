@@ -330,7 +330,7 @@ open class FrameTagManagerController (
         if(video == cachedFrame.video()) close()
     }
 
-    override fun onSHowHiddenUpdated() = refreshVisibilityFilter()
+    override fun onShowHiddenUpdated() = refreshVisibilityFilter()
     //endregion
 }
 

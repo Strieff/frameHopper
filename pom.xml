@@ -165,6 +165,11 @@
             <artifactId>kotlinx-coroutines-core</artifactId>
             <version>${kotlin.coroutines.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-javafx</artifactId>
+            <version>${kotlin.coroutines.version}</version>
+        </dependency>
 
         <!--swagger-->
         <dependency>

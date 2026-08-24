@@ -431,7 +431,7 @@ public class TagManagerController extends UiView implements
     }
 
     @Override
-    public void onSHowHiddenUpdated() {
+    public void onShowHiddenUpdated() {
         refreshVisibilityFilter();
     }
 }

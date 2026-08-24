@@ -10,9 +10,9 @@ object ShowHiddenEventDispatcher {
     fun unregister(listener: ShowHiddenEventListener) = listeners.remove(listener)
 
     @JvmStatic
-    fun dispatch() = listeners.forEach { it.onSHowHiddenUpdated() }
+    fun dispatch() = listeners.forEach { it.onShowHiddenUpdated() }
 }
 
 fun interface ShowHiddenEventListener {
-    fun onSHowHiddenUpdated()
+    fun onShowHiddenUpdated()
 }
